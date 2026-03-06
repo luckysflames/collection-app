@@ -1,29 +1,41 @@
 {
   "expo": {
-    "name": "collection-app",
+    "name": "Collectix",
     "slug": "collection-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#050B18",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#050B18"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "backgroundColor": "#050B18",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#050B18",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "package": "com.luckyflame.collectionapp",
+      "androidStatusBar": {
+        "translucent": true,
+        "backgroundColor": "#00000000"
       }
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "99f92b1b-9222-4c27-8925-1dc4d9980013"
+      }
     }
   }
 }
