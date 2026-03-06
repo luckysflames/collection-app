@@ -4,39 +4,42 @@ import {
     TouchableOpacity,
     StyleSheet,
     Dimensions,
+    Image,
 } from "react-native";
+// Ionicons оставляем только если поиск все еще берем оттуда, либо заменяем тоже
 import { Ionicons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
+
+// 1. Создаем карту иконок (импорты должны быть статическими в RN)
+const TAB_ICONS = {
+    Игры: {
+        active: require("../assets/icons/game(active).png"),
+        inactive: require("../assets/icons/game(inactive).png"),
+    },
+    Фильмы: {
+        active: require("../assets/icons/movie(active).png"),
+        inactive: require("../assets/icons/movie(inactive).png"),
+    },
+    Аниме: {
+        active: require("../assets/icons/anime(active).png"),
+        inactive: require("../assets/icons/anime(inactive).png"),
+    },
+    Книги: {
+        active: require("../assets/icons/book(active).png"),
+        inactive: require("../assets/icons/book(inactive).png"),
+    },
+    Поиск: {
+        active: require("../assets/icons/search(active).png"),
+        inactive: require("../assets/icons/search(inactive).png"),
+    },
+};
 
 export default function MyCustomTabBar({ state, descriptors, navigation }) {
     return (
         <View style={styles.mainContainer}>
             {state.routes.map((route, index) => {
-                const { options } = descriptors[route.key];
                 const isFocused = state.index === index;
-
-                // Определяем иконку (можно вынести в отдельный объект)
-                const getIcon = (name, color) => {
-                    const icons = {
-                        Игры: "game-controller",
-                        Фильмы: "film",
-                        Аниме: "star",
-                        Книги: "book",
-                        Поиск: "search",
-                    };
-                    return (
-                        <Ionicons
-                            name={
-                                isFocused
-                                    ? icons[name]
-                                    : `${icons[name]}-outline`
-                            }
-                            size={22}
-                            color={color}
-                        />
-                    );
-                };
 
                 const onPress = () => {
                     const event = navigation.emit({
@@ -49,20 +52,31 @@ export default function MyCustomTabBar({ state, descriptors, navigation }) {
                     }
                 };
 
-                // Специальная отрисовка для центральной кнопки Поиска
+                // Центральная кнопка Поиска
                 if (route.name === "Поиск") {
                     return (
                         <TouchableOpacity
                             key={index}
                             onPress={onPress}
-                            style={styles.searchButtonWrapper}
+                            style={[
+                                styles.searchButtonWrapper,
+                                isFocused && { backgroundColor: "#7D8AFF" },
+                            ]}
                             activeOpacity={0.8}
                         >
                             <View style={styles.searchInner}>
-                                <Ionicons
-                                    name="search"
-                                    size={28}
-                                    color="#FFF"
+                                {/* Используем кастомную иконку для поиска или оставляем Ionicons */}
+                                <Image
+                                    source={
+                                        isFocused
+                                            ? TAB_ICONS["Поиск"].active
+                                            : TAB_ICONS["Поиск"].inactive
+                                    }
+                                    style={{
+                                        width: 30,
+                                        height: 30,
+                                        tintColor: "#FFF",
+                                    }}
                                 />
                             </View>
                         </TouchableOpacity>
@@ -78,7 +92,19 @@ export default function MyCustomTabBar({ state, descriptors, navigation }) {
                             isFocused && styles.activeTabItem,
                         ]}
                     >
-                        {getIcon(route.name, isFocused ? "#FFF" : "#8E94A4")}
+                        {/* 2. Рендерим нашу картинку вместо Ionicons */}
+                        <Image
+                            source={
+                                isFocused
+                                    ? TAB_ICONS[route.name].active
+                                    : TAB_ICONS[route.name].inactive
+                            }
+                            style={[
+                                styles.iconStyle,
+                                // Если иконки одноцветные (черно-белые), можно красить их через tintColor
+                                { tintColor: isFocused ? "#FFF" : "#8E94A4" },
+                            ]}
+                        />
                         <Text
                             style={{
                                 color: isFocused ? "#FFF" : "#8E94A4",
@@ -112,7 +138,7 @@ const styles = StyleSheet.create({
     },
     tabItem: {
         flex: 1,
-        height: 65,
+        height: 60,
         alignItems: "center",
         justifyContent: "center",
         borderRadius: 25,
@@ -121,11 +147,16 @@ const styles = StyleSheet.create({
     activeTabItem: {
         backgroundColor: "#7D8AFF", // Фон только у активного таба
     },
+    iconStyle: {
+        width: 24,
+        height: 24,
+        resizeMode: "contain",
+    },
     searchButtonWrapper: {
         top: -40, // Выносим кнопку за пределы бара
         width: 75,
         height: 75,
-        borderRadius: "50%",
+        borderRadius: 35,
         backgroundColor: "#0B1534", // В цвет бара
         borderWidth: 5,
         borderColor: "#050B18", // В цвет общего фона приложения (создает эффект "выреза")

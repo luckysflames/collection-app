@@ -11,6 +11,7 @@ import {
 import debounce from "lodash.debounce";
 import { Ionicons } from "@expo/vector-icons";
 import { MediaCard } from "../components/MediaCard";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const TMDB_API_KEY =
     "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4MDQwZTBlNzQ0MDhlNTdiZTVhZDExNGY4MmNmNmVjNCIsIm5iZiI6MTc3MjcxMDQ2OC4xMjUsInN1YiI6IjY5YTk2YTQ0MTY0ZTYwMmU3YTY3NDM5OCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.WfGXhKlgAx9fQl9xWgM87-pKbCgS9OyuhDiUwDpNd9M";
@@ -22,6 +23,7 @@ export default function SearchScreen({ navigation }) {
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
     const [activeCategory, setActiveCategory] = useState("Аниме");
+    const insets = useSafeAreaInsets();
 
     const searchMedia = async (text, categoryOverride) => {
         // Берем категорию либо из аргумента (для чипсов), либо из стейта
@@ -100,7 +102,7 @@ export default function SearchScreen({ navigation }) {
     };
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { paddingTop: insets.top }]}>
             {/* Чипсы категорий */}
             <View style={styles.categoryToggle}>
                 {["Аниме", "Фильмы"].map((cat) => (
@@ -154,7 +156,12 @@ export default function SearchScreen({ navigation }) {
                 renderItem={({ item }) => (
                     <MediaCard
                         item={item}
-                        onPress={() => navigation.navigate("Details", { item, category: activeCategory })}
+                        onPress={() =>
+                            navigation.navigate("Details", {
+                                item,
+                                category: activeCategory,
+                            })
+                        }
                     />
                 )}
                 keyExtractor={(item) => item.id}
