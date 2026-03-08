@@ -46,6 +46,7 @@ export default function DetailsScreen({ route, navigation }) {
     );
     const isInCollection = !!savedItem;
     const isCustom = item.isCustom || savedItem?.isCustom;
+    const isAnime = item.id.startsWith("anime-") ? true : false;
 
     // Объединяем данные (приоритет: данные из стора > данные из API > базовые данные из пропсов)
     const displayData = {
@@ -177,6 +178,7 @@ export default function DetailsScreen({ route, navigation }) {
                                     year={displayData.year}
                                     countries={displayData.countries}
                                     length={displayData.length}
+                                    isAnime={isAnime}
                                     genres={displayData.genres}
                                     onStatusPress={() => setModalVisible(true)}
                                 />
@@ -231,6 +233,14 @@ export default function DetailsScreen({ route, navigation }) {
                 onClose={() => setModalVisible(false)}
                 onSelect={handleStatusUpdate}
                 currentStatus={savedItem?.status}
+                removeCard={
+                    isInCollection
+                        ? () => {
+                              removeFromCollection(item.id);
+                              setModalVisible(false);
+                          }
+                        : null
+                }
             />
         </ScrollView>
     );

@@ -11,7 +11,13 @@ import {
 
 const STATUSES = ["Смотрю", "В планах", "Просмотрено", "Брошено", "Отложено"];
 
-export const StatusModal = ({ visible, onClose, onSelect, currentStatus }) => (
+export const StatusModal = ({
+    visible,
+    onClose,
+    onSelect,
+    currentStatus,
+    removeCard,
+}) => (
     <Modal transparent visible={visible} animationType="slide">
         <Pressable style={styles.overlay} onPress={onClose}>
             <TouchableWithoutFeedback>
@@ -29,9 +35,16 @@ export const StatusModal = ({ visible, onClose, onSelect, currentStatus }) => (
                             )}
                         </TouchableOpacity>
                     ))}
-                    <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-                        <Text style={{ color: "#8E94A4" }}>Отмена</Text>
-                    </TouchableOpacity>
+                    {!!removeCard && (
+                        <TouchableOpacity
+                            onPress={removeCard}
+                            style={styles.removeBtn}
+                        >
+                            <Text style={styles.removeText}>
+                                Удалить из коллекции
+                            </Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
             </TouchableWithoutFeedback>
         </Pressable>
@@ -72,5 +85,15 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         backgroundColor: "#7D8AFF",
     },
-    closeBtn: { marginTop: 20, alignItems: "center", padding: 10 },
+    removeBtn: {
+        marginTop: 40,
+        alignItems: "center",
+        padding: 15,
+        backgroundColor: "#FF4B4B",
+        borderRadius: 20,
+    },
+    removeText: {
+        color: "#fff",
+        fontSize: 15,
+    },
 });

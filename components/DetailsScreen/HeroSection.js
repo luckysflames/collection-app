@@ -30,7 +30,7 @@ export const HeroSection = ({
             <Ionicons name="chevron-back" size={24} color="#fff" />
         </TouchableOpacity>
 
-        <TouchableOpacity
+        {/* <TouchableOpacity
             style={[
                 styles.roundButton,
                 styles.collectBtn,
@@ -45,7 +45,7 @@ export const HeroSection = ({
                 }
                 style={styles.iconSmall}
             />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         <View style={styles.mainPosterWrapper}>
             <Image source={{ uri: image }} style={styles.mainPoster} />

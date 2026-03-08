@@ -7,6 +7,7 @@ export const InfoBlock = ({
     year,
     countries,
     length,
+    isAnime,
     genres,
     onStatusPress,
 }) => (
@@ -51,7 +52,7 @@ export const InfoBlock = ({
             {!!length && (
                 <>
                     <View style={styles.dot} />
-                    <Text style={styles.metaText}>{length} мин.</Text>
+                    <Text style={styles.metaText}>{isAnime && "~ по"} {length} мин.</Text>
                 </>
             )}
         </View>
