@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Collectix",
+    "name": "Geekly",
     "slug": "collection-app",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -27,7 +27,8 @@
       "androidStatusBar": {
         "translucent": true,
         "backgroundColor": "#00000000"
-      }
+      },
+      "versionCode": 2
     },
     "web": {
       "favicon": "./assets/favicon.png"

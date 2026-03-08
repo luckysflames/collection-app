@@ -7,10 +7,8 @@ import {
     Image,
     Animated,
     Pressable,
-    Dimensions,
 } from "react-native";
-
-const { width } = Dimensions.get("window");
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const TAB_ICONS = {
     Поиск: {
@@ -64,6 +62,8 @@ export default function MyCustomTabBar({ state, descriptors, navigation }) {
 
     const collectionRoute = state.routes.find((r) => r.name === "Коллекция");
     const currentActiveSection = collectionRoute?.params?.appSection;
+
+    const insets = useSafeAreaInsets();
 
     const toggleMenu = () => {
         const toValue = isMenuOpen ? 0 : 1;
@@ -151,7 +151,15 @@ export default function MyCustomTabBar({ state, descriptors, navigation }) {
             </Animated.View>
 
             {/* Основной горизонтальный таб-бар */}
-            <View style={styles.mainContainer}>
+            <View
+                style={[
+                    styles.mainContainer,
+                    {
+                        paddingBottom: insets.bottom > 0 ? insets.bottom : 0,
+                        height: 80 + (insets.bottom > 0 ? insets.bottom : 0),
+                    },
+                ]}
+            >
                 {state.routes.map((route, index) => {
                     const isFocused = state.index === index;
                     const iconSet = TAB_ICONS[route.name];

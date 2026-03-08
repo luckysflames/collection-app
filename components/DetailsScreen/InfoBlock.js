@@ -13,12 +13,28 @@ export const InfoBlock = ({
     <View style={styles.container}>
         <Text style={styles.title}>{title}</Text>
 
-        {status && (
+        {/* {status && (
             <TouchableOpacity
                 onPress={onStatusPress}
                 style={styles.statusBadge}
             >
                 <Text style={styles.statusText}>{status}</Text>
+            </TouchableOpacity>
+        )} */}
+
+        {status ? (
+            <TouchableOpacity
+                onPress={onStatusPress}
+                style={styles.statusBadge}
+            >
+                <Text style={styles.statusText}>{status}</Text>
+            </TouchableOpacity>
+        ) : (
+            <TouchableOpacity
+                onPress={onStatusPress}
+                style={styles.statusBadgeCollect}
+            >
+                <Text style={styles.statusText}>Добавить в коллекцию</Text>
             </TouchableOpacity>
         )}
 
@@ -62,6 +78,14 @@ const styles = StyleSheet.create({
     },
     statusBadge: {
         borderColor: "#7D8AFF",
+        borderWidth: 2,
+        padding: 10,
+        borderRadius: 15,
+        marginBottom: 15,
+    },
+    statusBadgeCollect: {
+        borderColor: "#7D8AFF",
+        backgroundColor: "#7D8AFF",
         borderWidth: 2,
         padding: 10,
         borderRadius: 15,

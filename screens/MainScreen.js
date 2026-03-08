@@ -39,18 +39,6 @@ export default function MainScreen({ route, navigation }) {
         setActiveCategory(CATEGORIES[index]);
     };
 
-    const filteredData = myCollection.filter((item) => {
-        // return true;
-        // Проверяем принадлежность к табу через appSection
-        const isRightSection = item.appSection === currentSection;
-
-        // Проверяем чипс
-        const itemStatus = item.status || "Смотрю";
-        const isRightStatus = itemStatus === activeCategory;
-
-        return isRightSection && isRightStatus;
-    });
-
     const insets = useSafeAreaInsets();
 
     return (
@@ -80,7 +68,7 @@ export default function MainScreen({ route, navigation }) {
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.chipsContainer}
                 >
-                    {CATEGORIES.map((cat) => (
+                    {CATEGORIES.map((cat, index) => (
                         <TouchableOpacity
                             key={cat}
                             onPress={() => handleChipPress(cat, index)}
@@ -206,5 +194,11 @@ const styles = StyleSheet.create({
     },
     listPadding: {
         paddingBottom: 100, // Чтобы контент не перекрывался таб-баром
+    },
+    emptyText: {
+        color: "#8E94A4",
+        fontSize: 16,
+        textAlign: "center",
+        marginTop: 20,
     },
 });
