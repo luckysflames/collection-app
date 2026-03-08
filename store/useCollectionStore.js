@@ -14,10 +14,19 @@ export const useCollectionStore = create(
                     return { myCollection: [item, ...state.myCollection] };
                 }),
 
+            updateCard: (id, updatedFields) =>
+                set((state) => ({
+                    myCollection: state.myCollection.map((item) =>
+                        String(item.id) === String(id)
+                            ? { ...item, ...updatedFields }
+                            : item,
+                    ),
+                })),
+
             removeFromCollection: (id) =>
                 set((state) => ({
                     myCollection: state.myCollection.filter(
-                        (item) => item.id !== id,
+                        (item) => String(item.id) !== String(id),
                     ),
                 })),
         }),

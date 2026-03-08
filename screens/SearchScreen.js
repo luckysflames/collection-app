@@ -39,32 +39,39 @@ export default function SearchScreen({ navigation }) {
             console.log(`Ищем: ${text} в категории: ${currentCategory}`);
 
             if (currentCategory === "Аниме") {
-                console.log("Запрос к Jikan (Аниме)...");
-                const response = await fetch(
-                    `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(text)}&limit=15`,
-                );
-
-                if (response.status === 429) {
-                    console.warn(
-                        "Jikan: Слишком много запросов (Rate Limit). Подожди секунду.",
+                console.log("Запрос к Shikimori (Аниме)... Строка:", text);
+                try {
+                    const response = await fetch(
+                        `https://shikimori.one/api/animes?search=${encodeURIComponent(text)}&limit=15&order=ranked`,
                     );
-                    return;
-                }
+                    const data = await response.json();
 
-                const json = await response.json();
-                console.log("ПОЛНЫЙ ОТВЕТ СЕРВЕРА:", JSON.stringify(json));
+                    if (data && data.length > 0) {
+                        formattedData = data.map((item) => ({
+                            id: `anime-${item.id}`, // Используем их ID
+                            title: item.russian || item.name, // Приоритет русскому названию
+                            year: item.aired_on
+                                ? item.aired_on.split("-")[0]
+                                : "N/A",
+                            duration: item.kind
+                                ? item.kind.toUpperCase()
+                                : "TV",
+                            category: item.score ? `★ ${item.score}` : "Anime",
+                            image: `https://shikimori.one${item.image.original}`, // Склеиваем URL картинки
+                            description:
+                                "Нажмите, чтобы прочитать описание на экране деталей...",
 
-                if (json.data) {
-                    formattedData = json.data.map((item) => ({
-                        id: `anime-${item.mal_id}`,
-                        title: item.title_english || item.title,
-                        duration: item.type || "TV",
-                        category: item.score ? `★ ${item.score}` : "Anime",
-                        image:
-                            item.images.jpg.large_image_url ||
-                            item.images.jpg.image_url,
-                        description: item.synopsis,
-                    }));
+                            // Данные для DetailsScreen
+                            filmLength: item.episodes
+                                ? item.episodes * 24
+                                : null,
+                            countries: ["Япония"],
+                            // У Shikimori в кратком поиске нет жанров, их получим в деталях ниже
+                            genres: [],
+                        }));
+                    }
+                } catch (e) {
+                    console.error("Ошибка Shikimori:", e);
                 }
             } else if (currentCategory === "Фильмы") {
                 const response = await fetch(
@@ -76,13 +83,18 @@ export default function SearchScreen({ navigation }) {
                     },
                 );
                 const json = await response.json();
+                // console.log("ПОЛНЫЙ ОТВЕТ СЕРВЕРА:", JSON.stringify(json));
                 if (json.results) {
                     formattedData = json.results.map((item) => ({
                         id: `movie-${item.id}`,
                         title: item.title,
-                        duration: item.release_date
+                        year: item.release_date
                             ? item.release_date.split("-")[0]
                             : "N/A",
+                        // TMDB в поиске не отдает страны и длительность (нужен отдельный запрос по ID),
+                        // поэтому пока ставим "Movie" или оставляем пустым
+                        countries: [],
+                        filmLength: null,
                         category: item.vote_average
                             ? `★ ${item.vote_average.toFixed(1)}`
                             : "Movie",
@@ -90,6 +102,9 @@ export default function SearchScreen({ navigation }) {
                             ? `${TMDB_IMAGE_URL}${item.poster_path}`
                             : "https://via.placeholder.com/500x750",
                         description: item.overview,
+                        // TMDB отдает только genre_ids (цифры), названия без доп. запроса не получить
+                        // Мы можем либо захардкодить маппер, либо оставить пока так
+                        genres: [],
                     }));
                 }
             }
@@ -159,7 +174,9 @@ export default function SearchScreen({ navigation }) {
                         onPress={() =>
                             navigation.navigate("Details", {
                                 item,
-                                category: activeCategory,
+                                category: item.id.startsWith("anime-")
+                                    ? "Аниме"
+                                    : "Фильмы",
                             })
                         }
                     />
@@ -171,17 +188,31 @@ export default function SearchScreen({ navigation }) {
                 ListEmptyComponent={() =>
                     !loading &&
                     query.length > 2 && (
-                        <Text
-                            style={{
-                                color: "#8E94A4",
-                                textAlign: "center",
-                                marginTop: 20,
-                                paddingHorizontal: 20,
-                            }}
+                        <TouchableOpacity
+                            style={{ alignItems: "center" }}
+                            onPress={() =>
+                                navigation.navigate("AddCard", {
+                                    currentSection: "Фильмы",
+                                })
+                            }
                         >
-                            Вы не нажали кнопочку или по Вашему запросу ничего
-                            не найдено
-                        </Text>
+                            <Text
+                                style={{
+                                    color: "#8E94A4",
+                                    textAlign: "center",
+                                    marginVertical: 10,
+                                    paddingHorizontal: 20,
+                                }}
+                            >
+                                Не нашли то, что искали? Добавьте это в свою
+                                коллекцию вручную!
+                            </Text>
+                            <Ionicons
+                                name="add-circle-outline"
+                                size={30}
+                                color="#7D8AFF"
+                            />
+                        </TouchableOpacity>
                     )
                 }
             />

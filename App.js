@@ -11,6 +11,7 @@ import MainScreen from "./screens/MainScreen";
 import SearchScreen from "./screens/SearchScreen";
 import DetailsScreen from "./screens/DetailsScreen";
 import AddCardScreen from "./screens/AddCardScreen";
+import SettingsScreen from "./screens/SettingsScreen";
 import CustomTabBar from "./components/CustomTabBar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -30,29 +31,16 @@ const MyTheme = {
 function HomeTabs() {
     return (
         <Tab.Navigator
-            tabBar={(props) => <CustomTabBar {...props} />} // Подключаем кастомный бар
+            tabBar={(props) => <CustomTabBar {...props} />}
             screenOptions={{ headerShown: false }}
         >
+            <Tab.Screen name="Поиск" component={SearchScreen} />
+            <Tab.Screen name="Создать" component={AddCardScreen} />
+            <Tab.Screen name="Настройки" component={SettingsScreen} />
             <Tab.Screen
-                name="Игры"
-                component={MainScreen}
-                initialParams={{ appSection: "Игры" }}
-            />
-            <Tab.Screen
-                name="Фильмы"
+                name="Коллекция"
                 component={MainScreen}
                 initialParams={{ appSection: "Фильмы" }}
-            />
-            <Tab.Screen name="Поиск" component={SearchScreen} />
-            <Tab.Screen
-                name="Аниме"
-                component={MainScreen}
-                initialParams={{ appSection: "Аниме" }}
-            />
-            <Tab.Screen
-                name="Книги"
-                component={MainScreen}
-                initialParams={{ appSection: "Книги" }}
             />
         </Tab.Navigator>
     );
@@ -68,7 +56,9 @@ export default function App() {
                         headerShown: false,
                         cardStyle: { backgroundColor: "#050B18" },
                         animationEnabled: true,
-                        gestureEnabled: false,
+                        gestureEnabled: true,
+                        gestureDirection: "horizontal",
+                        animation: "slide_from_right",
                         detachPreviousScreen: false,
                     }}
                 >
@@ -79,6 +69,7 @@ export default function App() {
                     <Stack.Screen name="Details" component={DetailsScreen} />
 
                     <Stack.Screen name="AddCard" component={AddCardScreen} />
+                    <Stack.Screen name="Settings" component={SettingsScreen} />
                 </Stack.Navigator>
             </NavigationContainer>
         </SafeAreaProvider>

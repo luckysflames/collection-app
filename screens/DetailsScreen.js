@@ -1,198 +1,317 @@
-import React from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
+    ScrollView,
     View,
     Text,
-    Image,
     StyleSheet,
-    ScrollView,
+    TextInput,
+    ActivityIndicator,
     TouchableOpacity,
-    Alert,
 } from "react-native";
-import { useCollectionStore } from "../store/useCollectionStore";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+// Сторы и Хуки
+import { useCollectionStore } from "../store/useCollectionStore";
+import { useFetchDetails } from "../hooks/useFetchDetails";
+
+// Компоненты UI
+import { HeroSection } from "../components/DetailsScreen/HeroSection";
+import { InfoBlock } from "../components/DetailsScreen/InfoBlock";
+import { EditForm } from "../components/DetailsScreen/EditForm";
+import { StatusModal } from "../components/DetailsScreen/StatusModal";
+
+const COLLECTION_ICON = {
+    active: require("../assets/icons/collection(active).png"),
+    inactive: require("../assets/icons/collection(inactive).png"),
+};
 
 export default function DetailsScreen({ route, navigation }) {
     const insets = useSafeAreaInsets();
-    const { item, currentSection = "Фильмы" } = route.params;
-    const { addToCollection } = useCollectionStore();
-    const removeFromCollection = useCollectionStore(
-        (state) => state.removeFromCollection,
-    );
+    const { item } = route.params;
 
-    const handleAdd = () => {
-        const cardToSave = {
-            ...item, // Тут остается оригинальная category от сервера (например "★ 7.4")
-            appSection: currentSection, // А тут наше системное поле для таба
-            status: "Смотрю",
-        };
-        addToCollection(cardToSave);
-        alert("Добавлено!");
+    // Получаем расширенные данные через наш новый сервисный хук
+    const { data: fullDetails, loading } = useFetchDetails(item.id);
+
+    // UI состояния
+    const [isModalVisible, setModalVisible] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+
+    // Достаем методы из Zustand
+    const { myCollection, addToCollection, updateCard, removeFromCollection } =
+        useCollectionStore();
+
+    // Ищем, есть ли этот элемент в коллекции
+    const savedItem = myCollection.find(
+        (fav) => String(fav.id) === String(item.id),
+    );
+    const isInCollection = !!savedItem;
+    const isCustom = item.isCustom || savedItem?.isCustom;
+
+    // Объединяем данные (приоритет: данные из стора > данные из API > базовые данные из пропсов)
+    const displayData = {
+        title: savedItem?.title || item.title,
+        year: savedItem?.year || fullDetails?.year || item.year,
+        length: savedItem?.length || fullDetails?.filmLength || item.filmLength,
+        countries:
+            savedItem?.countries || fullDetails?.countries || item.countries,
+        genres: savedItem?.genres || fullDetails?.genres || item.genres,
+        description:
+            savedItem?.description ||
+            fullDetails?.description ||
+            item.description,
     };
 
-    const handleDelete = () => {
-        removeFromCollection(item.id);
-        navigation.goBack(); // Возвращаемся в список, карточка исчезнет
+    // Локальный стейт для формы редактирования
+    const [editForm, setEditForm] = useState({
+        title: "",
+        year: "",
+        genres: "",
+        countries: "",
+        description: "",
+    });
+
+    // Синхронизация формы при входе в режим редактирования
+    useEffect(() => {
+        if (isEditing) {
+            setEditForm({
+                title: displayData.title || "",
+                year: String(displayData.year || ""),
+                filmLength: String(displayData.length || ""), // исправлено название поля
+                genres: Array.isArray(displayData.genres)
+                    ? displayData.genres.join(", ")
+                    : "",
+                countries: Array.isArray(displayData.countries)
+                    ? displayData.countries.join(", ")
+                    : "",
+                description: displayData.description || "", // Подтягиваем описание
+            });
+        }
+    }, [isEditing]);
+
+    // Сохранение изменений
+    const handleSave = () => {
+        updateCard(item.id, {
+            ...editForm,
+            genres: editForm.genres
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean),
+            countries: editForm.countries
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean),
+        });
+        setIsEditing(false);
+    };
+
+    // Изменение статуса (просмотрено, в планах и т.д.)
+    const handleStatusUpdate = (newStatus) => {
+        if (isInCollection) {
+            updateCard(item.id, { status: newStatus });
+        } else {
+            // Если объекта нет в коллекции, добавляем его с выбранным статусом
+            addToCollection({
+                ...item,
+                ...displayData,
+                status: newStatus,
+                appSection: item.id.startsWith("anime-") ? "Аниме" : "Фильмы",
+            });
+        }
+        setModalVisible(false);
     };
 
     return (
-        <ScrollView style={styles.container}>
-            {/* Кнопка Назад */}
-            <TouchableOpacity
-                style={[
-                    styles.backButton,
-                    { top: insets.top + 10 }, // Динамический отступ: шторка + 10 пикселей
-                ]}
-                onPress={() => navigation.goBack()}
-            >
-                <Text style={{ color: "#fff" }}>
-                    <Ionicons name="arrow-back" size={20} color="#fff" />
-                </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-                style={styles.addButton}
-                onPress={() => {
-                    handleAdd();
-                    alert("Добавлено в коллекцию!");
-                }}
-            >
-                <Text style={{ color: "#fff" }}>Добавить в список</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={handleDelete}
-            >
-                <Text style={{ color: "#fff" }}>Удалить из коллекции</Text>
-            </TouchableOpacity>
-
-            {/* Слой с постером и размытым фоном */}
-            <View style={styles.heroSection}>
-                {/* Размытая подложка (та же картинка) */}
-                <Image
-                    source={{ uri: item.image }}
-                    style={styles.blurBackground}
-                    blurRadius={5} // Размытие для эффекта глубины
-                />
-
-                <LinearGradient
-                    colors={["transparent", "#050B18"]}
-                    style={styles.gradient}
-                />
-
-                {/* Основной четкий постер */}
-                <View style={styles.mainPosterWrapper}>
-                    <Image
-                        source={{ uri: item.image }}
-                        style={styles.mainPoster}
-                    />
-                </View>
-            </View>
+        <ScrollView style={styles.container} bounces={false}>
+            {/* Верхняя часть с картинкой и кнопками назад/добавить */}
+            <HeroSection
+                image={item.image}
+                insets={insets}
+                onBack={() => navigation.goBack()}
+                onCollect={() =>
+                    isInCollection
+                        ? removeFromCollection(item.id)
+                        : setModalVisible(true)
+                }
+                isInCollection={isInCollection}
+                iconSources={COLLECTION_ICON}
+            />
 
             <View style={styles.infoContainer}>
-                <Text style={styles.title}>{item.title}</Text>
-                <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{item.category}</Text>
-                </View>
+                {loading && !fullDetails && !savedItem ? (
+                    <View style={styles.loaderContainer}>
+                        <ActivityIndicator size="large" color="#7D8AFF" />
+                        <Text style={styles.loaderText}>
+                            Загрузка деталей...
+                        </Text>
+                    </View>
+                ) : (
+                    <>
+                        {isEditing ? (
+                            <View>
+                                <EditForm
+                                    form={editForm}
+                                    setForm={setEditForm}
+                                />
+                                <TouchableOpacity
+                                    style={styles.saveButton}
+                                    onPress={handleSave}
+                                >
+                                    <Text style={styles.saveButtonText}>
+                                        Сохранить изменения
+                                    </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={styles.cancelButton}
+                                    onPress={() => setIsEditing(false)}
+                                >
+                                    <Text style={styles.cancelButtonText}>
+                                        Отмена
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        ) : (
+                            <View>
+                                <InfoBlock
+                                    title={displayData.title}
+                                    status={savedItem?.status}
+                                    year={displayData.year}
+                                    countries={displayData.countries}
+                                    length={displayData.length}
+                                    genres={displayData.genres}
+                                    onStatusPress={() => setModalVisible(true)}
+                                />
 
-                <Text style={styles.sectionTitle}>Описание</Text>
-                <Text style={styles.description}>
-                    {item.description || "Описание отсутствует."}
-                </Text>
+                                {isInCollection && isCustom && !isEditing && (
+                                    <TouchableOpacity
+                                        style={styles.editToggle}
+                                        onPress={() => setIsEditing(true)}
+                                    >
+                                        <Text style={styles.editToggleText}>
+                                            Редактировать инфо
+                                        </Text>
+                                    </TouchableOpacity>
+                                )}
+
+                                <Text style={styles.sectionTitle}>
+                                    Описание
+                                </Text>
+                                <Text style={styles.description}>
+                                    {displayData.description ||
+                                        "Описание временно отсутствует."}
+                                </Text>
+
+                                {isInCollection && (
+                                    <View style={styles.userSection}>
+                                        <Text style={styles.sectionTitle}>
+                                            Мои заметки
+                                        </Text>
+                                        <TextInput
+                                            style={styles.notesInput}
+                                            multiline
+                                            value={savedItem.userNotes || ""}
+                                            onChangeText={(text) =>
+                                                updateCard(item.id, {
+                                                    userNotes: text,
+                                                })
+                                            }
+                                            placeholder="Ваши мысли..."
+                                            placeholderTextColor="#444"
+                                        />
+                                    </View>
+                                )}
+                            </View>
+                        )}
+                    </>
+                )}
             </View>
+
+            {/* Выбор статуса */}
+            <StatusModal
+                visible={isModalVisible}
+                onClose={() => setModalVisible(false)}
+                onSelect={handleStatusUpdate}
+                currentStatus={savedItem?.status}
+            />
         </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "#050B18" },
-
-    heroSection: {
-        height: 450, // Высота верхней части с картинкой
-        width: "100%",
-        justifyContent: "center",
-        alignItems: "center",
-        overflow: "hidden",
+    container: {
+        flex: 1,
+        backgroundColor: "#050B18",
     },
-
-    blurBackground: {
-        ...StyleSheet.absoluteFillObject, // Растягиваем на весь heroSection
-        width: "100%",
-        height: "120%", // Чуть больше, чтобы скрыть края при размытии
-        opacity: 0.4, // Делаем фон приглушенным
-    },
-    mainPoster: {
-        width: 240, // Фиксированная ширина для аккуратного вида
-        height: 340,
-        borderRadius: 20,
-        resizeMode: "cover",
-    },
-    gradient: {
-        position: "absolute",
-        left: 0,
-        right: 0,
-        bottom: 0,
-        height: 600, // Высота перехода
-    },
-
-    backButton: {
-        position: "absolute",
-        top: 15,
-        left: 15,
-        zIndex: 10,
-        backgroundColor: "rgba(0,0,0,0.5)",
-        padding: 15,
-        borderRadius: 15,
-    },
-    addButton: {
-        position: "absolute",
-        top: 50,
-        right: 20,
-        zIndex: 10,
-        backgroundColor: "rgba(0,0,0,0.5)",
-        padding: 10,
-        borderRadius: 20,
-    },
-    deleteButton: {
-        position: "absolute",
-        top: 110,
-        right: 20,
-        zIndex: 10,
-        backgroundColor: "rgba(0,0,0,0.5)",
-        padding: 10,
-        borderRadius: 20,
-    },
-
-    // Остальные стили (infoContainer, title и т.д.) остаются прежними...
     infoContainer: {
         padding: 20,
-        marginTop: -20, // Немного "наезжаем" на картинку для стиля
+        marginTop: -30, // Наплыв на HeroSection
         backgroundColor: "#050B18",
         borderTopLeftRadius: 30,
         borderTopRightRadius: 30,
+        minHeight: 500,
     },
-    title: {
-        color: "#fff",
-        fontSize: 28,
-        fontWeight: "bold",
-        marginBottom: 10,
+    loaderContainer: {
+        paddingVertical: 50,
+        alignItems: "center",
+    },
+    loaderText: {
+        color: "#8E94A4",
+        marginTop: 10,
     },
     sectionTitle: {
         color: "#fff",
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: "bold",
-        marginTop: 20,
+        marginTop: 25,
         marginBottom: 10,
     },
-    description: { color: "#8E94A4", fontSize: 16, lineHeight: 24 },
-    badge: {
-        backgroundColor: "#7D8AFF",
-        alignSelf: "flex-start",
-        paddingHorizontal: 12,
-        paddingVertical: 4,
-        borderRadius: 10,
+    description: {
+        color: "#8E94A4",
+        fontSize: 16,
+        lineHeight: 26,
     },
-    badgeText: { color: "#fff", fontWeight: "bold" },
+    userSection: {
+        marginTop: 10,
+        paddingBottom: 60, // Запас снизу для скролла
+    },
+    notesInput: {
+        backgroundColor: "rgba(255,255,255,0.05)",
+        borderRadius: 15,
+        padding: 15,
+        color: "#fff",
+        minHeight: 120,
+        textAlignVertical: "top",
+    },
+    editToggle: {
+        alignSelf: "flex-start",
+        marginTop: 10,
+        paddingVertical: 5,
+        borderBottomWidth: 1,
+        borderBottomColor: "#7D8AFF",
+    },
+    editToggleText: {
+        color: "#7D8AFF",
+        fontSize: 14,
+        fontWeight: "500",
+    },
+    saveButton: {
+        backgroundColor: "#7D8AFF",
+        padding: 15,
+        borderRadius: 15,
+        marginTop: 20,
+        alignItems: "center",
+    },
+    saveButtonText: {
+        color: "#fff",
+        fontWeight: "bold",
+        fontSize: 16,
+    },
+    cancelButton: {
+        padding: 15,
+        alignItems: "center",
+        marginTop: 5,
+    },
+    cancelButtonText: {
+        color: "#8E94A4",
+        fontSize: 14,
+    },
 });

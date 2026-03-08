@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
     StyleSheet,
     Text,
@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
     SafeAreaView,
     ScrollView,
+    Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -18,9 +19,25 @@ const CATEGORIES = ["Смотрю", "В планах", "Просмотрено",
 
 export default function MainScreen({ route, navigation }) {
     const myCollection = useCollectionStore((state) => state.myCollection);
-
     const currentSection = route.params?.appSection || "Фильмы";
     const [activeCategory, setActiveCategory] = useState("Смотрю");
+
+    const pagerRef = useRef(null); // Реф для управления скроллом
+
+    // Функция для переключения категории при клике на чипс
+    const handleChipPress = (cat, index) => {
+        setActiveCategory(cat);
+        pagerRef.current?.scrollToIndex({ index, animated: true });
+    };
+
+    // Обработка завершения скролла свайпом
+    const onMomentumScrollEnd = (e) => {
+        const index = Math.round(
+            e.nativeEvent.contentOffset.x /
+                e.nativeEvent.layoutMeasurement.width,
+        );
+        setActiveCategory(CATEGORIES[index]);
+    };
 
     const filteredData = myCollection.filter((item) => {
         // return true;
@@ -40,7 +57,7 @@ export default function MainScreen({ route, navigation }) {
         <View style={[styles.container, { paddingTop: insets.top - 10 }]}>
             {/* Заголовок */}
             <View style={styles.headerRow}>
-                <Text style={styles.headerTitle}>Моя Коллекция</Text>
+                <Text style={styles.headerTitle}>Моя коллекция</Text>
 
                 {/* Кнопка добавления вручную */}
                 <TouchableOpacity
@@ -66,7 +83,7 @@ export default function MainScreen({ route, navigation }) {
                     {CATEGORIES.map((cat) => (
                         <TouchableOpacity
                             key={cat}
-                            onPress={() => setActiveCategory(cat)}
+                            onPress={() => handleChipPress(cat, index)}
                             style={[
                                 styles.chip,
                                 activeCategory === cat && styles.activeChip,
@@ -86,33 +103,55 @@ export default function MainScreen({ route, navigation }) {
                 </ScrollView>
             </View>
 
-            {/* Сетка карточек */}
             <FlatList
-                data={filteredData}
-                renderItem={({ item }) => (
-                    <MediaCard
-                        item={item}
-                        // 2. Передаем функцию перехода
-                        onPress={() => navigation.navigate("Details", { item })}
-                    />
-                )}
-                key={myCollection.length}
-                keyExtractor={(item) => item.id}
-                numColumns={2}
-                columnWrapperStyle={styles.row}
-                contentContainerStyle={styles.listPadding}
-                showsVerticalScrollIndicator={false}
-                ListEmptyComponent={() => (
-                    <Text
-                        style={{
-                            color: "#8E94A4",
-                            textAlign: "center",
-                            marginTop: 20,
-                        }}
-                    >
-                        В разделе "{activeCategory}" пока ничего нет
-                    </Text>
-                )}
+                ref={pagerRef}
+                data={CATEGORIES}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onMomentumScrollEnd={onMomentumScrollEnd}
+                keyExtractor={(item) => item}
+                renderItem={({ item: category }) => {
+                    // Фильтруем данные конкретно для этой "страницы"
+                    const pageData = myCollection.filter(
+                        (i) =>
+                            i.appSection === currentSection &&
+                            (i.status || "Смотрю") === category,
+                    );
+
+                    return (
+                        <View
+                            style={{
+                                width: Math.round(
+                                    Dimensions.get("window").width,
+                                ),
+                            }}
+                        >
+                            <FlatList
+                                data={pageData}
+                                renderItem={({ item }) => (
+                                    <MediaCard
+                                        item={item}
+                                        onPress={() =>
+                                            navigation.navigate("Details", {
+                                                item,
+                                            })
+                                        }
+                                    />
+                                )}
+                                keyExtractor={(item) => item.id}
+                                numColumns={2}
+                                columnWrapperStyle={styles.row}
+                                contentContainerStyle={styles.listPadding}
+                                ListEmptyComponent={() => (
+                                    <Text style={styles.emptyText}>
+                                        В разделе "{category}" пока пусто
+                                    </Text>
+                                )}
+                            />
+                        </View>
+                    );
+                }}
             />
         </View>
     );
