@@ -1,11 +1,10 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
     StyleSheet,
     Text,
     View,
     FlatList,
     TouchableOpacity,
-    SafeAreaView,
     ScrollView,
     Dimensions,
 } from "react-native";
@@ -15,12 +14,46 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MediaCard } from "../components/MediaCard";
 import { useCollectionStore } from "../store/useCollectionStore";
 
-const CATEGORIES = ["Смотрю", "В планах", "Просмотрено", "Брошено", "Отложено"];
-
 export default function MainScreen({ route, navigation }) {
     const myCollection = useCollectionStore((state) => state.myCollection);
-    const currentSection = route.params?.appSection || "Фильмы";
-    const [activeCategory, setActiveCategory] = useState("Смотрю");
+    const currentSection =
+        route.params?.category || route.params?.appSection || "Фильмы";
+    const [activeCategory, setActiveCategory] = useState();
+
+    useEffect(() => {
+        const section = route.params?.category || route.params?.appSection;
+        if (section === "Книги") setActiveCategory("Читаю");
+        else if (section === "Игры") setActiveCategory("Играю");
+        else setActiveCategory("Смотрю");
+    }, [route.params]);
+
+    let CATEGORIES = [];
+    currentSection === "Книги"
+        ? (CATEGORIES = [
+              "Читаю",
+              "В планах",
+              "Прочитано",
+              "Перечитываю",
+              "Брошено",
+              "Отложено",
+          ])
+        : currentSection === "Игры"
+          ? (CATEGORIES = [
+                "Играю",
+                "В планах",
+                "Прошёл",
+                "Переигрываю",
+                "Брошено",
+                "Отложено",
+            ])
+          : (CATEGORIES = [
+                "Смотрю",
+                "В планах",
+                "Просмотрено",
+                "Пересматриваю",
+                "Брошено",
+                "Отложено",
+            ]);
 
     const pagerRef = useRef(null); // Реф для управления скроллом
 

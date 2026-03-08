@@ -9,47 +9,76 @@ import {
     StyleSheet,
 } from "react-native";
 
-const STATUSES = ["Смотрю", "В планах", "Просмотрено", "Брошено", "Отложено"];
-
-export const StatusModal = ({
+export default function StatusModal({
     visible,
+    category,
     onClose,
     onSelect,
     currentStatus,
     removeCard,
-}) => (
-    <Modal transparent visible={visible} animationType="slide">
-        <Pressable style={styles.overlay} onPress={onClose}>
-            <TouchableWithoutFeedback>
-                <View style={styles.content}>
-                    <Text style={styles.header}>Статус просмотра</Text>
-                    {STATUSES.map((s) => (
-                        <TouchableOpacity
-                            key={s}
-                            onPress={() => onSelect(s)}
-                            style={styles.option}
-                        >
-                            <Text style={styles.optionText}>{s}</Text>
-                            {currentStatus === s && (
-                                <View style={styles.activeDot} />
-                            )}
-                        </TouchableOpacity>
-                    ))}
-                    {!!removeCard && (
-                        <TouchableOpacity
-                            onPress={removeCard}
-                            style={styles.removeBtn}
-                        >
-                            <Text style={styles.removeText}>
-                                Удалить из коллекции
-                            </Text>
-                        </TouchableOpacity>
-                    )}
-                </View>
-            </TouchableWithoutFeedback>
-        </Pressable>
-    </Modal>
-);
+}) {
+    let STATUSES = [];
+    category === "Книги"
+        ? (STATUSES = [
+              "Читаю",
+              "В планах",
+              "Прочитано",
+              "Перечитываю",
+              "Брошено",
+              "Отложено",
+          ])
+        : category === "Игры"
+          ? (STATUSES = [
+                "Играю",
+                "В планах",
+                "Прошёл",
+                "Переигрываю",
+                "Брошено",
+                "Отложено",
+            ])
+          : (STATUSES = [
+                "Смотрю",
+                "В планах",
+                "Просмотрено",
+                "Пересматриваю",
+                "Брошено",
+                "Отложено",
+            ]);
+
+    return (
+        <Modal transparent visible={visible} animationType="slide">
+            <Pressable style={styles.overlay} onPress={onClose}>
+                <TouchableWithoutFeedback>
+                    <View style={styles.content}>
+                        <Text style={styles.header}>Статус просмотра</Text>
+                        {STATUSES.map((s) => (
+                            <TouchableOpacity
+                                key={s}
+                                onPress={() => onSelect(s)}
+                                style={styles.option}
+                            >
+                                <Text style={styles.optionText}>{s}</Text>
+                                {currentStatus === s && (
+                                    <View style={styles.activeDot} />
+                                )}
+                            </TouchableOpacity>
+                        ))}
+                        {!!removeCard && (
+                            <TouchableOpacity
+                                onPress={removeCard}
+                                style={styles.removeBtn}
+                            >
+                                <Text style={styles.removeText}>
+                                    Удалить из коллекции
+                                </Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                </TouchableWithoutFeedback>
+            </Pressable>
+        </Modal>
+    );
+}
 
 const styles = StyleSheet.create({
     overlay: {

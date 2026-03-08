@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import {
     View,
     TextInput,
@@ -8,109 +8,32 @@ import {
     ActivityIndicator,
     TouchableOpacity,
 } from "react-native";
-import debounce from "lodash.debounce";
 import { Ionicons } from "@expo/vector-icons";
 import { MediaCard } from "../components/MediaCard";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-const TMDB_API_KEY =
-    "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4MDQwZTBlNzQ0MDhlNTdiZTVhZDExNGY4MmNmNmVjNCIsIm5iZiI6MTc3MjcxMDQ2OC4xMjUsInN1YiI6IjY5YTk2YTQ0MTY0ZTYwMmU3YTY3NDM5OCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.WfGXhKlgAx9fQl9xWgM87-pKbCgS9OyuhDiUwDpNd9M";
-const TMDB_BASE_URL = "https://api.themoviedb.org/3";
-const TMDB_IMAGE_URL = "https://image.tmdb.org/t/p/w500";
+import { searchMedia } from "../services/apiService";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function SearchScreen({ navigation }) {
     const [query, setQuery] = useState("");
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [activeCategory, setActiveCategory] = useState("Аниме");
+    const [activeCategory, setActiveCategory] = useState("Игры");
     const insets = useSafeAreaInsets();
 
-    const searchMedia = async (text, categoryOverride) => {
-        // Берем категорию либо из аргумента (для чипсов), либо из стейта
+    const handleSearch = async (text, categoryOverride) => {
         const currentCategory = categoryOverride || activeCategory;
-
         if (!text || text.length < 3) return;
 
         setLoading(true);
-        setResults([]); // Очищаем старые результаты перед новым поиском
+        setResults([]); // Очищаем старые результаты сразу
 
         try {
-            let formattedData = [];
-            console.log(`Ищем: ${text} в категории: ${currentCategory}`);
-
-            if (currentCategory === "Аниме") {
-                console.log("Запрос к Shikimori (Аниме)... Строка:", text);
-                try {
-                    const response = await fetch(
-                        `https://shikimori.one/api/animes?search=${encodeURIComponent(text)}&limit=15&order=ranked`,
-                    );
-                    const data = await response.json();
-
-                    if (data && data.length > 0) {
-                        formattedData = data.map((item) => ({
-                            id: `anime-${item.id}`, // Используем их ID
-                            title: item.russian || item.name, // Приоритет русскому названию
-                            year: item.aired_on
-                                ? item.aired_on.split("-")[0]
-                                : "N/A",
-                            duration: item.kind
-                                ? item.kind.toUpperCase()
-                                : "TV",
-                            category: item.score ? `★ ${item.score}` : "Anime",
-                            image: `https://shikimori.one${item.image.original}`, // Склеиваем URL картинки
-                            description:
-                                "Нажмите, чтобы прочитать описание на экране деталей...",
-
-                            // Данные для DetailsScreen
-                            filmLength: item.episodes
-                                ? item.episodes * 24
-                                : null,
-                            countries: ["Япония"],
-                            // У Shikimori в кратком поиске нет жанров, их получим в деталях ниже
-                            genres: [],
-                        }));
-                    }
-                } catch (e) {
-                    console.error("Ошибка Shikimori:", e);
-                }
-            } else if (currentCategory === "Фильмы") {
-                const response = await fetch(
-                    `${TMDB_BASE_URL}/search/movie?query=${encodeURIComponent(text)}&language=ru-RU`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${TMDB_API_KEY.trim()}`,
-                        },
-                    },
-                );
-                const json = await response.json();
-                // console.log("ПОЛНЫЙ ОТВЕТ СЕРВЕРА:", JSON.stringify(json));
-                if (json.results) {
-                    formattedData = json.results.map((item) => ({
-                        id: `movie-${item.id}`,
-                        title: item.title,
-                        year: item.release_date
-                            ? item.release_date.split("-")[0]
-                            : "N/A",
-                        // TMDB в поиске не отдает страны и длительность (нужен отдельный запрос по ID),
-                        // поэтому пока ставим "Movie" или оставляем пустым
-                        countries: [],
-                        filmLength: null,
-                        category: item.vote_average
-                            ? `★ ${item.vote_average.toFixed(1)}`
-                            : "Movie",
-                        image: item.poster_path
-                            ? `${TMDB_IMAGE_URL}${item.poster_path}`
-                            : "https://via.placeholder.com/500x750",
-                        description: item.overview,
-                        // TMDB отдает только genre_ids (цифры), названия без доп. запроса не получить
-                        // Мы можем либо захардкодить маппер, либо оставить пока так
-                        genres: [],
-                    }));
-                }
-            }
-            setResults(formattedData);
-        } catch (error) {
-            console.error("Ошибка поиска:", error);
+            // Вызываем ИМПОРТИРОВАННУЮ функцию
+            const data = await searchMedia(text, currentCategory);
+            setResults(data);
+        } catch (err) {
+            console.error(err);
         } finally {
             setLoading(false);
         }
@@ -120,13 +43,13 @@ export default function SearchScreen({ navigation }) {
         <View style={[styles.container, { paddingTop: insets.top }]}>
             {/* Чипсы категорий */}
             <View style={styles.categoryToggle}>
-                {["Аниме", "Фильмы"].map((cat) => (
+                {["Игры", "Фильмы", "Аниме", "Книги"].map((cat) => (
                     <TouchableOpacity
                         key={cat}
                         onPress={() => {
                             setActiveCategory(cat);
                             // Если в строке уже что-то есть, сразу ищем в новой категории
-                            if (query.length >= 3) searchMedia(query, cat);
+                            if (query.length >= 3) handleSearch(query, cat);
                         }}
                         style={[
                             styles.miniChip,
@@ -155,12 +78,34 @@ export default function SearchScreen({ navigation }) {
                     value={query}
                     onChangeText={setQuery}
                     returnKeyType="search"
-                    onSubmitEditing={() => searchMedia(query)}
+                    onSubmitEditing={() => handleSearch(query)}
                 />
-                <TouchableOpacity onPress={() => searchMedia(query)}>
+                <TouchableOpacity onPress={() => handleSearch(query)}>
                     <Ionicons name="search" size={22} color="#7D8AFF" />
                 </TouchableOpacity>
             </View>
+            {query.length === 0 && (
+                <View style={styles.content}>
+                    <LinearGradient
+                        colors={["#1E293B", "#0F172A"]}
+                        style={styles.card}
+                    >
+                        <Ionicons
+                            name="search"
+                            size={64}
+                            color="#7D8AFF"
+                            style={styles.icon}
+                        />
+
+                        <Text style={styles.title}>Предупреждение</Text>
+
+                        <Text style={styles.subtitle}>
+                            Мы не отвечаем за результаты поиска. Подробнее
+                            "Настройки" &gt; "Используемые API"
+                        </Text>
+                    </LinearGradient>
+                </View>
+            )}
 
             {loading && (
                 <ActivityIndicator color="#7D8AFF" style={{ marginTop: 20 }} />
@@ -171,14 +116,20 @@ export default function SearchScreen({ navigation }) {
                 renderItem={({ item }) => (
                     <MediaCard
                         item={item}
-                        onPress={() =>
+                        onPress={() => {
+                            let finalCategory = "Фильмы"; // значение по умолчанию
+                            if (item.id.startsWith("anime-"))
+                                finalCategory = "Аниме";
+                            else if (item.id.startsWith("game-"))
+                                finalCategory = "Игры";
+                            else if (item.id.startsWith("book-"))
+                                finalCategory = "Книги";
+
                             navigation.navigate("Details", {
                                 item,
-                                category: item.id.startsWith("anime-")
-                                    ? "Аниме"
-                                    : "Фильмы",
-                            })
-                        }
+                                category: finalCategory,
+                            });
+                        }}
                     />
                 )}
                 keyExtractor={(item) => item.id}
@@ -192,7 +143,7 @@ export default function SearchScreen({ navigation }) {
                             style={{ alignItems: "center" }}
                             onPress={() =>
                                 navigation.navigate("AddCard", {
-                                    currentSection: "Фильмы",
+                                    currentSection: activeCategory,
                                 })
                             }
                         >
@@ -255,6 +206,7 @@ const styles = StyleSheet.create({
     },
     searchBarContainer: {
         marginHorizontal: 16,
+        marginBottom: 10,
         height: 50,
         backgroundColor: "rgba(255, 255, 255, 0.05)",
         borderRadius: 25,
@@ -271,5 +223,36 @@ const styles = StyleSheet.create({
     },
     searchIcon: {
         marginLeft: 10,
+    },
+    content: {
+        marginTop: 30,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingHorizontal: 30,
+    },
+    card: {
+        width: "100%",
+        padding: 10,
+        borderRadius: 30,
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: "rgba(125, 138, 255, 0.2)", // Тонкая светящаяся рамка
+    },
+    icon: {
+        marginBottom: 20,
+    },
+    title: {
+        fontSize: 24,
+        fontWeight: "bold",
+        color: "#fff",
+        textAlign: "center",
+        marginBottom: 15,
+    },
+    subtitle: {
+        fontSize: 16,
+        color: "#8E94A4",
+        textAlign: "center",
+        lineHeight: 24,
+        marginBottom: 30,
     },
 });

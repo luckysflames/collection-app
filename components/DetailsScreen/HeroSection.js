@@ -15,7 +15,7 @@ export const HeroSection = ({
         <Image
             source={{ uri: image }}
             style={styles.blurBackground}
-            blurRadius={10}
+            blurRadius={1}
         />
         <LinearGradient
             colors={["transparent", "#050B18"]}

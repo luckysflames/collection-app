@@ -8,20 +8,14 @@ export const InfoBlock = ({
     countries,
     length,
     isAnime,
+    isGame,
+    isMovie,
+    isBook,
     genres,
     onStatusPress,
 }) => (
     <View style={styles.container}>
         <Text style={styles.title}>{title}</Text>
-
-        {/* {status && (
-            <TouchableOpacity
-                onPress={onStatusPress}
-                style={styles.statusBadge}
-            >
-                <Text style={styles.statusText}>{status}</Text>
-            </TouchableOpacity>
-        )} */}
 
         {status ? (
             <TouchableOpacity
@@ -52,7 +46,13 @@ export const InfoBlock = ({
             {!!length && (
                 <>
                     <View style={styles.dot} />
-                    <Text style={styles.metaText}>{isAnime && "~ по"} {length} мин.</Text>
+                    <Text style={styles.metaText}>
+                        {isAnime && "~ по "}
+
+                        {length}
+
+                        {(isMovie || isAnime) && " мин."}
+                    </Text>
                 </>
             )}
         </View>

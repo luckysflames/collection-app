@@ -18,7 +18,7 @@ import { useFetchDetails } from "../hooks/useFetchDetails";
 import { HeroSection } from "../components/DetailsScreen/HeroSection";
 import { InfoBlock } from "../components/DetailsScreen/InfoBlock";
 import { EditForm } from "../components/DetailsScreen/EditForm";
-import { StatusModal } from "../components/DetailsScreen/StatusModal";
+import StatusModal from "../components/DetailsScreen/StatusModal";
 
 const COLLECTION_ICON = {
     active: require("../assets/icons/collection(active).png"),
@@ -27,7 +27,7 @@ const COLLECTION_ICON = {
 
 export default function DetailsScreen({ route, navigation }) {
     const insets = useSafeAreaInsets();
-    const { item } = route.params;
+    const { item, category } = route.params;
 
     // Получаем расширенные данные через наш новый сервисный хук
     const { data: fullDetails, loading } = useFetchDetails(item.id);
@@ -46,7 +46,6 @@ export default function DetailsScreen({ route, navigation }) {
     );
     const isInCollection = !!savedItem;
     const isCustom = item.isCustom || savedItem?.isCustom;
-    const isAnime = item.id.startsWith("anime-") ? true : false;
 
     // Объединяем данные (приоритет: данные из стора > данные из API > базовые данные из пропсов)
     const displayData = {
@@ -115,7 +114,7 @@ export default function DetailsScreen({ route, navigation }) {
                 ...item,
                 ...displayData,
                 status: newStatus,
-                appSection: item.id.startsWith("anime-") ? "Аниме" : "Фильмы",
+                appSection: category || "Фильмы",
             });
         }
         setModalVisible(false);
@@ -178,7 +177,10 @@ export default function DetailsScreen({ route, navigation }) {
                                     year={displayData.year}
                                     countries={displayData.countries}
                                     length={displayData.length}
-                                    isAnime={isAnime}
+                                    isAnime={!!item.isAnime}
+                                    isGame={!!item.isGame}
+                                    isMovie={!!item.isMovie}
+                                    isBook={!!item.isBook}
                                     genres={displayData.genres}
                                     onStatusPress={() => setModalVisible(true)}
                                 />
@@ -230,6 +232,7 @@ export default function DetailsScreen({ route, navigation }) {
             {/* Выбор статуса */}
             <StatusModal
                 visible={isModalVisible}
+                category={category || "Фильмы"}
                 onClose={() => setModalVisible(false)}
                 onSelect={handleStatusUpdate}
                 currentStatus={savedItem?.status}
