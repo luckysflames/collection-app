@@ -158,7 +158,10 @@ export default function StatusModal({
                     {STATUSES.map((s) => (
                         <TouchableOpacity
                             key={s}
-                            onPress={() => onSelect(s)}
+                            onPress={() => {
+                                onSelect(s);
+                                closeModal();
+                            }}
                             style={styles.option}
                         >
                             <Text
