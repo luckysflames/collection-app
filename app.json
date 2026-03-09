@@ -2,7 +2,7 @@
   "expo": {
     "name": "Geekly",
     "slug": "collection-app",
-    "version": "3.0.0",
+    "version": "3.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -28,7 +28,7 @@
         "translucent": true,
         "backgroundColor": "#00000000"
       },
-      "versionCode": 3
+      "versionCode": 4
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -37,6 +37,14 @@
       "eas": {
         "projectId": "99f92b1b-9222-4c27-8925-1dc4d9980013"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/99f92b1b-9222-4c27-8925-1dc4d9980013",
+      "fallbackToCacheTimeout": 0,
+      "checkOnLaunch": "ALWAYS"
     }
   }
 }
