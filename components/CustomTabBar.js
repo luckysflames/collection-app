@@ -12,8 +12,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const TAB_ICONS = {
     Поиск: {
-        active: require("../assets/icons/search(active).png"), //
-        inactive: require("../assets/icons/search(inactive).png"), //
+        active: require("../assets/icons/search(active).png"),
+        inactive: require("../assets/icons/search(inactive).png"),
     },
     Создать: {
         active: require("../assets/icons/add(active).png"),
