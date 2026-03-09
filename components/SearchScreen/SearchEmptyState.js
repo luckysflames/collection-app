@@ -23,7 +23,7 @@ export const SearchEmptyState = () => (
 
 const styles = StyleSheet.create({
     content: {
-        marginTop: 30,
+        marginVertical: 30,
         justifyContent: "center",
         alignItems: "center",
         paddingHorizontal: 30,

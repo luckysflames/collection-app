@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, FlatList } from "react-native";
+import { View, StyleSheet, FlatList, ActivityIndicator } from "react-native";
 import { MediaCard } from "../components/MediaCard";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useMediaSearch } from "../hooks/useMediaSearch";
@@ -19,6 +19,8 @@ export default function SearchScreen({ navigation }) {
         setActiveCategory,
         handleSearch,
         getCategoryById,
+        isEnd,
+        loadingMore,
     } = useMediaSearch();
 
     return (
@@ -31,7 +33,7 @@ export default function SearchScreen({ navigation }) {
                 onSearch={handleSearch}
             />
 
-            {query.length === 0 && <SearchEmptyState />}
+            {query.length === 0 && results.length === 0 && <SearchEmptyState />}
 
             {/* Если идет загрузка — показываем скелетоны */}
             {loading ? (
@@ -54,6 +56,27 @@ export default function SearchScreen({ navigation }) {
                             }
                         />
                     )}
+                    // ЛЕНИВАЯ ЗАГРУЗКА
+                    onEndReachedThreshold={0.5} // Сработает, когда до конца останется пол-экрана
+                    onEndReached={() => {
+                        if (
+                            !loading &&
+                            !loadingMore &&
+                            !isEnd &&
+                            query.length >= 3
+                        ) {
+                            handleSearch(query, activeCategory, false);
+                        }
+                    }}
+                    // ИНДИКАТОР ЗАГРУЗКИ ВНИЗУ
+                    ListFooterComponent={() =>
+                        loadingMore ? (
+                            <ActivityIndicator
+                                color="#7D8AFF"
+                                style={{ marginVertical: 20 }}
+                            />
+                        ) : null
+                    }
                     ListEmptyComponent={() =>
                         !loading &&
                         query.length > 2 && (

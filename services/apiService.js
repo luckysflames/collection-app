@@ -8,17 +8,18 @@ const TMDB_IMAGE_URL = "https://image.tmdb.org/t/p/w500";
 
 const cleanHtml = (text) => text?.replace(/<[^>]*>?/gm, "") || "";
 
-export const searchMedia = async (text, category) => {
+export const searchMedia = async (text, category, page = 1) => {
     if (!text || text.length < 3) return [];
 
     try {
         if (category === "Аниме") {
+            // Shikimori использует параметр page
             const res = await fetch(
-                `https://shikimori.one/api/animes?search=${encodeURIComponent(text)}&limit=15&order=ranked`,
+                `https://shikimori.one/api/animes?search=${encodeURIComponent(text)}&limit=15&page=${page}&order=ranked`,
             );
             const data = await res.json();
             return data.map((item) => ({
-                id: `anime-${item.id}`,
+                id: `anime-${item.id}-${page}`, // Добавляем page в id для уникальности ключей
                 title: item.russian || item.name,
                 year: item.aired_on?.split("-")[0] || "N/A",
                 category: item.score ? `★ ${item.score}` : "Anime",
@@ -30,15 +31,13 @@ export const searchMedia = async (text, category) => {
 
         if (category === "Фильмы") {
             const res = await fetch(
-                `${TMDB_BASE_URL}/search/movie?query=${encodeURIComponent(text)}&language=ru-RU`,
-                {
-                    headers: { Authorization: `Bearer ${TMDB_API_KEY.trim()}` },
-                },
+                `${TMDB_BASE_URL}/search/movie?query=${encodeURIComponent(text)}&language=ru-RU&page=${page}`,
+                { headers: { Authorization: `Bearer ${TMDB_API_KEY.trim()}` } },
             );
             const json = await res.json();
             return (
                 json.results?.map((item) => ({
-                    id: `movie-${item.id}`,
+                    id: `movie-${item.id}-${page}`,
                     title: item.title,
                     year: item.release_date?.split("-")[0] || "N/A",
                     category: item.vote_average
@@ -54,54 +53,37 @@ export const searchMedia = async (text, category) => {
         }
 
         if (category === "Книги") {
-            try {
-                const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(text)}&maxResults=15&hl=ru&key=${GOOGLE_BOOKS_KEY}`;
-                const res = await fetch(url);
-                const json = await res.json();
-
-                // Если в ответе есть ошибка (например, неверный ключ или лимиты)
-                if (json.error) {
-                    console.error(
-                        "Google Books API Error Detail:",
-                        json.error.message,
-                    );
-                    return [];
-                }
-
-                console.log("Books found:", json.items?.length || 0);
-
-                return (
-                    json.items?.map((item) => ({
-                        id: `book-${item.id}`,
-                        title: item.volumeInfo.title,
-                        year:
-                            item.volumeInfo.publishedDate?.split("-")[0] ||
-                            "N/A",
-                        category: "Книга",
-                        image:
-                            item.volumeInfo.imageLinks?.thumbnail?.replace(
-                                "http:",
-                                "https:",
-                            ) || "https://via.placeholder.com/500x750",
-                        description: cleanHtml(item.volumeInfo.description),
-                        isBook: true,
-                    })) || []
-                );
-            } catch (err) {
-                console.error("Critical Books Fetch Error:", err);
-                return [];
-            }
+            // Google Books использует startIndex (page * maxResults)
+            const maxResults = 15;
+            const startIndex = (page - 1) * maxResults;
+            const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(text)}&maxResults=${maxResults}&startIndex=${startIndex}&hl=ru&key=${GOOGLE_BOOKS_KEY}`;
+            const res = await fetch(url);
+            const json = await res.json();
+            return (
+                json.items?.map((item) => ({
+                    id: `book-${item.id}-${page}`,
+                    title: item.volumeInfo.title,
+                    year: item.volumeInfo.publishedDate?.split("-")[0] || "N/A",
+                    category: "Книга",
+                    image:
+                        item.volumeInfo.imageLinks?.thumbnail?.replace(
+                            "http:",
+                            "https:",
+                        ) || "https://via.placeholder.com/500x750",
+                    description: cleanHtml(item.volumeInfo.description),
+                    isBook: true,
+                })) || []
+            );
         }
 
         if (category === "Игры") {
             const res = await fetch(
-                `https://api.rawg.io/api/games?key=${RAWG_API_KEY}&search=${encodeURIComponent(text)}&page_size=15&search_precise=true`,
+                `https://api.rawg.io/api/games?key=${RAWG_API_KEY}&search=${encodeURIComponent(text)}&page_size=15&page=${page}&search_precise=true`,
             );
             const json = await res.json();
-            console.log("Games count:", json.results?.length);
             return (
                 json.results?.map((item) => ({
-                    id: `game-${item.id}`,
+                    id: `game-${item.id}-${page}`,
                     title: item.name,
                     year: item.released?.split("-")[0] || "N/A",
                     category: item.rating ? `★ ${item.rating}` : "Game",
@@ -163,22 +145,40 @@ export const fetchDetailsById = async (id) => {
 
         if (id.startsWith("book-")) {
             const bookId = id.replace("book-", "");
+            // Убираем лишние префиксы, если они попали в ID при пагинации
+            const cleanId = bookId.split("-")[0];
+
             const res = await fetch(
-                `https://www.googleapis.com/books/v1/volumes/${bookId}?hl=ru&key=${GOOGLE_BOOKS_KEY}`,
+                `https://www.googleapis.com/books/v1/volumes/${cleanId}?hl=ru&key=${GOOGLE_BOOKS_KEY}`,
             );
             const json = await res.json();
+
+            // ПРОВЕРКА: Если API вернуло ошибку (например, 404)
+            if (!json || json.error || !json.volumeInfo) {
+                console.error(
+                    "Google Books Details Error:",
+                    json?.error?.message || "No volumeInfo",
+                );
+                return {
+                    description: "Информация временно недоступна",
+                    year: "N/A",
+                    genres: [],
+                    countries: ["Неизвестен"],
+                };
+            }
+
             const info = json.volumeInfo;
 
             return {
-                filmLength: info.pageCount ? `${info.pageCount} стр.` : null,
-                // Вместо стран выводим авторов, чтобы UI выглядел богаче
-                countries: info.authors || [
-                    info.publisher || "Автор не указан",
+                // Используем опциональную цепочку ?. и проверку на существование
+                filmLength: info?.pageCount ? `${info.pageCount} стр.` : null,
+                countries: info?.authors || [
+                    info?.publisher || "Автор не указан",
                 ],
-                genres: info.categories || [],
-                year: info.publishedDate?.split("-")[0],
+                genres: info?.categories || [],
+                year: info?.publishedDate?.split("-")[0],
                 description:
-                    info.description?.replace(/<[^>]*>?/gm, "") ||
+                    info?.description?.replace(/<[^>]*>?/gm, "") ||
                     "Описание отсутствует",
                 isBook: true,
             };
