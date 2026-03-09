@@ -1,7 +1,6 @@
-const TMDB_API_KEY =
-    "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4MDQwZTBlNzQ0MDhlNTdiZTVhZDExNGY4MmNmNmVjNCIsIm5iZiI6MTc3MjcxMDQ2OC4xMjUsInN1YiI6IjY5YTk2YTQ0MTY0ZTYwMmU3YTY3NDM5OCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.WfGXhKlgAx9fQl9xWgM87-pKbCgS9OyuhDiUwDpNd9M";
-const RAWG_API_KEY = "4a270ac5de644430902fb6609603359b";
-const GOOGLE_BOOKS_KEY = "AIzaSyDUOOaFsxvegjpuz12P4QJAvw_NAzVGOww";
+const TMDB_API_KEY = process.env.EXPO_PUBLIC_TMDB_API_KEY;
+const RAWG_API_KEY = process.env.EXPO_PUBLIC_RAWG_API_KEY;
+const GOOGLE_BOOKS_KEY = process.env.EXPO_PUBLIC_GOOGLE_BOOKS_KEY;
 
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_URL = "https://image.tmdb.org/t/p/w500";

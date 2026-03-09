@@ -9,9 +9,9 @@ export const useMediaCategories = (section) => {
         if (section === "Книги") {
             CATEGORIES = [
                 "Читаю",
+                "Перечитываю",
                 "В планах",
                 "Прочитано",
-                "Перечитываю",
                 "Брошено",
                 "Отложено",
             ];
@@ -20,9 +20,9 @@ export const useMediaCategories = (section) => {
         } else if (section === "Игры") {
             CATEGORIES = [
                 "Играю",
+                "Переигрываю",
                 "В планах",
                 "Прошёл",
-                "Переигрываю",
                 "Брошено",
                 "Отложено",
             ];
@@ -31,9 +31,9 @@ export const useMediaCategories = (section) => {
         } else {
             CATEGORIES = [
                 "Смотрю",
+                "Пересматриваю",
                 "В планах",
                 "Просмотрено",
-                "Пересматриваю",
                 "Брошено",
                 "Отложено",
             ];

@@ -17,6 +17,10 @@ export const SearchHeader = ({
 }) => {
     const categories = ["Игры", "Фильмы", "Аниме", "Книги"];
 
+    const handleClear = () => {
+        setQuery("");
+    };
+
     return (
         <View>
             <View style={styles.searchBarContainer}>
@@ -29,6 +33,20 @@ export const SearchHeader = ({
                     returnKeyType="search"
                     onSubmitEditing={() => onSearch(query)}
                 />
+
+                {query.length > 0 && (
+                    <TouchableOpacity
+                        onPress={handleClear}
+                        style={styles.clearIcon}
+                    >
+                        <Ionicons
+                            name="close-circle"
+                            size={20}
+                            color="#8E94A4"
+                        />
+                    </TouchableOpacity>
+                )}
+
                 <TouchableOpacity onPress={() => onSearch(query)}>
                     <Ionicons name="search" size={22} color="#7D8AFF" />
                 </TouchableOpacity>
@@ -80,6 +98,9 @@ const styles = StyleSheet.create({
         flex: 1,
         color: "#fff",
         fontSize: 16,
+    },
+    clearIcon: {
+        marginHorizontal: 10,
     },
     categoryToggle: {
         flexDirection: "row",
