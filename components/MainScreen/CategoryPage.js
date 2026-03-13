@@ -11,16 +11,29 @@ export const CategoryPage = ({
     navigation,
 }) => {
     // Фильтруем данные внутри компонента страницы
-    const pageData = data.filter(
-        (item) =>
-            item.appSection === currentSection &&
-            (item.status || "Смотрю") === category,
-    );
+    const pageData = data.filter((item) => {
+        // Проверяем секцию
+        const sectionMatch = item.appSection === currentSection;
+
+        // Проверяем статус. Если у айтема нет статуса, даем дефолтный
+        // НО дефолтный должен зависеть от секции!
+        const defaultStatus =
+            currentSection === "Книги"
+                ? "Читаю"
+                : currentSection === "Игры"
+                  ? "Играю"
+                  : "Смотрю";
+
+        const statusMatch = (item.status || defaultStatus) === category;
+
+        return sectionMatch && statusMatch;
+    });
 
     return (
         <View style={{ width: SCREEN_WIDTH }}>
             <FlatList
                 data={pageData}
+                // data={data}
                 keyExtractor={(item) => item.id}
                 numColumns={2}
                 columnWrapperStyle={styles.row}

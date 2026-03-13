@@ -43,7 +43,7 @@ export default function DetailsScreen({ route, navigation }) {
     const [editForm, setEditForm] = useEditForm(isEditing, displayData);
 
     const isInCollection = !!savedItem;
-    const isCustom = item.isCustom || savedItem?.isCustom;
+    const isCustom = item?.isCustom || savedItem?.isCustom;
 
     // Сохранение изменений
     const handleSave = () => {

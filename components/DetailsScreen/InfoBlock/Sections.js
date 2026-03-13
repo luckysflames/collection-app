@@ -3,33 +3,51 @@ import { LabelValue } from "./LabelValue";
 import { styles } from "./InfoBlock.styles";
 import { formatKind, formatRating } from "./utils";
 
-export const AnimeQuickData = ({ data }) => (
-    <View style={styles.quickMeta}>
-        <Text style={styles.scoreText}>★ {data.score}</Text>
-        <View style={styles.dot} />
-        <Text style={styles.metaText}>{formatKind(data.kind)}</Text>
-        <View style={styles.dot} />
-        <Text style={styles.metaText}>{formatRating(data.rating)}</Text>
-    </View>
-);
+export const AnimeQuickData = ({ data }) => {
+    return (
+        <View style={styles.quickMeta}>
+            {!data.isCustom && data.score && (
+                <>
+                    <Text style={styles.scoreText}>★ {data.score}</Text>
+                    <View style={styles.dot} />
+                </>
+            )}
+            <Text style={styles.metaText}>{formatKind(data.kind)}</Text>
+            <View style={styles.dot} />
+            <Text style={styles.metaText}>{formatRating(data.rating)}</Text>
+        </View>
+    );
+};
 
-export const MovieQuickData = ({ data }) => (
-    <View style={styles.quickMeta}>
-        <Text style={styles.scoreText}>★ {data.score}</Text>
-    </View>
-);
+export const MovieQuickData = ({ data }) => {
+    if (data.isCustom) return null;
 
-export const GameQuickData = ({ data }) => (
-    <View style={styles.quickMeta}>
-        <Text style={styles.scoreText}>★ {data.score}</Text>
-    </View>
-);
+    return (
+        <View style={styles.quickMeta}>
+            <Text style={styles.scoreText}>★ {data.score}</Text>
+        </View>
+    );
+};
 
-export const BookQuickData = ({ data }) => (
-    <View style={styles.quickMeta}>
-        <Text style={styles.scoreText}>★ {data.score}</Text>
-    </View>
-);
+export const GameQuickData = ({ data }) => {
+    if (data.isCustom) return null;
+
+    return (
+        <View style={styles.quickMeta}>
+            <Text style={styles.scoreText}>★ {data.score}</Text>
+        </View>
+    );
+};
+
+export const BookQuickData = ({ data }) => {
+    if (data.isCustom) return null;
+
+    return (
+        <View style={styles.quickMeta}>
+            <Text style={styles.scoreText}>★ {data.score}</Text>
+        </View>
+    );
+};
 
 export const AnimeExtra = ({ data }) => (
     <LabelValue label="Студия" value={data.studios?.join(", ")} />

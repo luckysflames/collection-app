@@ -34,7 +34,7 @@ export const TitlesModal = ({ visible, onClose, data }) => {
                         </>
                     )}
 
-                    {data?.type === "movie" || "game" && (
+                    {(data?.type === "movie" || "game") && (
                         <TitleItem
                             label="Оригинальное"
                             value={data?.originalTitle}
