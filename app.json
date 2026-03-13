@@ -25,8 +25,8 @@
       },
       "package": "com.luckyflame.collectionapp",
       "androidStatusBar": {
-        "translucent": true,
-        "backgroundColor": "#00000000"
+        "translucent": false,
+        "backgroundColor": "#050B18"
       },
       "versionCode": 4
     },

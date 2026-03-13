@@ -5,25 +5,26 @@ const GOOGLE_BOOKS_KEY = process.env.EXPO_PUBLIC_GOOGLE_BOOKS_KEY;
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_URL = "https://image.tmdb.org/t/p/w500";
 
+// Вспомогательная функция для очистки HTML-тегов
 const cleanHtml = (text) => text?.replace(/<[^>]*>?/gm, "") || "";
+
+// Вспомогательная функция для получения чистого ID без префикса и номера страницы
+const getCleanId = (complexId, prefix) =>
+    complexId.replace(prefix, "").split("-")[0];
 
 export const searchMedia = async (text, category, page = 1) => {
     if (!text || text.length < 3) return [];
 
     try {
         if (category === "Аниме") {
-            // Shikimori использует параметр page
             const res = await fetch(
                 `https://shikimori.one/api/animes?search=${encodeURIComponent(text)}&limit=15&page=${page}&order=ranked`,
             );
             const data = await res.json();
             return data.map((item) => ({
-                id: `anime-${item.id}-${page}`, // Добавляем page в id для уникальности ключей
+                id: `anime-${item.id}-${page}`,
                 title: item.russian || item.name,
-                year: item.aired_on?.split("-")[0] || "N/A",
-                category: item.score ? `★ ${item.score}` : "Anime",
                 image: `https://shikimori.one${item.image.original}`,
-                description: "Нажмите для подробностей...",
                 isAnime: true,
             }));
         }
@@ -38,21 +39,15 @@ export const searchMedia = async (text, category, page = 1) => {
                 json.results?.map((item) => ({
                     id: `movie-${item.id}-${page}`,
                     title: item.title,
-                    year: item.release_date?.split("-")[0] || "N/A",
-                    category: item.vote_average
-                        ? `★ ${item.vote_average.toFixed(1)}`
-                        : "Movie",
                     image: item.poster_path
                         ? `${TMDB_IMAGE_URL}${item.poster_path}`
                         : "https://via.placeholder.com/500x750",
-                    description: item.overview,
                     isMovie: true,
                 })) || []
             );
         }
 
         if (category === "Книги") {
-            // Google Books использует startIndex (page * maxResults)
             const maxResults = 15;
             const startIndex = (page - 1) * maxResults;
             const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(text)}&maxResults=${maxResults}&startIndex=${startIndex}&hl=ru&key=${GOOGLE_BOOKS_KEY}`;
@@ -84,12 +79,9 @@ export const searchMedia = async (text, category, page = 1) => {
                 json.results?.map((item) => ({
                     id: `game-${item.id}-${page}`,
                     title: item.name,
-                    year: item.released?.split("-")[0] || "N/A",
-                    category: item.rating ? `★ ${item.rating}` : "Game",
                     image:
                         item.background_image ||
                         "https://via.placeholder.com/500x750",
-                    description: "Нажмите для подробностей...",
                     isGame: true,
                 })) || []
             );
@@ -103,100 +95,101 @@ export const searchMedia = async (text, category, page = 1) => {
 export const fetchDetailsById = async (id) => {
     try {
         if (id.startsWith("movie-")) {
+            const movieId = getCleanId(id, "movie-");
             const res = await fetch(
-                `${TMDB_BASE_URL}/movie/${id.replace("movie-", "")}?language=ru-RU`,
-                {
-                    headers: { Authorization: `Bearer ${TMDB_API_KEY}` },
-                },
+                `${TMDB_BASE_URL}/movie/${movieId}?language=ru-RU`,
+                { headers: { Authorization: `Bearer ${TMDB_API_KEY}` } },
             );
             const json = await res.json();
             return {
-                filmLength: json.runtime,
-                countries: json.production_countries?.map((c) => c.name) || [],
+                type: "movie",
+                budget:
+                    json.budget > 0 ? `$${json.budget.toLocaleString()}` : "?",
                 genres: json.genres?.map((g) => g.name) || [],
-                year: json.release_date?.split("-")[0],
+                originalTitle: json.original_title,
                 description: json.overview,
+                companies: json.production_companies?.map((c) => c.name) || [],
+                countries: json.production_countries?.map((c) => c.name) || [],
+                year: json.release_date,
+                duration: json.runtime ? `${json.runtime} мин.` : null,
+                movieStatus: json.status.toLowerCase(),
+                score: json.vote_average?.toFixed(1) || "0.0",
                 isMovie: true,
             };
         }
 
         if (id.startsWith("anime-")) {
-            const animeId = id.replace("anime-", "");
+            const animeId = getCleanId(id, "anime-");
             const res = await fetch(
                 `https://shikimori.one/api/animes/${animeId}`,
             );
             const json = await res.json();
             return {
-                filmLength:
-                    json.duration ||
-                    (json.episodes && json.episodes_aired
-                        ? json.episodes * json.episodes_aired
-                        : null),
-                countries: ["Япония"],
+                type: "anime",
+                kind: json.kind,
+                score: json.score || "0.0",
+                animeStatus: json.status,
+                episodes: json.episodes,
+                episodesAired: json.episodes_aired,
+                airedOn: json.aired_on,
+                releasedOn: json.released_on,
+                rating: json.rating,
+                englishTitle: json.english?.[0] || null,
+                japaneseTitle: json.japanese?.[0] || null,
+                duration: json.duration ? `по ~${json.duration} мин.` : null,
+                description: cleanHtml(
+                    json.description_html || json.description,
+                ),
                 genres: json.genres?.map((g) => g.russian || g.name) || [],
-                year: json.aired_on?.split("-")[0],
-                description: json.description_html
-                    ? json.description_html.replace(/<[^>]*>?/gm, "")
-                    : json.description,
+                studios: json.studios?.map((s) => s.name) || [],
                 isAnime: true,
             };
         }
 
         if (id.startsWith("book-")) {
-            const bookId = id.replace("book-", "");
-            // Убираем лишние префиксы, если они попали в ID при пагинации
-            const cleanId = bookId.split("-")[0];
-
+            const bookId = getCleanId(id, "book-");
             const res = await fetch(
-                `https://www.googleapis.com/books/v1/volumes/${cleanId}?hl=ru&key=${GOOGLE_BOOKS_KEY}`,
+                `https://www.googleapis.com/books/v1/volumes/${bookId}?hl=ru&key=${GOOGLE_BOOKS_KEY}`,
             );
             const json = await res.json();
-
-            // ПРОВЕРКА: Если API вернуло ошибку (например, 404)
-            if (!json || json.error || !json.volumeInfo) {
-                console.error(
-                    "Google Books Details Error:",
-                    json?.error?.message || "No volumeInfo",
-                );
-                return {
-                    description: "Информация временно недоступна",
-                    year: "N/A",
-                    genres: [],
-                    countries: ["Неизвестен"],
-                };
-            }
-
+            console.log(JSON.stringify(json))
             const info = json.volumeInfo;
-
             return {
-                // Используем опциональную цепочку ?. и проверку на существование
-                filmLength: info?.pageCount ? `${info.pageCount} стр.` : null,
-                countries: info?.authors || [
-                    info?.publisher || "Автор не указан",
-                ],
-                genres: info?.categories || [],
-                year: info?.publishedDate?.split("-")[0],
+                type: "book",
+                authors: info.authors || [],
+                publisher: info.publisher,
+                year: info.publishedDate,
+                pageCount: info.pageCount ? `${info.pageCount} стр.` : null,
+                genres: info.categories || [],
+                score: info.averageRating || "0.0",
+                rating: info.maturityRating,
                 description:
-                    info?.description?.replace(/<[^>]*>?/gm, "") ||
-                    "Описание отсутствует",
+                    cleanHtml(info.description) || "Описание отсутствует",
                 isBook: true,
             };
         }
 
         if (id.startsWith("game-")) {
-            const gameId = id.replace("game-", "");
+            const gameId = getCleanId(id, "game-");
             const res = await fetch(
                 `https://api.rawg.io/api/games/${gameId}?key=${RAWG_API_KEY}`,
             );
             const json = await res.json();
             return {
-                filmLength: json.playtime ? `${json.playtime} ч.` : null,
-                countries: json.developers?.map((d) => d.name) || [],
+                type: "game",
+                originalTitle: json.name_original,
+                score: json.rating?.toFixed(1) || "0.0",
+                esrb: json.esrb_rating.name,
+                metacritic: json.metacritic,
+                year: json.released,
+                duration: json.playtime ? `${json.playtime} ч.` : null,
+                developers: json.developers?.map((d) => d.name) || [],
+                platforms:
+                    json.parent_platforms?.map((p) => p.platform.name) || [],
                 genres: json.genres?.map((g) => g.name) || [],
-                year: json.released?.split("-")[0],
-                description:
-                    json.description_raw ||
-                    json.description?.replace(/<[^>]*>?/gm, ""),
+                description: cleanHtml(
+                    json.description_raw || json.description,
+                ),
                 isGame: true,
             };
         }
