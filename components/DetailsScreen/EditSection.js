@@ -1,12 +1,10 @@
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { EditForm } from "./EditForm";
-import { styles } from "./InfoBlock/InfoBlock.styles"; // Проверь путь!
 
-export const EditSection = ({ form, setForm, type, onSave, onCancel }) => (
+export const EditSection = ({ form, updateField, type, onSave, onCancel }) => (
     <View style={{ width: "100%" }}>
-        {/* Прокидываем type, чтобы форма знала, какие лейблы рисовать */}
-        <EditForm form={form} setForm={setForm} type={type} />
+        <EditForm form={form} updateField={updateField} type={type} />
 
         <TouchableOpacity style={styles.saveButton} onPress={onSave}>
             <Text style={styles.saveButtonText}>Сохранить изменения</Text>
@@ -17,3 +15,23 @@ export const EditSection = ({ form, setForm, type, onSave, onCancel }) => (
         </TouchableOpacity>
     </View>
 );
+
+const styles = StyleSheet.create({
+    saveButton: {
+        backgroundColor: "#7D8AFF",
+        padding: 15,
+        borderRadius: 12,
+        alignItems: "center",
+        marginTop: 15,
+    },
+    saveButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+    cancelButton: {
+        padding: 15,
+        alignItems: "center",
+        marginTop: 10,
+    },
+    cancelButtonText: {
+        color: "#8E94A4",
+        fontSize: 14,
+    },
+});

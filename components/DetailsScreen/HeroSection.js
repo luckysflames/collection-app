@@ -7,6 +7,9 @@ export const HeroSection = ({
     image,
     insets,
     onBack,
+    isCustom, // Проверяем, можно ли редактировать
+    isEditing,
+    onEditToggle,
 }) => (
     <View style={styles.heroSection}>
         <Image
@@ -19,7 +22,7 @@ export const HeroSection = ({
             style={styles.gradient}
         />
 
-        {/* Кнопки управления */}
+        {/* Кнопка Назад */}
         <TouchableOpacity
             style={[styles.roundButton, { top: insets.top, left: 15 }]}
             onPress={onBack}
@@ -27,12 +30,29 @@ export const HeroSection = ({
             <Ionicons name="chevron-back" size={24} color="#fff" />
         </TouchableOpacity>
 
+        {/* Кнопка Редактировать (только для кастомных) */}
+        {isCustom && (
+            <TouchableOpacity
+                style={[
+                    styles.roundButton,
+                    { top: insets.top, right: 15 },
+                    isEditing && { backgroundColor: "#7D8AFF" }, // Подсветка при активе
+                ]}
+                onPress={onEditToggle}
+            >
+                <Ionicons
+                    name={isEditing ? "close" : "create-outline"}
+                    size={22}
+                    color="#fff"
+                />
+            </TouchableOpacity>
+        )}
+
         <View style={styles.mainPosterWrapper}>
             <Image source={{ uri: image }} style={styles.mainPoster} />
         </View>
     </View>
 );
-
 const styles = StyleSheet.create({
     heroSection: {
         height: 450,

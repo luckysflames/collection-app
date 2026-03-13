@@ -1,174 +1,90 @@
 import React from "react";
-import { View, Text, TextInput, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
+import { useMediaCategories } from "../../hooks/useMediaCategories";
+import ImageUploader from "../AddCardScreen/ImageUploader";
+import CommonField from "../AddCardScreen/Fields/CommonField";
+import MovieFields from "../AddCardScreen/Fields/MovieFields";
+import AnimeFields from "../AddCardScreen/Fields/AnimeFields";
+import BookFields from "../AddCardScreen/Fields/BookFields";
+import GameFields from "../AddCardScreen/Fields/GameFields";
+import StatusPicker from "../AddCardScreen/StatusPicker";
 
-export const EditForm = ({ form, setForm, type }) => {
-    // Помощник для обычных полей
-    const updateField = (field, value) => setForm({ ...form, [field]: value });
+export const EditForm = ({ form, updateField, type }) => {
+    // Получаем категории для StatusPicker
+    const { CATEGORIES } = useMediaCategories(
+        type === "movie"
+            ? "Фильмы"
+            : type === "anime"
+              ? "Аниме"
+              : type === "game"
+                ? "Игры"
+                : "Книги",
+    );
 
-    // Помощник для массивов (превращает строку "США, Франция" в массив ["США", "Франция"])
-    const updateArrayField = (field, value) => {
-        const arr = value
-            .split(",")
-            .map((item) => item.trim())
-            .filter(Boolean);
-        setForm({ ...form, [field]: arr });
-    };
+    // console.log('Current Form Status:', form.status, 'Available Categories:', CATEGORIES);
 
     return (
         <View style={styles.container}>
-            <Text style={styles.label}>Название</Text>
-            <TextInput
-                style={styles.input}
-                value={form.title}
-                onChangeText={(v) => updateField("title", v)}
-                placeholderTextColor="#444"
+            {/* 1. Картинка */}
+            <ImageUploader
+                image={form.image}
+                onImagePick={(uri) => updateField("image", uri)}
             />
 
-            {/* Поля для Фильмов */}
+            {/* 2. Название */}
+            <CommonField
+                placeholder="Название"
+                form={form}
+                updateField={updateField}
+                fieldName="title"
+            />
+
+            {/* 3. Год (если не аниме, как в AddCardScreen) */}
+            {!(type === "anime") && (
+                <CommonField
+                    placeholder="Дата выхода (полная или год)"
+                    form={form}
+                    updateField={updateField}
+                    fieldName="year"
+                />
+            )}
+
+            {/* 4. Специфичные поля */}
             {type === "movie" && (
-                <>
-                    <View style={styles.row}>
-                        <View style={{ flex: 1 }}>
-                            <Text style={styles.label}>Год</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={form.year}
-                                onChangeText={(v) => updateField("year", v)}
-                            />
-                        </View>
-                        <View style={{ flex: 1, marginLeft: 10 }}>
-                            <Text style={styles.label}>Бюджет</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={form.budget}
-                                onChangeText={(v) => updateField("budget", v)}
-                            />
-                        </View>
-                    </View>
-                    <Text style={styles.label}>Страны (через запятую)</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={form.countries?.join(", ")}
-                        onChangeText={(v) => updateArrayField("countries", v)}
-                    />
-                </>
+                <MovieFields form={form} updateField={updateField} />
             )}
-
-            {/* Поля для Аниме */}
             {type === "anime" && (
-                <>
-                    <Text style={styles.label}>Японское название</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={form.japaneseTitle}
-                        onChangeText={(v) => updateField("japaneseTitle", v)}
-                    />
-                    <View style={styles.row}>
-                        <View style={{ flex: 1 }}>
-                            <Text style={styles.label}>Эпизоды</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={String(form.episodes || "")}
-                                onChangeText={(v) => updateField("episodes", v)}
-                                keyboardType="numeric"
-                            />
-                        </View>
-                        <View style={{ flex: 1, marginLeft: 10 }}>
-                            <Text style={styles.label}>Студии</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={form.studios?.join(", ")}
-                                onChangeText={(v) =>
-                                    updateArrayField("studios", v)
-                                }
-                            />
-                        </View>
-                    </View>
-                </>
+                <AnimeFields form={form} updateField={updateField} />
             )}
-
-            {/* Поля для Игр */}
-            {type === "game" && (
-                <>
-                    <View style={styles.row}>
-                        <View style={{ flex: 1 }}>
-                            <Text style={styles.label}>Metacritic</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={String(form.metacritic || "")}
-                                onChangeText={(v) =>
-                                    updateField("metacritic", v)
-                                }
-                                keyboardType="numeric"
-                            />
-                        </View>
-                        <View style={{ flex: 1, marginLeft: 10 }}>
-                            <Text style={styles.label}>ESRB</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={form.esrb}
-                                onChangeText={(v) => updateField("esrb", v)}
-                            />
-                        </View>
-                    </View>
-                    <Text style={styles.label}>Разработчики</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={form.developers?.join(", ")}
-                        onChangeText={(v) => updateArrayField("developers", v)}
-                    />
-                </>
-            )}
-
-            {/* Поля для Книг */}
             {type === "book" && (
-                <>
-                    <Text style={styles.label}>Авторы</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={form.authors?.join(", ")}
-                        onChangeText={(v) => updateArrayField("authors", v)}
-                    />
-                    <View style={styles.row}>
-                        <View style={{ flex: 1 }}>
-                            <Text style={styles.label}>Страниц</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={String(form.pageCount || "")}
-                                onChangeText={(v) =>
-                                    updateField("pageCount", v)
-                                }
-                                keyboardType="numeric"
-                            />
-                        </View>
-                        <View style={{ flex: 1, marginLeft: 10 }}>
-                            <Text style={styles.label}>Издатель</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={form.publisher}
-                                onChangeText={(v) =>
-                                    updateField("publisher", v)
-                                }
-                            />
-                        </View>
-                    </View>
-                </>
+                <BookFields form={form} updateField={updateField} />
+            )}
+            {type === "game" && (
+                <GameFields form={form} updateField={updateField} />
             )}
 
-            <Text style={styles.label}>Жанры (через запятую)</Text>
-            <TextInput
-                style={styles.input}
-                value={form.genres?.join(", ")}
-                onChangeText={(v) => updateArrayField("genres", v)}
+            {/* 5. Общие поля */}
+            <CommonField
+                placeholder="Жанры (через запятую)"
+                form={form}
+                updateField={updateField}
+                fieldName="genres"
             />
 
-            <Text style={styles.label}>Описание</Text>
-            <TextInput
-                style={[styles.input, styles.textArea]}
-                value={form.description}
-                onChangeText={(v) => updateField("description", v)}
+            <CommonField
+                placeholder="Описание..."
+                form={form}
+                updateField={updateField}
+                fieldName="description"
                 multiline
-                numberOfLines={4}
+            />
+
+            {/* 6. Статус */}
+            <StatusPicker
+                categories={CATEGORIES}
+                currentStatus={form.status}
+                type={type}
+                onSelect={(status) => updateField("status", status)}
             />
         </View>
     );
@@ -179,18 +95,9 @@ const styles = StyleSheet.create({
     label: {
         color: "#8E94A4",
         fontSize: 12,
-        marginTop: 10,
-        marginBottom: 4,
+        marginTop: 15,
+        marginBottom: 5,
         textTransform: "uppercase",
-        fontWeight: "600",
+        fontWeight: "700",
     },
-    input: {
-        backgroundColor: "#1E293B",
-        borderRadius: 8,
-        color: "#fff",
-        padding: 12,
-        fontSize: 16,
-    },
-    row: { flexDirection: "row" },
-    textArea: { minHeight: 100, textAlignVertical: "top" },
 });

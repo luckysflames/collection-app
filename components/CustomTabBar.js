@@ -103,6 +103,7 @@ export default function MyCustomTabBar({ state, descriptors, navigation }) {
                             },
                         ],
                         opacity: menuAnimation,
+                        marginBottom: insets.bottom,
                     },
                 ]}
             >
@@ -116,7 +117,7 @@ export default function MyCustomTabBar({ state, descriptors, navigation }) {
                             key={cat.id}
                             style={[
                                 styles.verticalItem,
-                                isSubFocused && styles.activeVerticalItem, // Можно добавить легкий фон
+                                isSubFocused && styles.activeVerticalItem,
                             ]}
                             onPress={() => handleSubCategoryPress(cat.id)}
                         >

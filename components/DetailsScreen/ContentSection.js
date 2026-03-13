@@ -10,24 +10,16 @@ import { InfoBlock } from "./InfoBlock";
 export const ContentSection = ({
     displayData,
     savedItem,
-    isCustom,
     isInCollection,
     onStatusPress,
-    onEditPress,
     onUpdateNotes,
 }) => (
     <View>
         <InfoBlock
             status={savedItem?.status}
             onStatusPress={onStatusPress}
-            displayData={displayData} // Просто передаем один объект
+            displayData={displayData}
         />
-
-        {isInCollection && isCustom && (
-            <TouchableOpacity style={styles.editToggle} onPress={onEditPress}>
-                <Text style={styles.editToggleText}>Редактировать инфо</Text>
-            </TouchableOpacity>
-        )}
 
         <Text style={styles.sectionTitle}>Описание</Text>
         <Text style={styles.description}>

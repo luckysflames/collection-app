@@ -40,23 +40,45 @@ export default function DetailsScreen({ route, navigation }) {
     );
 
     const displayData = useDetailsData(item, fullDetails, savedItem);
-    const [editForm, setEditForm] = useEditForm(isEditing, displayData);
+    const dataForEditing = {
+        ...displayData,
+        status: displayData.status || savedItem?.status || "",
+    };
+
+    const [editForm, updateField] = useEditForm(isEditing, dataForEditing);
 
     const isInCollection = !!savedItem;
     const isCustom = item?.isCustom || savedItem?.isCustom;
 
     // Сохранение изменений
     const handleSave = () => {
-        const prepareList = (str) =>
-            str
+        const prepareList = (data) => {
+            if (!data) return [];
+            if (Array.isArray(data)) return data;
+            return data
                 .split(",")
                 .map((s) => s.trim())
                 .filter(Boolean);
-        updateCard(item.id, {
+        };
+
+        const finalData = {
             ...editForm,
+            // Массивы
             genres: prepareList(editForm.genres),
             countries: prepareList(editForm.countries),
-        });
+            studios: prepareList(editForm.studios),
+            companies: prepareList(editForm.companies),
+            authors: prepareList(editForm.authors),
+            developers: prepareList(editForm.developers),
+            platforms: prepareList(editForm.platforms),
+            // Числа (обязательно приводим к Number, если в сторе они как числа)
+            episodes: Number(editForm.episodes) || 0,
+            pageCount: Number(editForm.pageCount) || 0,
+            metacritic: Number(editForm.metacritic) || 0,
+            budget: editForm.budget, // если бюджет хранится строкой "100 млн", оставляем так
+        };
+
+        updateCard(item.id, finalData);
         setIsEditing(false);
     };
 
@@ -78,16 +100,12 @@ export default function DetailsScreen({ route, navigation }) {
     return (
         <ScrollView style={styles.container} bounces={false}>
             <HeroSection
-                image={item.image}
+                image={editForm.image || item.image} // Используем image из формы, если редактируем
                 insets={insets}
                 onBack={() => navigation.goBack()}
-                onCollect={() =>
-                    isInCollection
-                        ? removeFromCollection(item.id)
-                        : setModalVisible(true)
-                }
-                isInCollection={isInCollection}
-                iconSources={COLLECTION_ICON}
+                isCustom={isCustom}
+                isEditing={isEditing}
+                onEditToggle={() => setIsEditing(!isEditing)}
             />
 
             <View style={styles.infoContainer}>
@@ -103,7 +121,8 @@ export default function DetailsScreen({ route, navigation }) {
                         {isEditing ? (
                             <EditSection
                                 form={editForm}
-                                setForm={setEditForm}
+                                updateField={updateField}
+                                type={item.type}
                                 onSave={handleSave}
                                 onCancel={() => setIsEditing(false)}
                             />
@@ -111,10 +130,8 @@ export default function DetailsScreen({ route, navigation }) {
                             <ContentSection
                                 displayData={displayData}
                                 savedItem={savedItem}
-                                isCustom={isCustom}
                                 isInCollection={isInCollection}
                                 onStatusPress={() => setModalVisible(true)}
-                                onEditPress={() => setIsEditing(true)}
                                 onUpdateNotes={(text) =>
                                     updateCard(item.id, { userNotes: text })
                                 }
