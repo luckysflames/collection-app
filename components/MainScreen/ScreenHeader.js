@@ -21,8 +21,8 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         fontSize: 24,
-        fontWeight: "800",
-        color: "#FFFFFF",
+        fontWeight: "bold",
+        color: "#fff",
         letterSpacing: 0.5,
     },
 });

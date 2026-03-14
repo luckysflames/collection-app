@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { StyleSheet, View, FlatList, Dimensions } from "react-native";
+import { StyleSheet, View, FlatList, Dimensions, Animated } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CategoryChips } from "../components/MainScreen/CategoryChips";
@@ -38,6 +38,8 @@ export default function MainScreen({ route, navigation }) {
         }
     }, [activeCategory]);
 
+    const scrollX = useRef(new Animated.Value(0)).current;
+
     return (
         <View style={[styles.mainContainer, { paddingTop: insets.top - 40 }]}>
             <ScreenHeader
@@ -52,17 +54,25 @@ export default function MainScreen({ route, navigation }) {
                 ref={chipsRef}
                 categories={CATEGORIES}
                 activeCategory={activeCategory}
+                scrollX={scrollX}
                 onPress={(cat, index) => {
                     setActiveCategory(cat);
                     pagerRef.current?.scrollToIndex({ index, animated: true });
                 }}
             />
 
-            <FlatList
+            <Animated.FlatList
                 ref={pagerRef}
                 data={CATEGORIES}
                 horizontal
                 pagingEnabled
+                // СВЯЗКА: отправляем данные о скролле в переменную scrollX
+                onScroll={Animated.event(
+                    [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+                    { useNativeDriver: false }, // false, так как чипсы анимируют ширину
+                )}
+                // Как часто приходят события (16мс = 60fps)
+                scrollEventThrottle={16}
                 onMomentumScrollEnd={(e) => {
                     const index = Math.round(
                         e.nativeEvent.contentOffset.x /
@@ -78,6 +88,7 @@ export default function MainScreen({ route, navigation }) {
                         navigation={navigation}
                     />
                 )}
+                keyExtractor={(item) => item}
             />
         </View>
     );

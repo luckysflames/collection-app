@@ -22,7 +22,8 @@ export const SearchHeader = ({
     };
 
     return (
-        <View>
+        <View style={styles.container}>
+            <Text style={styles.header}>Поиск</Text>
             <View style={styles.searchBarContainer}>
                 <TextInput
                     style={styles.searchInput}
@@ -82,9 +83,19 @@ export const SearchHeader = ({
 };
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: "#050B18",
+        paddingHorizontal: 20,
+    },
+    header: {
+        color: "#fff",
+        fontSize: 24,
+        fontWeight: "bold",
+        marginBottom: 20,
+    },
     searchBarContainer: {
-        marginHorizontal: 16,
-        marginVertical: 10,
+        marginBottom: 10,
         height: 50,
         backgroundColor: "rgba(255, 255, 255, 0.05)",
         borderRadius: 25,

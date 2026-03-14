@@ -24,7 +24,7 @@ export default function SearchScreen({ navigation }) {
     } = useMediaSearch();
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={[styles.container, { paddingTop: insets.top - 20 }]}>
             <SearchHeader
                 activeCategory={activeCategory}
                 setActiveCategory={setActiveCategory}
