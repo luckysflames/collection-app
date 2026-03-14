@@ -19,6 +19,7 @@ import ImageUploader from "../components/AddCardScreen/ImageUploader";
 import SectionSelector from "../components/AddCardScreen/SectionSelector";
 import StatusPicker from "../components/AddCardScreen/StatusPicker";
 import { useAddCardForm } from "../hooks/useAddCardForm";
+import { ErrorModal } from "../components/ErrorModal";
 
 const SECTIONS = [
     { label: "Фильмы", value: "movie" },
@@ -29,7 +30,8 @@ const SECTIONS = [
 
 export default function AddCardScreen({ navigation }) {
     const insets = useSafeAreaInsets();
-    const { form, updateField, handleSave } = useAddCardForm(navigation);
+    const { form, updateField, handleSave, errorModal, closeError } =
+        useAddCardForm(navigation);
 
     const { CATEGORIES } = useMediaCategories(
         form.type === "movie"
@@ -50,7 +52,7 @@ export default function AddCardScreen({ navigation }) {
                 contentContainerStyle={[
                     styles.scrollContainer,
                     {
-                        paddingTop: insets.top,
+                        paddingTop: insets.top - 20,
                         paddingBottom: insets.bottom + 100,
                     },
                 ]}
@@ -68,6 +70,7 @@ export default function AddCardScreen({ navigation }) {
                     onSelect={(type) => updateField("type", type)}
                 />
 
+                <Text style={styles.label}>Обязательные поля</Text>
                 <CommonField
                     placeholder="Основное название"
                     form={form}
@@ -75,6 +78,7 @@ export default function AddCardScreen({ navigation }) {
                     fieldName="title"
                 />
 
+                <Text style={styles.label}>Необязательные поля</Text>
                 {!(form.type === "anime") && (
                     <CommonField
                         placeholder="Дата выхода (полная или год)"
@@ -126,6 +130,13 @@ export default function AddCardScreen({ navigation }) {
                 >
                     <Text style={styles.saveButtonText}>Создать</Text>
                 </TouchableOpacity>
+
+                <ErrorModal
+                    visible={errorModal.visible}
+                    title="Ошибка заполнения"
+                    message={errorModal.message}
+                    onClose={closeError}
+                />
             </ScrollView>
         </KeyboardAvoidingView>
     );

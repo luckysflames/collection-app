@@ -51,6 +51,11 @@ export const useAddCardForm = (navigation) => {
         duration: "", // Универсальное (мин для кино, часы для игр)
     });
 
+    const [errorModal, setErrorModal] = useState({
+        visible: false,
+        message: "",
+    });
+
     // Внутренний хелпер для определения статуса по умолчанию
     const getDefaultStatus = (type) => {
         switch (type) {
@@ -85,7 +90,11 @@ export const useAddCardForm = (navigation) => {
 
     const handleSave = () => {
         if (!form.title) {
-            Alert.alert("Упс!", "Название обязательно");
+            setErrorModal({
+                visible: true,
+                message:
+                    "Пожалуйста, введите название. Мы не можем добавить совсем пустую карточку в вашу коллекцию.",
+            });
             return;
         }
 
@@ -164,5 +173,11 @@ export const useAddCardForm = (navigation) => {
         navigation.goBack();
     };
 
-    return { form, updateField, handleSave };
+    return {
+        form,
+        updateField,
+        handleSave,
+        errorModal,
+        closeError: () => setErrorModal({ ...errorModal, visible: false }),
+    };
 };

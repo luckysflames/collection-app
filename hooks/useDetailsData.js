@@ -2,11 +2,11 @@ import { useMemo } from "react";
 
 export const useDetailsData = (item, fullDetails, savedItem) => {
     const type = useMemo(() => {
-        if (savedItem.isAnime || item.isAnime || fullDetails?.isAnime)
+        if (savedItem?.isAnime || item?.isAnime || fullDetails?.isAnime)
             return "anime";
-        if (savedItem.isGame || item.isGame || fullDetails?.isGame)
+        if (savedItem?.isGame || item?.isGame || fullDetails?.isGame)
             return "game";
-        if (savedItem.isBook || item.isBook || fullDetails?.isBook)
+        if (savedItem?.isBook || item?.isBook || fullDetails?.isBook)
             return "book";
         return "movie";
     }, [item, fullDetails]);
