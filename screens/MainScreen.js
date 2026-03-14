@@ -39,9 +39,10 @@ export default function MainScreen({ route, navigation }) {
     }, [activeCategory]);
 
     return (
-        <View style={[styles.mainContainer, { paddingTop: insets.top }]}>
+        <View style={[styles.mainContainer, { paddingTop: insets.top - 40 }]}>
             <ScreenHeader
-                title={`Моя коллекция ${sectionName}`}
+                title={`${currentSection}`}
+                // title={`Моя коллекция ${sectionName}`}
                 onAddPress={() =>
                     navigation.navigate("AddCard", { currentSection })
                 }

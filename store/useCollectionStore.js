@@ -7,6 +7,12 @@ export const useCollectionStore = create(
         (set) => ({
             myCollection: [],
 
+            // Новое состояние для интерфейса
+            isCompactMenu: false,
+
+            // Метод для переключения
+            setIsCompactMenu: (value) => set({ isCompactMenu: value }),
+
             addToCollection: (item) =>
                 set((state) => {
                     if (state.myCollection.find((i) => i.id === item.id))

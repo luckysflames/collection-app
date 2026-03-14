@@ -1,40 +1,100 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import React, { useState } from "react";
+import { View, Text, StyleSheet, ScrollView, Linking } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
+import Constants from "expo-constants";
+
+import { SettingItem } from "../components/SettingsScreen/SettingItem";
+import { getBugReportTemplate } from "../utils/bugReportHelper";
+import { DevelopersModal } from "../components/SettingsScreen/DevelopersModal";
+import { ApiInfoModal } from "../components/SettingsScreen/ApiInfoModal";
+import { useCollectionStore } from "../store/useCollectionStore";
 
 export default function SettingsScreen() {
     const insets = useSafeAreaInsets();
+    const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
+    const setIsCompactMenu = useCollectionStore(
+        (state) => state.setIsCompactMenu,
+    );
+    const [isDevModalVisible, setDevModalVisible] = useState(false);
+    const [isApiModalVisible, setApiModalVisible] = useState(false);
+
+    const version = Constants.expoConfig?.version || "?.?.?";
+
+    const handleReportBug = () => {
+        const { recipient, subject, body } = getBugReportTemplate();
+        Linking.openURL(
+            `mailto:${recipient}?subject=${subject}&body=${encodeURIComponent(body)}`,
+        );
+    };
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top }]}>
-            {/* Хедер с кнопкой назад */}
-            <View style={styles.header}>
-                <Text style={styles.headerTitle}>Настройки</Text>
-            </View>
+        <View style={[styles.container, { paddingTop: insets.top - 20 }]}>
+            <Text style={styles.headerTitle}>Настройки</Text>
 
-            {/* Контент заглушки */}
-            <View style={styles.content}>
-                <LinearGradient
-                    colors={["#1E293B", "#0F172A"]}
-                    style={styles.card}
-                >
-                    <Ionicons
-                        name="construct-outline"
-                        size={64}
-                        color="#7D8AFF"
-                        style={styles.icon}
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 100 }}
+            >
+                {/* Секция: Внешний вид */}
+                <Text style={styles.sectionTitle}>Внешний вид</Text>
+                <View style={styles.card}>
+                    {/* <SettingItem
+                        icon="color-palette-outline"
+                        label="Тема приложения"
                     />
+                    <View style={styles.separator} /> */}
+                    <SettingItem
+                        icon="grid-outline"
+                        label="Компактное меню"
+                        type="switch"
+                        value={isCompactMenu}
+                        onValueChange={setIsCompactMenu}
+                    />
+                </View>
 
-                    <Text style={styles.title}>Раздел в разработке</Text>
+                {/* Секция: Поддержка */}
+                <Text style={styles.sectionTitle}>Поддержка и связь</Text>
+                <View style={styles.card}>
+                    <SettingItem
+                        icon="bug-outline"
+                        label="Сообщить об ошибке"
+                        onPress={handleReportBug}
+                    />
+                    <View style={styles.separator} />
+                    <SettingItem
+                        icon="people-outline"
+                        label="О разработчиках"
+                        onPress={() => setDevModalVisible(true)}
+                    />
+                </View>
 
-                    <Text style={styles.subtitle}>
-                        Мы уже вовсю работаем над этим экраном. Скоро здесь
-                        появятся кошко-девочки!
+                {/* Секция: Информация */}
+                <Text style={styles.sectionTitle}>Данные</Text>
+                <View style={styles.card}>
+                    <SettingItem
+                        icon="cloud-download-outline"
+                        label="Используемые API"
+                        onPress={() => setApiModalVisible(true)}
+                    />
+                </View>
+
+                {/* Версия приложения */}
+                <View style={styles.versionFooter}>
+                    <Text style={styles.versionText}>Geekly v{version}</Text>
+                    <Text style={styles.buildText}>
+                        Сделано с ❤️ для коллекционеров
                     </Text>
-                </LinearGradient>
-            </View>
+                </View>
+            </ScrollView>
+
+            <DevelopersModal
+                visible={isDevModalVisible}
+                onClose={() => setDevModalVisible(false)}
+            />
+            <ApiInfoModal
+                visible={isApiModalVisible}
+                onClose={() => setApiModalVisible(false)}
+            />
         </View>
     );
 }
@@ -42,60 +102,50 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#050B18", // Твой основной темный фон
-    },
-    header: {
-        flexDirection: "row",
-        alignItems: "center",
+        backgroundColor: "#050B18",
         paddingHorizontal: 20,
-        height: 60,
     },
     headerTitle: {
-        fontSize: 22,
-        fontWeight: "700",
         color: "#fff",
-        marginLeft: 15,
+        fontSize: 28,
+        fontWeight: "bold",
+        marginBottom: 25,
     },
-    content: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        paddingHorizontal: 30,
+    sectionTitle: {
+        color: "#8E94A4",
+        fontSize: 14,
+        fontWeight: "600",
+        textTransform: "uppercase",
+        marginBottom: 10,
+        marginLeft: 10,
+        letterSpacing: 1,
     },
     card: {
-        width: "100%",
-        padding: 40,
-        borderRadius: 30,
-        alignItems: "center",
+        backgroundColor: "#0B1534",
+        borderRadius: 25,
+        paddingVertical: 10,
+        marginBottom: 25,
         borderWidth: 1,
-        borderColor: "rgba(125, 138, 255, 0.2)", // Тонкая светящаяся рамка
+        borderColor: "rgba(125, 138, 255, 0.1)",
     },
-    icon: {
-        marginBottom: 20,
+    separator: {
+        height: 1,
+        backgroundColor: "rgba(255,255,255,0.05)",
+        marginHorizontal: 16,
     },
-    title: {
-        fontSize: 24,
-        fontWeight: "bold",
-        color: "#fff",
-        textAlign: "center",
-        marginBottom: 15,
+    versionFooter: {
+        marginTop: 10,
+        alignItems: "center",
+        opacity: 0.5,
     },
-    subtitle: {
-        fontSize: 16,
+    versionText: {
         color: "#8E94A4",
-        textAlign: "center",
-        lineHeight: 24,
-        marginBottom: 30,
+        fontSize: 14,
+        fontWeight: "bold",
     },
-    button: {
-        backgroundColor: "#7D8AFF",
-        paddingVertical: 14,
-        paddingHorizontal: 30,
-        borderRadius: 15,
-    },
-    buttonText: {
-        color: "#fff",
-        fontWeight: "600",
-        fontSize: 16,
+    buildText: {
+        color: "#8E94A4",
+        fontSize: 12,
+        marginTop: 4,
     },
 });

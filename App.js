@@ -10,7 +10,7 @@ import SearchScreen from "./screens/SearchScreen";
 import DetailsScreen from "./screens/DetailsScreen";
 import AddCardScreen from "./screens/AddCardScreen";
 import SettingsScreen from "./screens/SettingsScreen";
-import CustomTabBar from "./components/CustomTabBar";
+import MyCustomTabBar from "./components/TabBar/MyCustomTabBar";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -26,7 +26,7 @@ const MyTheme = {
 function HomeTabs() {
     return (
         <Tab.Navigator
-            tabBar={(props) => <CustomTabBar {...props} />}
+            tabBar={(props) => <MyCustomTabBar {...props} />}
             screenOptions={{ headerShown: false }}
         >
             <Tab.Screen name="Поиск" component={SearchScreen} />
@@ -44,7 +44,10 @@ function HomeTabs() {
 export default function App() {
     return (
         <SafeAreaProvider>
-            <SafeAreaView style={{ flex: 1, backgroundColor: '#050B18' }} edges={['top']}>
+            <SafeAreaView
+                style={{ flex: 1, backgroundColor: "#050B18" }}
+                edges={["top"]}
+            >
                 <NavigationContainer theme={MyTheme}>
                     <StatusBar />
                     <Stack.Navigator
