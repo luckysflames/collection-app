@@ -11,10 +11,12 @@ import DetailsScreen from "./screens/DetailsScreen";
 import AddCardScreen from "./screens/AddCardScreen";
 import SettingsScreen from "./screens/SettingsScreen";
 import FolderDetailScreen from "./screens/FolderDetailScreen";
-import MyCustomTabBar from "./components/layout/TabBar/MyCustomTabBar"
+import MyCustomTabBar from "./components/layout/TabBar/MyCustomTabBar";
+import CollectionDashboard from "./screens/CollectionDashboard";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
+const CollectionStack = createStackNavigator();
 
 const MyTheme = {
     ...DefaultTheme,
@@ -24,6 +26,18 @@ const MyTheme = {
     },
 };
 
+function CollectionStackScreen() {
+    return (
+        <CollectionStack.Navigator screenOptions={{ headerShown: false }}>
+            <CollectionStack.Screen
+                name="Дашборд"
+                component={CollectionDashboard}
+            />
+            <CollectionStack.Screen name="MainScreen" component={MainScreen} />
+        </CollectionStack.Navigator>
+    );
+}
+
 function HomeTabs() {
     return (
         <Tab.Navigator
@@ -32,16 +46,12 @@ function HomeTabs() {
         >
             <Tab.Screen name="Поиск" component={SearchScreen} />
             <Tab.Screen name="Создать" component={AddCardScreen} />
+            {/* Теперь это одна точка входа */}
+            <Tab.Screen name="Коллекция" component={CollectionStackScreen} />
             <Tab.Screen name="Настройки" component={SettingsScreen} />
-            <Tab.Screen
-                name="Коллекция"
-                component={MainScreen}
-                initialParams={{ appSection: "Фильмы" }}
-            />
         </Tab.Navigator>
     );
 }
-
 export default function App() {
     return (
         <SafeAreaProvider>
