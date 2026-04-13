@@ -8,32 +8,39 @@ export default function BookFields({ form, updateField }) {
     return (
         <View>
             <CommonField
-                placeholder="Авторы (через запятую)"
+                label="Авторы"
+                placeholder="Дж. К. Роулинг, ..."
                 form={form}
                 updateField={updateField}
                 fieldName="authors"
             />
 
             <View style={formStyles.rowInputs}>
-                <CommonField
-                    placeholder="Объём (стр)"
-                    form={form}
-                    updateField={updateField}
-                    fieldName="pageCount"
-                    keyboardType="numeric"
-                    style={[formStyles.input, { flex: 1 }]}
-                />
-                <CommonField
-                    placeholder="Maturity (18+...)"
-                    form={form}
-                    updateField={updateField}
-                    fieldName="maturity"
-                    style={[formStyles.input, { flex: 1, marginLeft: 10 }]}
-                />
+                <View style={{ flex: 1 }}>
+                    <CommonField
+                        label="Объём (стр)"
+                        placeholder="254"
+                        form={form}
+                        updateField={updateField}
+                        fieldName="pageCount"
+                        keyboardType="numeric"
+                    />
+                </View>
+
+                <View style={{ flex: 1 }}>
+                    <CommonField
+                        label="Возраст"
+                        placeholder="18+"
+                        form={form}
+                        updateField={updateField}
+                        fieldName="maturity"
+                    />
+                </View>
             </View>
 
             <CommonField
-                placeholder="Издатель"
+                label="Издатель"
+                placeholder="РОСМЭН"
                 form={form}
                 updateField={updateField}
                 fieldName="publisher"

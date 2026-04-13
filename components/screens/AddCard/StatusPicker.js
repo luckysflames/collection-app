@@ -42,17 +42,43 @@ export default function StatusPicker({
 }
 
 const styles = StyleSheet.create({
-    container: { marginTop: 10, marginBottom: 10 },
-    label: { color: "#8E94A4", fontSize: 14, marginBottom: 10 },
-    chipRow: { flexDirection: "row", flexWrap: "wrap" },
-    miniChip: {
-        backgroundColor: "#1E293B",
-        paddingVertical: 6,
-        paddingHorizontal: 10,
-        borderRadius: 12,
-        marginRight: 6,
-        marginBottom: 6,
+    container: {
+        marginTop: 5,
+        marginBottom: 20,
     },
-    activeMiniChip: { backgroundColor: "#7D8AFF" },
-    chipText: { color: "#fff", fontSize: 12 },
+    label: {
+        color: "#8E94A4",
+        fontSize: 12,
+        fontWeight: "700",
+        textTransform: "uppercase",
+        letterSpacing: 1,
+        marginBottom: 12,
+        marginLeft: 4,
+    },
+    chipRow: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: 6,
+    },
+    miniChip: {
+        backgroundColor: "rgba(125, 138, 255, 0.05)", // Легкий оттенок основного цвета
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: "rgba(125, 138, 255, 0.15)",
+    },
+    activeMiniChip: {
+        backgroundColor: "rgba(125, 138, 255, 0.2)", // Выделение цветом, но не такое яркое как основные кнопки
+        borderColor: "#7D8AFF",
+    },
+    chipText: {
+        color: "#8E94A4",
+        fontSize: 12,
+        fontWeight: "600",
+    },
+    activeChipText: {
+        color: "#7D8AFF", // Цветной текст для активного статуса
+        fontWeight: "700",
+    },
 });

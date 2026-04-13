@@ -8,37 +8,45 @@ export default function GameFields({ form, updateField }) {
     return (
         <View>
             <View style={formStyles.rowInputs}>
-                <CommonField
-                    placeholder="Metacritic"
-                    form={form}
-                    updateField={updateField}
-                    fieldName="metacritic"
-                    keyboardType="numeric"
-                    style={[formStyles.input, { flex: 1 }]}
-                />
-                <CommonField
-                    placeholder="ESRB рейтинг"
-                    form={form}
-                    updateField={updateField}
-                    fieldName="esrb"
-                    style={[formStyles.input, { flex: 1, marginLeft: 10 }]}
-                />
+                <View style={{ flex: 1 }}>
+                    <CommonField
+                        label="Metacritic"
+                        placeholder="73"
+                        form={form}
+                        updateField={updateField}
+                        fieldName="metacritic"
+                        keyboardType="numeric"
+                    />
+                </View>
+
+                <View style={{ flex: 1 }}>
+                    <CommonField
+                        label="ESRB рейтинг"
+                        placeholder="E10+"
+                        form={form}
+                        updateField={updateField}
+                        fieldName="esrb"
+                    />
+                </View>
             </View>
 
             <CommonField
-                placeholder="Разработчики (через запятую)"
+                label="Разработчики"
+                placeholder="Team Cherry, ..."
                 form={form}
                 updateField={updateField}
                 fieldName="developers"
             />
             <CommonField
-                placeholder="Платформы (через запятую)"
+                label="Платформы"
+                placeholder="PC, Playstation, ..."
                 form={form}
                 updateField={updateField}
                 fieldName="platforms"
             />
             <CommonField
-                placeholder="Время прохождения (часов)"
+                label="Время прохождения (часы)"
+                placeholder="150"
                 form={form}
                 updateField={updateField}
                 fieldName="duration"

@@ -9,5 +9,5 @@ export const formStyles = StyleSheet.create({
         fontSize: 15,
         marginBottom: 12,
     },
-    rowInputs: { flexDirection: "row" },
+    rowInputs: { flexDirection: "row", gap: 12 },
 });

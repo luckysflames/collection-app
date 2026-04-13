@@ -8,40 +8,48 @@ export default function MovieFields({ form, updateField }) {
     return (
         <View>
             <CommonField
-                placeholder="Оригинальное название"
+                label="Оригинальное название"
+                placeholder="Oshi No Ko"
                 form={form}
                 updateField={updateField}
                 fieldName="originalTitle"
             />
 
             <View style={formStyles.rowInputs}>
-                <CommonField
-                    placeholder="Бюджет"
-                    form={form}
-                    updateField={updateField}
-                    fieldName="budget"
-                    keyboardType="numeric"
-                    style={[formStyles.input, { flex: 1 }]}
-                />
-                <CommonField
-                    placeholder="Длительность (мин)"
-                    form={form}
-                    updateField={updateField}
-                    fieldName="duration"
-                    keyboardType="numeric"
-                    style={[formStyles.input, { flex: 1, marginLeft: 10 }]}
-                />
+                <View style={{ flex: 1 }}>
+                    <CommonField
+                        label="Бюджет"
+                        placeholder="150000"
+                        form={form}
+                        updateField={updateField}
+                        fieldName="budget"
+                        keyboardType="numeric"
+                    />
+                </View>
+
+                <View style={{ flex: 1 }}>
+                    <CommonField
+                        label="Длительность (мин)"
+                        placeholder="254"
+                        form={form}
+                        updateField={updateField}
+                        fieldName="duration"
+                        keyboardType="numeric"
+                    />
+                </View>
             </View>
 
             <CommonField
-                placeholder="Страны (через запятую)"
+                label="Страны"
+                placeholder="Япония, США, ..."
                 form={form}
                 updateField={updateField}
                 fieldName="countries"
             />
 
             <CommonField
-                placeholder="Компании (через запятую)"
+                label="Компании"
+                placeholder="Disney, Pixar, ..."
                 form={form}
                 updateField={updateField}
                 fieldName="companies"
