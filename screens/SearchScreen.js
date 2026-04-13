@@ -1,12 +1,13 @@
 import React from "react";
 import { View, StyleSheet, FlatList, ActivityIndicator } from "react-native";
-import { MediaCard } from "../components/MediaCard";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 import { useMediaSearch } from "../hooks/useMediaSearch";
-import { SearchHeader } from "../components/SearchScreen/SearchHeader";
-import { SearchEmptyState } from "../components/SearchScreen/SearchEmptyState";
-import { NoResultsFooter } from "../components/SearchScreen/NoResultsFooter";
-import { SearchSkeleton } from "../components/SearchScreen/Skeleton/SearchSkeleton";
+import { MediaCard } from "../components/ui/MediaCard";
+import { SearchHeader } from "../components/screens/Search/SearchHeader";
+import { SearchEmptyState } from "../components/screens/Search/SearchEmptyState";
+import { NoResultsFooter } from "../components/screens/Search/NoResultsFooter";
+import { SearchSkeleton } from "../components/ui/Skeleton/SearchSkeleton";
 
 export default function SearchScreen({ navigation }) {
     const insets = useSafeAreaInsets();

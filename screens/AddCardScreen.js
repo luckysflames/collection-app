@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
     Text,
     TouchableOpacity,
@@ -8,18 +8,18 @@ import {
     StyleSheet,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useMediaCategories } from "../hooks/useMediaCategories";
 
-import MovieFields from "../components/AddCardScreen/Fields/MovieFields";
-import AnimeFields from "../components/AddCardScreen/Fields/AnimeFields";
-import BookFields from "../components/AddCardScreen/Fields/BookFields";
-import GameFields from "../components/AddCardScreen/Fields/GameFields";
-import CommonField from "../components/AddCardScreen/Fields/CommonField";
-import ImageUploader from "../components/AddCardScreen/ImageUploader";
-import SectionSelector from "../components/AddCardScreen/SectionSelector";
-import StatusPicker from "../components/AddCardScreen/StatusPicker";
+import MovieFields from "../components/screens/AddCard/Fields/MovieFields";
+import AnimeFields from "../components/screens/AddCard/Fields/AnimeFields";
+import BookFields from "../components/screens/AddCard/Fields/BookFields";
+import GameFields from "../components/screens/AddCard/Fields/GameFields";
+import CommonField from "../components/screens/AddCard/Fields/CommonField";
+import ImageUploader from "../components/shared/ImageUploader";
+import SectionSelector from "../components/screens/AddCard/SectionSelector";
+import StatusPicker from "../components/screens/AddCard/StatusPicker";
 import { useAddCardForm } from "../hooks/useAddCardForm";
-import { ErrorModal } from "../components/ErrorModal";
+import { useMediaCategories } from "../hooks/useMediaCategories";
+import { ErrorModal } from "../components/ui/ErrorModal";
 
 const SECTIONS = [
     { label: "Фильмы", value: "movie" },

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Geekly",
     "slug": "collection-app",
-    "version": "3.2.0",
+    "version": "3.3.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -28,7 +28,7 @@
         "translucent": false,
         "backgroundColor": "#050B18"
       },
-      "versionCode": 5
+      "versionCode": 6
     },
     "web": {
       "favicon": "./assets/favicon.png"

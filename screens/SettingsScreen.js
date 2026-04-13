@@ -3,11 +3,11 @@ import { View, Text, StyleSheet, ScrollView, Linking } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Constants from "expo-constants";
 
-import { SettingItem } from "../components/SettingsScreen/SettingItem";
 import { getBugReportTemplate } from "../utils/bugReportHelper";
-import { DevelopersModal } from "../components/SettingsScreen/DevelopersModal";
-import { ApiInfoModal } from "../components/SettingsScreen/ApiInfoModal";
 import { useCollectionStore } from "../store/useCollectionStore";
+import { SettingItem } from "../components/screens/Settings/SettingItem";
+import { DevelopersModal } from "../components/screens/Settings/DevelopersModal";
+import { ApiInfoModal } from "../components/screens/Settings/ApiInfoModal";
 
 export default function SettingsScreen() {
     const insets = useSafeAreaInsets();

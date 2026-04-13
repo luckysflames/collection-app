@@ -10,7 +10,8 @@ import SearchScreen from "./screens/SearchScreen";
 import DetailsScreen from "./screens/DetailsScreen";
 import AddCardScreen from "./screens/AddCardScreen";
 import SettingsScreen from "./screens/SettingsScreen";
-import MyCustomTabBar from "./components/TabBar/MyCustomTabBar";
+import FolderDetailScreen from "./screens/FolderDetailScreen";
+import MyCustomTabBar from "./components/layout/TabBar/MyCustomTabBar"
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -65,6 +66,10 @@ export default function App() {
                         <Stack.Screen
                             name="Details"
                             component={DetailsScreen}
+                        />
+                        <Stack.Screen
+                            name="FolderDetail"
+                            component={FolderDetailScreen}
                         />
                         <Stack.Screen
                             name="AddCard"
