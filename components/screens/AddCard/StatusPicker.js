@@ -2,22 +2,10 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
 export default function StatusPicker({
-    categories,
+    categories = [],
     currentStatus,
-    type,
     onSelect,
 }) {
-    const getDisplayStatus = (s) => {
-        if (type === "book") {
-            if (s === "Смотрю") return "Читаю";
-            if (s === "Просмотрено") return "Прочитано";
-        } else if (type === "game") {
-            if (s === "Смотрю") return "Играю";
-            if (s === "Просмотрено") return "Пройдено";
-        }
-        return s;
-    };
-
     return (
         <View style={styles.container}>
             <Text style={styles.label}>Статус в коллекции</Text>
@@ -31,8 +19,13 @@ export default function StatusPicker({
                         ]}
                         onPress={() => onSelect(s)}
                     >
-                        <Text style={styles.chipText}>
-                            {getDisplayStatus(s)}
+                        <Text
+                            style={[
+                                styles.chipText,
+                                currentStatus === s && styles.activeChipText,
+                            ]}
+                        >
+                            {s}
                         </Text>
                     </TouchableOpacity>
                 ))}

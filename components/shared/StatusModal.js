@@ -11,6 +11,7 @@ import {
     Dimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useCollectionStore } from "../../store/useCollectionStore";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
@@ -22,36 +23,10 @@ export default function StatusModal({
     currentStatus,
     removeCard,
 }) {
-    const getStatuses = () => {
-        if (category === "Книги")
-            return [
-                "Читаю",
-                "В планах",
-                "Прочитано",
-                "Перечитываю",
-                "Брошено",
-                "Отложено",
-            ];
-        if (category === "Игры")
-            return [
-                "Играю",
-                "В планах",
-                "Прошёл",
-                "Переигрываю",
-                "Брошено",
-                "Отложено",
-            ];
-        return [
-            "Смотрю",
-            "В планах",
-            "Просмотрено",
-            "Пересматриваю",
-            "Брошено",
-            "Отложено",
-        ];
-    };
-
-    const STATUSES = getStatuses();
+    const getStatusesForSection = useCollectionStore(
+        (state) => state.getStatusesForSection,
+    );
+    const STATUSES = getStatusesForSection(category); // "Фильмы", "Книги" или "Игры"
 
     const insets = useSafeAreaInsets();
 

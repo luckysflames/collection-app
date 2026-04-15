@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
     View,
     Text,
@@ -7,8 +7,11 @@ import {
     Image,
     Dimensions,
     ScrollView,
+    LayoutAnimation,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ChevronDown, ChevronUp } from "lucide-react-native";
+
 import { SUB_CATEGORIES } from "../constants";
 import { useCollectionStore } from "../store/useCollectionStore";
 
@@ -16,23 +19,53 @@ const { width } = Dimensions.get("window");
 
 export default function CollectionDashboard({ navigation }) {
     const insets = useSafeAreaInsets();
-
-    // Получаем всю коллекцию из стора
     const myCollection = useCollectionStore((state) => state.myCollection);
+    const collectionGoal = useCollectionStore((state) => state.collectionGoal);
+    const setCollectionGoal = useCollectionStore(
+        (state) => state.setCollectionGoal,
+    );
 
-    // Функция подсчета
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    const goalOptions = [100, 250, 500, 1000];
+
+    const toggleMenu = () => {
+        // Плавная анимация появления кнопок
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setIsMenuOpen(!isMenuOpen);
+    };
+
+    const selectGoal = (val) => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setCollectionGoal(val);
+        setIsMenuOpen(false);
+    };
+
     const getCount = (categoryName) => {
         return myCollection.filter(
             (item) => item.appSection === categoryName && !item.isFolder,
         ).length;
     };
 
-    // Общий прогресс (все элементы, исключая сами папки, если хочешь считать только контент)
     const totalItems = myCollection.filter((item) => !item.isFolder).length;
+    const progressPercent = Math.min((totalItems / collectionGoal) * 100, 100);
 
-    // Для прогресс-бара (например, цель 500 элементов)
-    const goal = 500;
-    const progressPercent = Math.min((totalItems / goal) * 100, 100);
+    useEffect(() => {
+        // Подписываемся на событие нажатия на таб родительского навигатора
+        const unsubscribe = navigation
+            .getParent()
+            ?.addListener("tabPress", (e) => {
+                const isFocused = navigation.isFocused();
+
+                if (isFocused) {
+                    // Если мы уже тут, и пользователь нажал на иконку "Коллекция"
+                    // выполняем popToTop именно в этом стеке
+                    navigation.popToTop();
+                }
+            });
+
+        return unsubscribe;
+    }, [navigation]);
 
     return (
         <View style={[styles.container, { paddingTop: insets.top - 20 }]}>
@@ -54,9 +87,7 @@ export default function CollectionDashboard({ navigation }) {
                                 })
                             }
                         >
-                            {/* Декоративное свечение внутри карточки */}
                             <View style={styles.cardGlow} />
-
                             <View style={styles.cardHeader}>
                                 <View style={styles.iconWrapper}>
                                     <Image
@@ -69,7 +100,6 @@ export default function CollectionDashboard({ navigation }) {
                                     {getCount(cat.id)}
                                 </Text>
                             </View>
-
                             <View style={styles.cardFooter}>
                                 <Text style={styles.cardText}>{cat.id}</Text>
                                 <Text style={styles.subText}>
@@ -80,11 +110,54 @@ export default function CollectionDashboard({ navigation }) {
                     ))}
                 </View>
 
-                {/* Дополнительный блок, чтобы занять пустоту снизу */}
+                {/* Интерактивный баннер статистики */}
                 <View style={styles.statsBanner}>
-                    <Text style={styles.statsTitle}>
-                        Общий прогресс (цель - {goal} карточек)
-                    </Text>
+                    <TouchableOpacity
+                        style={styles.statsHeader}
+                        onPress={toggleMenu}
+                        activeOpacity={0.7}
+                    >
+                        <Text style={styles.statsTitle}>
+                            Общий прогресс (цель — {collectionGoal})
+                        </Text>
+                        {isMenuOpen ? (
+                            <ChevronUp color="#7D8AFF" size={20} />
+                        ) : (
+                            <ChevronDown color="#7D8AFF" size={20} />
+                        )}
+                    </TouchableOpacity>
+
+                    {isMenuOpen && (
+                        <View style={styles.goalPicker}>
+                            <Text style={styles.pickerLabel}>
+                                Выберите новую цель:
+                            </Text>
+                            <View style={styles.optionsRow}>
+                                {goalOptions.map((opt) => (
+                                    <TouchableOpacity
+                                        key={opt}
+                                        style={[
+                                            styles.optionBadge,
+                                            collectionGoal === opt &&
+                                                styles.activeOptionBadge,
+                                        ]}
+                                        onPress={() => selectGoal(opt)}
+                                    >
+                                        <Text
+                                            style={[
+                                                styles.optionText,
+                                                collectionGoal === opt &&
+                                                    styles.activeOptionText,
+                                            ]}
+                                        >
+                                            {opt}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        </View>
+                    )}
+
                     <View style={styles.progressBar}>
                         <View
                             style={[
@@ -93,9 +166,15 @@ export default function CollectionDashboard({ navigation }) {
                             ]}
                         />
                     </View>
-                    <Text style={styles.statsSubtitle}>
-                        Всего собрано: {totalItems} карточек
-                    </Text>
+
+                    <View style={styles.statsFooter}>
+                        <Text style={styles.statsSubtitle}>
+                            Всего собрано: {totalItems}
+                        </Text>
+                        <Text style={styles.statsPercent}>
+                            {Math.round(progressPercent)}%
+                        </Text>
+                    </View>
                 </View>
             </ScrollView>
         </View>
@@ -173,22 +252,72 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: "rgba(125, 138, 255, 0.1)",
     },
+    statsHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 15,
+    },
     statsTitle: {
         color: "#fff",
         fontSize: 16,
         fontWeight: "600",
-        marginBottom: 12,
+    },
+    goalPicker: {
+        marginBottom: 20,
+        paddingTop: 5,
+    },
+    pickerLabel: {
+        color: "#4E5564",
+        fontSize: 12,
+        marginBottom: 10,
+    },
+    optionsRow: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: 8,
+    },
+    optionBadge: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 10,
+        backgroundColor: "rgba(255,255,255,0.05)",
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.1)",
+    },
+    activeOptionBadge: {
+        backgroundColor: "#7D8AFF",
+        borderColor: "#7D8AFF",
+    },
+    optionText: {
+        color: "#8E94A4",
+        fontSize: 13,
+        fontWeight: "600",
+    },
+    activeOptionText: {
+        color: "#fff",
     },
     progressBar: {
-        height: 8,
+        height: 10,
         backgroundColor: "rgba(255,255,255,0.05)",
-        borderRadius: 4,
-        marginBottom: 8,
+        borderRadius: 5,
+        marginBottom: 10,
     },
     progressFill: {
         height: "100%",
         backgroundColor: "#7D8AFF",
-        borderRadius: 4,
+        borderRadius: 5,
+        // Можно добавить тень для свечения бара
+        shadowColor: "#7D8AFF",
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.5,
+        shadowRadius: 5,
+    },
+    statsFooter: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
     },
     statsSubtitle: { color: "#8E94A4", fontSize: 12 },
+    statsPercent: { color: "#7D8AFF", fontSize: 12, fontWeight: "700" },
 });

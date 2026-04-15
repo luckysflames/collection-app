@@ -3,6 +3,7 @@ import React, {
     useImperativeHandle,
     forwardRef,
     useState,
+    useEffect,
 } from "react";
 import {
     ScrollView,
@@ -19,40 +20,49 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 export const CategoryChips = forwardRef(
     ({ categories, activeCategory, onPress, scrollX }, ref) => {
         const scrollViewRef = useRef(null);
-        const itemLayouts = useRef({}).current;
+        // Используем state для layouts, чтобы триггерить рендер при обновлении замеров
+        const [itemLayouts, setItemLayouts] = useState({});
         const [measuredCount, setMeasuredCount] = useState(0);
 
-        const isAllMeasured = measuredCount === categories.length;
+        // Сбрасываем замеры, если изменился массив категорий (перешли из Фильмов в Книги)
+        useEffect(() => {
+            setItemLayouts({});
+            setMeasuredCount(0);
+        }, [categories]);
 
-        // Создаем массивы для интерполяции только когда всё замерено
-        const inputRange = categories.map((_, i) => i * SCREEN_WIDTH);
+        const isAllMeasured =
+            measuredCount > 0 && measuredCount === categories.length;
 
-        // Важно: если еще не замерено, отдаем массив нулей того же размера
-        const outputX = isAllMeasured
-            ? categories.map((_, i) => itemLayouts[i]?.x || 0)
-            : categories.map(() => 0);
+        // Безопасная подготовка данных для анимации
+        const getInterpolationData = () => {
+            if (!isAllMeasured)
+                return { input: [0, 1], outX: [0, 0], outW: [0, 0] };
 
-        const outputWidth = isAllMeasured
-            ? categories.map((_, i) => itemLayouts[i]?.width || 0)
-            : categories.map(() => 0);
+            const input = categories.map((_, i) => i * SCREEN_WIDTH);
+            const outX = categories.map((_, i) => itemLayouts[i]?.x || 0);
+            const outW = categories.map((_, i) => itemLayouts[i]?.width || 0);
+
+            return { input, outX, outW };
+        };
+
+        const { input, outX, outW } = getInterpolationData();
 
         const translateX = scrollX.interpolate({
-            inputRange,
-            outputRange: outputX,
+            inputRange: input,
+            outputRange: outX,
             extrapolate: "clamp",
         });
 
         const chipWidth = scrollX.interpolate({
-            inputRange,
-            outputRange: outputWidth,
+            inputRange: input,
+            outputRange: outW,
             extrapolate: "clamp",
         });
 
         const onItemLayout = (index, event) => {
-            if (!itemLayouts[index]) {
-                setMeasuredCount((prev) => prev + 1);
-            }
-            itemLayouts[index] = event.nativeEvent.layout;
+            const layout = event.nativeEvent.layout;
+            setItemLayouts((prev) => ({ ...prev, [index]: layout }));
+            setMeasuredCount((prev) => prev + 1);
         };
 
         useImperativeHandle(ref, () => ({
@@ -92,13 +102,20 @@ export const CategoryChips = forwardRef(
 
                     {categories.map((cat, index) => (
                         <TouchableOpacity
-                            key={cat}
+                            key={`${cat}-${index}`}
                             onLayout={(e) => onItemLayout(index, e)}
                             onPress={() => onPress(cat, index)}
                             activeOpacity={0.7}
                             style={styles.chip}
                         >
-                            <Text style={[styles.chipText]}>{cat}</Text>
+                            <Text
+                                style={[
+                                    styles.chipText,
+                                    activeCategory === cat && styles.activeText,
+                                ]}
+                            >
+                                {cat}
+                            </Text>
                         </TouchableOpacity>
                     ))}
                 </ScrollView>

@@ -4,30 +4,145 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const useCollectionStore = create(
     persist(
-        (set) => ({
+        (set, get) => ({
+            // --- STATE ---
             myCollection: [],
             isCompactMenu: false,
+            collectionGoal: 500,
 
-            // Метод для обновления всего массива (после перетаскивания)
-            reorderCollection: (newOrder) => set({ myCollection: newOrder }),
+            availableStatuses: {
+                Movies: [
+                    "Смотрю",
+                    "В планах",
+                    "Просмотрено",
+                    "Пересматриваю",
+                    "Брошено",
+                    "Отложено",
+                ],
+                Books: [
+                    "Читаю",
+                    "В планах",
+                    "Прочитано",
+                    "Перечитываю",
+                    "Брошено",
+                    "Отложено",
+                ],
+                Games: [
+                    "Играю",
+                    "В планах",
+                    "Прошёл",
+                    "Переигрываю",
+                    "Брошено",
+                    "Отложено",
+                ],
+            },
 
+            // --- GETTERS (HELPERS) ---
+            getStatusesForSection: (section) => {
+                const statuses = get().availableStatuses;
+                const mapping = {
+                    Фильмы: "Movies",
+                    Книги: "Books",
+                    Игры: "Games",
+                };
+                const key = mapping[section] || "Movies";
+                return statuses[key];
+            },
+
+            // --- ACTIONS ---
+            setCollectionGoal: (goal) => set({ collectionGoal: goal }),
             setIsCompactMenu: (value) => set({ isCompactMenu: value }),
+
+            addCustomStatus: (section, newStatus) =>
+                set((state) => {
+                    const mapping = {
+                        Фильмы: "Movies",
+                        Книги: "Books",
+                        Игры: "Games",
+                    };
+                    const key = mapping[section] || section;
+
+                    return {
+                        availableStatuses: {
+                            ...state.availableStatuses,
+                            [key]: [
+                                ...(state.availableStatuses[key] || []),
+                                newStatus,
+                            ],
+                        },
+                    };
+                }),
+
+            reorderCollection: (newOrder) => set({ myCollection: newOrder }),
 
             addToCollection: (item) =>
                 set((state) => {
-                    if (state.myCollection.find((i) => i.id === item.id))
+                    if (
+                        state.myCollection.some(
+                            (i) => String(i.id) === String(item.id),
+                        )
+                    ) {
                         return state;
-
+                    }
                     const newItem = {
                         ...item,
+                        parentFolderIds: item.parentFolderIds || [],
                         createdAt: item.createdAt || Date.now(),
                     };
-
                     return { myCollection: [newItem, ...state.myCollection] };
                 }),
 
-            // --- МЕТОДЫ ДЛЯ ПАПОК ---
+            updateCard: (id, updatedFields) =>
+                set((state) => ({
+                    myCollection: state.myCollection.map((item) =>
+                        String(item.id) === String(id)
+                            ? { ...item, ...updatedFields }
+                            : item,
+                    ),
+                })),
 
+            deleteCard: (id) =>
+                set((state) => {
+                    const itemToDelete = state.myCollection.find(
+                        (i) => String(i.id) === String(id),
+                    );
+                    if (!itemToDelete) return state;
+
+                    // 1. Удаляем сам элемент
+                    let nextCollection = state.myCollection.filter(
+                        (item) => String(item.id) !== String(id),
+                    );
+
+                    // 2. Если удаляемый объект - папка, чистим ссылки на неё у детей
+                    if (itemToDelete.isFolder) {
+                        nextCollection = nextCollection.map((item) => ({
+                            ...item,
+                            parentFolderIds: (
+                                item.parentFolderIds || []
+                            ).filter((fId) => String(fId) !== String(id)),
+                        }));
+                    } else {
+                        // 3. Если это карточка, чистим её ID из списков сортировки (itemsOrder) внутри папок
+                        nextCollection = nextCollection.map((item) => {
+                            if (
+                                item.isFolder &&
+                                item.itemsOrder?.includes(id)
+                            ) {
+                                return {
+                                    ...item,
+                                    itemsOrder: item.itemsOrder.filter(
+                                        (itemId) =>
+                                            String(itemId) !== String(id),
+                                    ),
+                                };
+                            }
+                            return item;
+                        });
+                    }
+                    return { myCollection: nextCollection };
+                }),
+
+            // --- FOLDER METHODS ---
             createFolder: (folderName, section, status, selectedItemIds) =>
                 set((state) => {
                     const folderId = `folder_${Date.now()}`;
@@ -63,16 +178,17 @@ export const useCollectionStore = create(
                     return { myCollection: [newFolder, ...updatedCollection] };
                 }),
 
-            // Массовое добавление карточек в папку
             addItemsToFolder: (itemIds, folderId) =>
                 set((state) => ({
                     myCollection: state.myCollection.map((item) => {
                         if (itemIds.includes(item.id)) {
-                            const currentParents = item.parentFolderIds || [];
                             return {
                                 ...item,
                                 parentFolderIds: Array.from(
-                                    new Set([...currentParents, folderId]),
+                                    new Set([
+                                        ...(item.parentFolderIds || []),
+                                        folderId,
+                                    ]),
                                 ),
                             };
                         }
@@ -80,16 +196,6 @@ export const useCollectionStore = create(
                     }),
                 })),
 
-            updateFolderOrder: (folderId, orderedIds) =>
-                set((state) => ({
-                    myCollection: state.myCollection.map((item) =>
-                        item.id === folderId
-                            ? { ...item, itemsOrder: orderedIds }
-                            : item,
-                    ),
-                })),
-
-            // Удаление карточки из конкретной папки
             removeFromFolder: (itemId, folderId) =>
                 set((state) => ({
                     myCollection: state.myCollection.map((item) =>
@@ -104,43 +210,11 @@ export const useCollectionStore = create(
                     ),
                 })),
 
-            deleteCard: (id) =>
-                set((state) => {
-                    const itemToDelete = state.myCollection.find(
-                        (i) => String(i.id) === String(id),
-                    );
-
-                    if (!itemToDelete) return state;
-
-                    // 1. Удаляем сам элемент из коллекции
-                    let nextCollection = state.myCollection.filter(
-                        (item) => String(item.id) !== String(id),
-                    );
-
-                    // 2. Если удаляли ПАПКУ — чистим упоминание этой папки во всех карточках
-                    if (itemToDelete.isFolder) {
-                        nextCollection = nextCollection.map((item) => ({
-                            ...item,
-                            parentFolderIds: (
-                                item.parentFolderIds || []
-                            ).filter(
-                                (folderId) => String(folderId) !== String(id),
-                            ),
-                        }));
-                    }
-
-                    // Логика удаления айтема, который был в папке,
-                    // теперь не требует чистки itemIds внутри папки,
-                    // так как мы строим список динамически через фильтрацию по parentFolderIds.
-
-                    return { myCollection: nextCollection };
-                }),
-
-            updateCard: (id, updatedFields) =>
+            updateFolderOrder: (folderId, orderedIds) =>
                 set((state) => ({
                     myCollection: state.myCollection.map((item) =>
-                        String(item.id) === String(id)
-                            ? { ...item, ...updatedFields }
+                        String(item.id) === String(folderId)
+                            ? { ...item, itemsOrder: orderedIds }
                             : item,
                     ),
                 })),

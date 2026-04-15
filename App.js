@@ -1,7 +1,15 @@
 import React from "react";
-import { DefaultTheme, NavigationContainer } from "@react-navigation/native";
+import {
+    CommonActions,
+    DefaultTheme,
+    NavigationContainer,
+    StackActions,
+} from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { createStackNavigator } from "@react-navigation/stack";
+import {
+    CardStyleInterpolators,
+    createStackNavigator,
+} from "@react-navigation/stack";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 
@@ -28,7 +36,24 @@ const MyTheme = {
 
 function CollectionStackScreen() {
     return (
-        <CollectionStack.Navigator screenOptions={{ headerShown: false }}>
+        <CollectionStack.Navigator
+            screenOptions={{
+                headerShown: false,
+                // Плавное скольжение справа (стандарт iOS/Android 10+)
+                cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+                // Настройка скорости и типа кривой анимации
+                transitionSpec: {
+                    open: {
+                        animation: "spring",
+                        config: { stiffness: 1000, damping: 500, mass: 3 },
+                    },
+                    close: {
+                        animation: "spring",
+                        config: { stiffness: 1000, damping: 500, mass: 3 },
+                    },
+                },
+            }}
+        >
             <CollectionStack.Screen
                 name="Дашборд"
                 component={CollectionDashboard}
@@ -42,16 +67,18 @@ function HomeTabs() {
     return (
         <Tab.Navigator
             tabBar={(props) => <MyCustomTabBar {...props} />}
-            screenOptions={{ headerShown: false }}
+            screenOptions={{ headerShown: false, animation: "fade" }}
         >
             <Tab.Screen name="Поиск" component={SearchScreen} />
             <Tab.Screen name="Создать" component={AddCardScreen} />
-            {/* Теперь это одна точка входа */}
+
             <Tab.Screen name="Коллекция" component={CollectionStackScreen} />
+
             <Tab.Screen name="Настройки" component={SettingsScreen} />
         </Tab.Navigator>
     );
 }
+
 export default function App() {
     return (
         <SafeAreaProvider>
@@ -69,7 +96,7 @@ export default function App() {
                             gestureEnabled: true,
                             gestureDirection: "horizontal",
                             animation: "slide_from_right",
-                            detachPreviousScreen: false,
+                            // detachPreviousScreen: false,
                         }}
                     >
                         <Stack.Screen name="Home" component={HomeTabs} />

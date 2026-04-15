@@ -25,6 +25,21 @@ export default function MyCustomTabBar({ state, descriptors, navigation }) {
                 {state.routes.map((route, index) => {
                     const isFocused = state.index === index;
 
+                    const onPress = () => {
+                        // 1. Генерируем событие нажатия
+                        const event = navigation.emit({
+                            type: "tabPress",
+                            target: route.key,
+                            canPreventDefault: true,
+                        });
+
+                        // 2. Если мы не на этом табу — переходим.
+                        // Если на этом — событие уже сработало в listeners (HomeTabs)
+                        if (!isFocused && !event.defaultPrevented) {
+                            navigation.navigate(route.name);
+                        }
+                    };
+
                     return (
                         <TabMenuItem
                             key={route.key}
@@ -33,10 +48,7 @@ export default function MyCustomTabBar({ state, descriptors, navigation }) {
                             isCompactMenu={isCompactMenu}
                             iconSet={TAB_ICONS[route.name]}
                             ICON_CONTAINER_SIZE={ICON_CONTAINER_SIZE}
-                            onPress={() => {
-                                // Просто переходим на экран, привязанный к табу
-                                navigation.navigate(route.name);
-                            }}
+                            onPress={onPress} // Используем обновленный onPress
                         />
                     );
                 })}
@@ -44,7 +56,6 @@ export default function MyCustomTabBar({ state, descriptors, navigation }) {
         </View>
     );
 }
-
 const styles = StyleSheet.create({
     wrapper: {
         position: "absolute",
