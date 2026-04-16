@@ -37,6 +37,7 @@ export default function MainScreen({ route, navigation }) {
     const [isFolderModalVisible, setIsFolderModalVisible] = useState(false);
 
     // Refs & Animation
+    const chipsRef = useRef(null);
     const pagerRef = useRef(null);
     const scrollX = useRef(new Animated.Value(0)).current;
 
@@ -60,30 +61,32 @@ export default function MainScreen({ route, navigation }) {
 
     // --- LOGIC: Подсчет количества элементов (упрощенный) ---
     const currentItemsCount = useMemo(() => {
-        return myCollection.filter((item) => {
-            const sectionMatch = item.appSection === currentSection;
+        // 1. Сначала фильтруем только по текущему разделу (Аниме)
+        const items = myCollection.filter(
+            (item) => item.appSection === currentSection,
+        );
 
-            // Если в объекте нет статуса, определяем дефолтный для этого раздела
-            const itemStatus =
-                item.status ||
-                (currentSection === "Книги"
-                    ? "Читаю"
-                    : currentSection === "Игры"
-                      ? "Играю"
-                      : "Смотрю");
+        // 2. Если выбрано "Всё" — считаем только карточки (не папки)
+        if (activeCategory === "Всё") {
+            return items.filter((i) => !i.isFolder).length;
+        }
 
-            const statusMatch = itemStatus === activeCategory;
-            const isVisibleRoot =
-                item.isFolder || !item.parentFolderIds?.length;
+        // 3. Если "Папки" — считаем только папки
+        if (activeCategory === "Папки") {
+            return items.filter((i) => i.isFolder).length;
+        }
 
-            return sectionMatch && statusMatch && isVisibleRoot;
-        }).length;
-    }, [myCollection, currentSection, activeCategory]);
+        // 4. Для конкретных статусов (Смотрю, Просмотрено и т.д.)
+        return items.filter((i) => !i.parentFolderIds && i.status === activeCategory)
+            .length;
+    }, [myCollection, currentSection, activeCategory]); // Убедитесь, что зависимости полные
 
-    // Синхронизация при смене раздела
     useEffect(() => {
-        setActiveCategory(defaultActive);
-        pagerRef.current?.scrollToOffset({ offset: 0, animated: false });
+        // Обновляем только если категория реально отличается от дефолтной для этого раздела
+        if (activeCategory !== defaultActive) {
+            setActiveCategory(defaultActive);
+            pagerRef.current?.scrollToOffset({ offset: 0, animated: false });
+        }
     }, [currentSection, defaultActive]);
 
     return (
@@ -94,12 +97,14 @@ export default function MainScreen({ route, navigation }) {
             />
 
             <CategoryChips
+                ref={chipsRef}
                 categories={CATEGORIES}
                 activeCategory={activeCategory}
                 scrollX={scrollX}
                 onPress={(cat, index) => {
                     setActiveCategory(cat);
                     pagerRef.current?.scrollToIndex({ index, animated: true });
+                    chipsRef.current?.scrollToIndex(index);
                 }}
             />
 
@@ -123,7 +128,10 @@ export default function MainScreen({ route, navigation }) {
                     const index = Math.round(
                         e.nativeEvent.contentOffset.x / SCREEN_WIDTH,
                     );
-                    if (CATEGORIES[index]) setActiveCategory(CATEGORIES[index]);
+                    if (CATEGORIES[index]) {
+                        setActiveCategory(CATEGORIES[index]);
+                        chipsRef.current?.scrollToIndex(index);
+                    }
                 }}
                 renderItem={({ item }) => (
                     <CategoryPage

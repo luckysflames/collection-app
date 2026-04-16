@@ -4,27 +4,60 @@ const GOOGLE_BOOKS_KEY = process.env.EXPO_PUBLIC_GOOGLE_BOOKS_KEY;
 
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_URL = "https://image.tmdb.org/t/p/w500";
+const SHIKIMORI_GRAPHQL_URL = "https://shikimori.one/api/graphql";
 
 // Вспомогательная функция для очистки HTML-тегов
-const cleanHtml = (text) => text?.replace(/<[^>]*>?/gm, "") || "";
+const cleanHtml = (text) => {
+    if (!text) return "";
+
+    return text
+        .replace(/<[^>]*>?/gm, "") // Чистим HTML: <div>...</div>
+        .replace(/\[[^\]]*\]/g, "") // Чистим BBCode: [character=123]...[/character]
+        .trim(); // Убираем лишние пробелы по краям
+};
 
 // Вспомогательная функция для получения чистого ID без префикса и номера страницы
 const getCleanId = (complexId, prefix) =>
     complexId.replace(prefix, "").split("-")[0];
+
+// Универсальный метод для GraphQL запросов к Шикимори
+const fetchShikimoriGraphql = async (query, variables = {}) => {
+    const res = await fetch(SHIKIMORI_GRAPHQL_URL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            "User-Agent": "MyMediaApp", // Shikimori требует User-Agent
+        },
+        body: JSON.stringify({ query, variables }),
+    });
+    return res.json();
+};
 
 export const searchMedia = async (text, category, page = 1) => {
     if (!text || text.length < 3) return [];
 
     try {
         if (category === "Аниме") {
-            const res = await fetch(
-                `https://shikimori.one/api/animes?search=${encodeURIComponent(text)}&limit=15&page=${page}&order=ranked`,
-            );
-            const data = await res.json();
-            return data.map((item) => ({
+            const query = `
+            query($search: String, $page: Int) {
+              animes(search: $search, limit: 15, page: $page, order: popularity) {
+                id
+                licenseNameRu
+                russian
+                name
+                poster { originalUrl }
+              }
+            }`;
+
+            const json = await fetchShikimoriGraphql(query, {
+                search: text,
+                page,
+            });
+            return json.data.animes.map((item) => ({
                 id: `anime-${item.id}-${page}`,
-                title: item.russian || item.name,
-                image: `https://shikimori.one${item.image.original}`,
+                title: item.licenseNameRu || item.russian || item.name,
+                image: item.poster?.originalUrl, // Получаем прямой URL без склейки
                 isAnime: true,
             }));
         }
@@ -120,28 +153,51 @@ export const fetchDetailsById = async (id) => {
 
         if (id.startsWith("anime-")) {
             const animeId = getCleanId(id, "anime-");
-            const res = await fetch(
-                `https://shikimori.one/api/animes/${animeId}`,
-            );
-            const json = await res.json();
+
+            const query = `
+            query($id: String) {
+              animes(ids: $id) {
+                id
+                licenseNameRu
+                russian
+                english
+                name
+                score
+                status
+                episodes
+                episodesAired
+                airedOn { date }
+                releasedOn { date }
+                rating
+                duration
+                description
+                kind
+                genres { russian }
+                studios { name }
+              }
+            }`;
+
+            const json = await fetchShikimoriGraphql(query, { id: animeId });
+            const data = json.data.animes[0];
+
+            if (!data) throw new Error("Anime not found");
+
             return {
                 type: "anime",
-                kind: json.kind,
-                score: json.score || "0.0",
-                animeStatus: json.status,
-                episodes: json.episodes,
-                episodesAired: json.episodes_aired,
-                airedOn: json.aired_on,
-                releasedOn: json.released_on,
-                rating: json.rating,
-                englishTitle: json.english?.[0] || null,
-                japaneseTitle: json.japanese?.[0] || null,
-                duration: json.duration ? `по ~${json.duration} мин.` : null,
-                description: cleanHtml(
-                    json.description_html || json.description,
-                ),
-                genres: json.genres?.map((g) => g.russian || g.name) || [],
-                studios: json.studios?.map((s) => s.name) || [],
+                kind: data.kind,
+                score: data.score || "0.0",
+                animeStatus: data.status,
+                episodes: data.episodes,
+                episodesAired: data.episodesAired,
+                airedOn: data.airedOn?.date,
+                releasedOn: data.releasedOn?.date,
+                rating: data.rating,
+                englishTitle: data.english, // В GraphQL Шикимори это поле может быть в другом месте, если нужно - добавим
+                japaneseTitle: data.name,
+                duration: data.duration ? `по ~${data.duration} мин.` : null,
+                description: cleanHtml(data.description),
+                genres: data.genres?.map((g) => g.russian) || [],
+                studios: data.studios?.map((s) => s.name) || [],
                 isAnime: true,
             };
         }
@@ -152,7 +208,7 @@ export const fetchDetailsById = async (id) => {
                 `https://www.googleapis.com/books/v1/volumes/${bookId}?hl=ru&key=${GOOGLE_BOOKS_KEY}`,
             );
             const json = await res.json();
-            console.log(JSON.stringify(json))
+            console.log(JSON.stringify(json));
             const info = json.volumeInfo;
             return {
                 type: "book",

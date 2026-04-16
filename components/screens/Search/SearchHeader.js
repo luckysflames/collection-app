@@ -7,6 +7,8 @@ import {
     StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useMediaCategories } from "../../../hooks/useMediaCategories";
+import { ChevronLeft } from "lucide-react-native";
 
 export const SearchHeader = ({
     activeCategory,
@@ -14,8 +16,9 @@ export const SearchHeader = ({
     query,
     setQuery,
     onSearch,
+    handleReset,
 }) => {
-    const categories = ["Игры", "Фильмы", "Аниме", "Книги"];
+    const { sectionName } = useMediaCategories(activeCategory);
 
     const handleClear = () => {
         setQuery("");
@@ -23,7 +26,18 @@ export const SearchHeader = ({
 
     return (
         <View style={styles.container}>
-            <Text style={styles.header}>Поиск</Text>
+            <View style={styles.headerContainer}>
+                {/* Кнопка назад к категориям */}
+                <TouchableOpacity
+                    onPress={handleReset}
+                    style={[styles.backButton]}
+                >
+                    <ChevronLeft size={24} color="#fff" />
+                </TouchableOpacity>
+
+                <Text style={styles.header}>Поиск {sectionName}</Text>
+            </View>
+
             <View style={styles.searchBarContainer}>
                 <TextInput
                     style={styles.searchInput}
@@ -52,32 +66,6 @@ export const SearchHeader = ({
                     <Ionicons name="search" size={22} color="#7D8AFF" />
                 </TouchableOpacity>
             </View>
-
-            <View style={styles.categoryToggle}>
-                {categories.map((cat) => (
-                    <TouchableOpacity
-                        key={cat}
-                        onPress={() => {
-                            setActiveCategory(cat);
-                            if (query.length >= 3) onSearch(query, cat);
-                        }}
-                        style={[
-                            styles.miniChip,
-                            activeCategory === cat && styles.activeMiniChip,
-                        ]}
-                    >
-                        <Text
-                            style={[
-                                styles.miniChipText,
-                                activeCategory === cat &&
-                                    styles.activeMiniChipText,
-                            ]}
-                        >
-                            {cat}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
-            </View>
         </View>
     );
 };
@@ -88,11 +76,26 @@ const styles = StyleSheet.create({
         backgroundColor: "#050B18",
         paddingHorizontal: 20,
     },
+    headerContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 20,
+        marginBottom: 20,
+    },
     header: {
         color: "#fff",
         fontSize: 24,
         fontWeight: "bold",
-        marginBottom: 20,
+    },
+    backButton: {
+        backgroundColor: "rgba(11, 21, 52, 0.8)",
+        width: 45,
+        height: 45,
+        borderRadius: 15,
+        justifyContent: "center",
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.05)",
     },
     searchBarContainer: {
         marginBottom: 10,
@@ -112,28 +115,5 @@ const styles = StyleSheet.create({
     },
     clearIcon: {
         marginHorizontal: 10,
-    },
-    categoryToggle: {
-        flexDirection: "row",
-        justifyContent: "center",
-        marginVertical: 15,
-    },
-    miniChip: {
-        paddingHorizontal: 20,
-        paddingVertical: 6,
-        borderRadius: 15,
-        backgroundColor: "rgba(255, 255, 255, 0.05)",
-        marginHorizontal: 5,
-    },
-    activeMiniChip: {
-        backgroundColor: "#7D8AFF",
-    },
-    miniChipText: {
-        color: "#8E94A4",
-        fontSize: 12,
-    },
-    activeMiniChipText: {
-        color: "#fff",
-        fontWeight: "bold",
     },
 });

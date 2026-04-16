@@ -22,6 +22,17 @@ export const InfoStats = ({ displayData }) => {
         return formatDate(displayData.year) || "—";
     };
 
+    const getAirStatus = () => {
+        const s =
+            displayData.airingStatus ||
+            displayData.movieStatus ||
+            displayData.status;
+        if (!s) return "—";
+        if (s === "released" || s === "finished") return "Вышло";
+        if (s === "ongoing") return "Онгоинг";
+        return s;
+    };
+
     return (
         <View style={styles.statsGrid}>
             {/* Верхняя строка: Дата и (Бюджет для фильмов или Страницы для книг) */}
@@ -87,18 +98,7 @@ export const InfoStats = ({ displayData }) => {
                         value={displayData.maturityRating}
                     />
                 ) : (
-                    <StatSubItem
-                        label="Статус"
-                        value={
-                            displayData.type === "anime"
-                                ? displayData.status === "released"
-                                    ? "Вышло"
-                                    : displayData.status
-                                : displayData.movieStatus === "released"
-                                  ? "Вышло"
-                                  : displayData.status
-                        }
-                    />
+                    <StatSubItem label="Статус" value={getAirStatus()} />
                 )}
             </View>
         </View>

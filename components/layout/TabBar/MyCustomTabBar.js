@@ -26,16 +26,23 @@ export default function MyCustomTabBar({ state, descriptors, navigation }) {
                     const isFocused = state.index === index;
 
                     const onPress = () => {
-                        // 1. Генерируем событие нажатия
                         const event = navigation.emit({
                             type: "tabPress",
                             target: route.key,
                             canPreventDefault: true,
                         });
 
-                        // 2. Если мы не на этом табу — переходим.
-                        // Если на этом — событие уже сработало в listeners (HomeTabs)
-                        if (!isFocused && !event.defaultPrevented) {
+                        if (event.defaultPrevented) return;
+
+                        if (isFocused) {
+                            if (route.name === "Коллекция") {
+                                // Используем navigate с явным указанием экрана
+                                // Это работает без ошибок, даже если уже на Дашборде
+                                navigation.navigate("Коллекция", {
+                                    screen: "Дашборд",
+                                });
+                            }
+                        } else {
                             navigation.navigate(route.name);
                         }
                     };
@@ -56,6 +63,7 @@ export default function MyCustomTabBar({ state, descriptors, navigation }) {
         </View>
     );
 }
+
 const styles = StyleSheet.create({
     wrapper: {
         position: "absolute",

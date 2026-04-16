@@ -4,6 +4,7 @@ import React, {
     forwardRef,
     useState,
     useEffect,
+    useMemo,
 } from "react";
 import {
     ScrollView,
@@ -20,27 +21,34 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 export const CategoryChips = forwardRef(
     ({ categories, activeCategory, onPress, scrollX }, ref) => {
         const scrollViewRef = useRef(null);
-        // Используем state для layouts, чтобы триггерить рендер при обновлении замеров
         const [itemLayouts, setItemLayouts] = useState({});
-        const [measuredCount, setMeasuredCount] = useState(0);
 
-        // Сбрасываем замеры, если изменился массив категорий (перешли из Фильмов в Книги)
+        // Убрали measuredCount, будем проверять наличие ключей в объекте
         useEffect(() => {
             setItemLayouts({});
-            setMeasuredCount(0);
         }, [categories]);
 
-        const isAllMeasured =
-            measuredCount > 0 && measuredCount === categories.length;
+        // Проверяем, есть ли замеры для текущего списка категорий
+        const hasMeasurements = useMemo(() => {
+            return (
+                categories.length > 0 &&
+                categories.every((_, i) => itemLayouts[i])
+            );
+        }, [categories, itemLayouts]);
 
-        // Безопасная подготовка данных для анимации
         const getInterpolationData = () => {
-            if (!isAllMeasured)
-                return { input: [0, 1], outX: [0, 0], outW: [0, 0] };
+            // Если замеров нет, возвращаем дефолтные значения, чтобы интерполяция не упала
+            if (!hasMeasurements) {
+                return {
+                    input: [0, SCREEN_WIDTH],
+                    outX: [0, 0],
+                    outW: [0, 0],
+                };
+            }
 
             const input = categories.map((_, i) => i * SCREEN_WIDTH);
-            const outX = categories.map((_, i) => itemLayouts[i]?.x || 0);
-            const outW = categories.map((_, i) => itemLayouts[i]?.width || 0);
+            const outX = categories.map((_, i) => itemLayouts[i].x);
+            const outW = categories.map((_, i) => itemLayouts[i].width);
 
             return { input, outX, outW };
         };
@@ -60,15 +68,19 @@ export const CategoryChips = forwardRef(
         });
 
         const onItemLayout = (index, event) => {
-            const layout = event.nativeEvent.layout;
-            setItemLayouts((prev) => ({ ...prev, [index]: layout }));
-            setMeasuredCount((prev) => prev + 1);
+            const { x, width } = event.nativeEvent.layout;
+            setItemLayouts((prev) => ({
+                ...prev,
+                [index]: { x, width },
+            }));
         };
 
         useImperativeHandle(ref, () => ({
             scrollToIndex: (index) => {
                 const layout = itemLayouts[index];
                 if (layout && scrollViewRef.current) {
+                    // Важно: здесь НЕ нужно прибавлять 16, так как layout.x
+                    // уже считается внутри контейнера с отступами
                     const scrollToX =
                         layout.x - SCREEN_WIDTH / 2 + layout.width / 2;
                     scrollViewRef.current.scrollTo({
@@ -88,13 +100,17 @@ export const CategoryChips = forwardRef(
                     contentContainerStyle={styles.contentContainer}
                     scrollEventThrottle={16}
                 >
-                    {isAllMeasured && (
+                    {/* Рисуем индикатор всегда, когда есть хоть какие-то замеры, 
+                        чтобы он не "моргал" при переключении разделов */}
+                    {Object.keys(itemLayouts).length > 0 && (
                         <Animated.View
                             style={[
                                 styles.activeIndicator,
                                 {
                                     width: chipWidth,
                                     transform: [{ translateX }],
+                                    // Убеждаемся, что индикатор виден поверх фона, но под текстом
+                                    opacity: hasMeasurements ? 1 : 0,
                                 },
                             ]}
                         />

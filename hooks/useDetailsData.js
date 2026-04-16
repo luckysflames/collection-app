@@ -49,7 +49,10 @@ export const useDetailsData = (item, fullDetails, savedItem) => {
                         savedItem?.releasedOn || fullDetails?.releasedOn,
                     studios: savedItem?.studios || fullDetails?.studios || [],
                     rating: savedItem?.rating || fullDetails?.rating,
-                    status: savedItem?.animeStatus || fullDetails?.animeStatus,
+                    airingStatus:
+                        savedItem?.airingStatus ||
+                        savedItem?.animeStatus ||
+                        fullDetails?.animeStatus,
                     englishTitle:
                         savedItem?.englishTitle || fullDetails?.englishTitle,
                     japaneseTitle:

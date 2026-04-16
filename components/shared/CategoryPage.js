@@ -1,11 +1,5 @@
 import React, { useMemo } from "react";
-import {
-    View,
-    FlatList,
-    Text,
-    StyleSheet,
-    Dimensions,
-} from "react-native";
+import { View, FlatList, Text, StyleSheet, Dimensions } from "react-native";
 import { FolderOpen } from "lucide-react-native";
 
 import { MediaCard } from "../ui/MediaCard";
@@ -26,10 +20,20 @@ export const CategoryPage = ({
 }) => {
     // --- LOGIC: Filtering & Sorting ---
     const pageData = useMemo(() => {
+        // 1. ФИЛЬТРАЦИЯ
         let filtered = data.filter((item) => {
             if (isInsideFolder) return true;
 
-            const sectionMatch = item.appSection === currentSection;
+            if (item.appSection !== currentSection) return false;
+
+            // Выносим общую логику "корневого" элемента
+            const isVisibleRoot =
+                item.isFolder || !item.parentFolderIds?.length;
+
+            if (category === "Всё") return !item.isFolder;
+            if (category === "Папки") return item.isFolder;
+
+            // Для статусных вкладок
             const defaultStatus =
                 currentSection === "Книги"
                     ? "Читаю"
@@ -38,31 +42,21 @@ export const CategoryPage = ({
                       : "Смотрю";
             const statusMatch = (item.status || defaultStatus) === category;
 
-            // Условие отображения только корневых элементов
-            const isVisibleRoot =
-                item.isFolder || !item.parentFolderIds?.length;
-
-            return sectionMatch && statusMatch && isVisibleRoot;
+            return statusMatch && isVisibleRoot;
         });
 
-        // Ручная сортировка внутри папки
+        // 2. СОРТИРОВКА (оставляем без изменений)
         if (isInsideFolder && folderOrder?.length > 0) {
             return [...filtered].sort(
                 (a, b) => folderOrder.indexOf(a.id) - folderOrder.indexOf(b.id),
             );
         }
 
-        // Стандартная сортировка
         return [...filtered].sort((a, b) => {
             const getSortDate = (obj) => {
-                // 1. Проверяем наличие явного createdAt
                 if (obj.createdAt) return Number(obj.createdAt);
-
-                // 2. Пробуем достать timestamp из ID (фильтруем только числа)
-                const parts = obj.id.split("_");
+                const parts = String(obj.id).split("_");
                 const timestamp = parts.length > 1 ? Number(parts[1]) : 0;
-
-                // 3. Если результат NaN (например, id="media_card"), возвращаем 0
                 return isNaN(timestamp) ? 0 : timestamp;
             };
 
@@ -75,11 +69,9 @@ export const CategoryPage = ({
                 case "rating":
                     return (b.rating || 0) - (a.rating || 0);
                 case "oldest":
-                    // Сначала старые: от меньшего к большему (1, 2, 3...)
                     return dateA - dateB;
                 case "newest":
                 default:
-                    // Сначала новые: от большего к меньшему (3, 2, 1...)
                     return dateB - dateA;
             }
         });

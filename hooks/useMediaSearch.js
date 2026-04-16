@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { searchMedia } from "../services/apiService";
+import { Keyboard } from "react-native";
 
 export const useMediaSearch = (initialCategory = "Игры") => {
     const [query, setQuery] = useState("");
@@ -9,6 +10,9 @@ export const useMediaSearch = (initialCategory = "Игры") => {
     const [activeCategory, setActiveCategory] = useState(initialCategory);
     const [page, setPage] = useState(1);
     const [isEnd, setIsEnd] = useState(false);
+    const [lastSearchedQuery, setLastSearchedQuery] = useState("");
+
+    const searchCache = useRef({});
 
     const getCategoryById = (id) => {
         if (id.startsWith("anime-")) return "Аниме";
@@ -16,35 +20,88 @@ export const useMediaSearch = (initialCategory = "Игры") => {
         if (id.startsWith("book-")) return "Книги";
         return "Фильмы";
     };
-    
-    const handleSearch = async (text, categoryOverride, isNewSearch = true) => {
-        const currentCategory = categoryOverride || activeCategory;
-        const searchPage = isNewSearch ? 1 : page + 1;
 
-        if (isNewSearch) {
-            setLoading(true);
-            setResults([]);
-            setIsEnd(false);
-            setPage(1);
-        } else {
-            setLoadingMore(true);
-        }
+    const handleSearch = useCallback(
+        async (text, categoryOverride, isNewSearch = true) => {
+            const sanitizedText = text?.trim() || "";
+            if (sanitizedText.length < 3) return;
 
-        try {
-            const data = await searchMedia(text, currentCategory, searchPage);
+            const currentCategory = categoryOverride || activeCategory;
+            const cacheKey = `${currentCategory}-${sanitizedText.toLowerCase()}`;
 
-            if (data.length === 0) {
-                setIsEnd(true);
+            if (isNewSearch) {
+                setLastSearchedQuery(sanitizedText);
+                Keyboard.dismiss();
+
+                // ВАЖНО: Очищаем текущие результаты немедленно,
+                // чтобы не было визуального смешивания при переключении
+                setResults([]);
+
+                if (searchCache.current[cacheKey]) {
+                    const cached = searchCache.current[cacheKey];
+                    // Устанавливаем данные из кэша
+                    setResults(cached.results);
+                    setPage(cached.page);
+                    setIsEnd(cached.isEnd);
+                    setLoading(false);
+                    return;
+                }
+
+                setLoading(true);
+                setIsEnd(false);
+                setPage(1);
             } else {
-                setResults((prev) => (isNewSearch ? data : [...prev, ...data]));
-                setPage(searchPage);
+                if (isEnd || loadingMore) return;
+                setLoadingMore(true);
             }
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setLoading(false);
-            setLoadingMore(false);
-        }
+
+            const searchPage = isNewSearch ? 1 : page + 1;
+
+            try {
+                const data = await searchMedia(
+                    sanitizedText,
+                    currentCategory,
+                    searchPage,
+                );
+
+                // Еще одна проверка: не сменил ли пользователь категорию, пока шел запрос?
+                // Сравниваем currentCategory с той, что сейчас в стейте (если она не передана принудительно)
+                // Но так как мы передаем categoryOverride, мы доверяем cacheKey
+
+                if (data.length === 0) {
+                    setIsEnd(true);
+                    if (searchCache.current[cacheKey]) {
+                        searchCache.current[cacheKey].isEnd = true;
+                    }
+                } else {
+                    const updatedResults = isNewSearch
+                        ? data
+                        : [...results, ...data];
+
+                    // Сохраняем в кэш ПЕРЕД установкой в стейт
+                    searchCache.current[cacheKey] = {
+                        results: updatedResults,
+                        page: searchPage,
+                        isEnd: data.length < 10,
+                    };
+
+                    // Устанавливаем результаты
+                    setResults(updatedResults);
+                    setPage(searchPage);
+                }
+            } catch (err) {
+                console.error("Search error:", err);
+            } finally {
+                setLoading(false);
+                setLoadingMore(false);
+            }
+        },
+        [activeCategory, page, isEnd, loadingMore, results], // Добавлен results в зависимости
+    );
+
+    const clearCache = () => {
+        searchCache.current = {};
+        setResults([]);
     };
 
     return {
@@ -58,5 +115,7 @@ export const useMediaSearch = (initialCategory = "Игры") => {
         handleSearch,
         isEnd,
         getCategoryById,
+        lastSearchedQuery,
+        clearCache,
     };
 };
