@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { searchMedia } from "../services/apiService";
 import { Keyboard } from "react-native";
 
-export const useMediaSearch = (initialCategory = "Игры") => {
+export const useMediaSearch = (initialCategory = "game") => {
     const [query, setQuery] = useState("");
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -15,10 +15,10 @@ export const useMediaSearch = (initialCategory = "Игры") => {
     const searchCache = useRef({});
 
     const getCategoryById = (id) => {
-        if (id.startsWith("anime-")) return "Аниме";
-        if (id.startsWith("game-")) return "Игры";
-        if (id.startsWith("book-")) return "Книги";
-        return "Фильмы";
+        if (id.startsWith("anime-")) return "anime";
+        if (id.startsWith("game-")) return "game";
+        if (id.startsWith("book-")) return "book";
+        return "movie";
     };
 
     const handleSearch = useCallback(

@@ -9,12 +9,13 @@ import { SettingItem } from "../components/screens/Settings/SettingItem";
 import { DevelopersModal } from "../components/screens/Settings/DevelopersModal";
 import { ApiInfoModal } from "../components/screens/Settings/ApiInfoModal";
 
-export default function SettingsScreen() {
+export default function SettingsScreen({ navigation }) {
     const insets = useSafeAreaInsets();
     const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
     const setIsCompactMenu = useCollectionStore(
         (state) => state.setIsCompactMenu,
     );
+
     const [isDevModalVisible, setDevModalVisible] = useState(false);
     const [isApiModalVisible, setApiModalVisible] = useState(false);
 
@@ -35,6 +36,16 @@ export default function SettingsScreen() {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 100 }}
             >
+                {/* Секция: Контент (Добавим новую секцию) */}
+                <Text style={styles.sectionTitle}>Контент</Text>
+                <View style={styles.card}>
+                    <SettingItem
+                        icon="list-outline"
+                        label="Мои статусы"
+                        onPress={() => navigation.navigate("StatusManager")}
+                    />
+                </View>
+
                 {/* Секция: Внешний вид */}
                 <Text style={styles.sectionTitle}>Внешний вид</Text>
                 <View style={styles.card}>

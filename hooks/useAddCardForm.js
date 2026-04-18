@@ -1,6 +1,7 @@
 import { Alert } from "react-native";
 import { useCollectionStore } from "../store/useCollectionStore";
 import { useEffect, useState } from "react";
+import { DEFAULT_FALLBACK_STATUS } from "../constants";
 
 export const useAddCardForm = (navigation) => {
     const addToCollection = useCollectionStore(
@@ -56,23 +57,11 @@ export const useAddCardForm = (navigation) => {
         message: "",
     });
 
-    // Внутренний хелпер для определения статуса по умолчанию
-    const getDefaultStatus = (type) => {
-        switch (type) {
-            case "book":
-                return "Читаю";
-            case "game":
-                return "Играю";
-            default:
-                return "Смотрю";
-        }
-    };
-
     // Автоматическая смена статуса при изменении типа
     useEffect(() => {
         setForm((prev) => ({
             ...prev,
-            status: getDefaultStatus(prev.type),
+            status: DEFAULT_FALLBACK_STATUS,
         }));
     }, [form.type]);
 

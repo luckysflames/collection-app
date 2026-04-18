@@ -12,7 +12,7 @@ import StatusPicker from "../../screens/AddCard/StatusPicker";
 
 export const EditForm = ({ form, updateField, type }) => {
     // Получаем категории для StatusPicker
-    const { CATEGORIES } = useMediaCategories(
+    const { statuses } = useMediaCategories(
         type === "movie"
             ? "Фильмы"
             : type === "anime"
@@ -76,7 +76,7 @@ export const EditForm = ({ form, updateField, type }) => {
 
             {/* 6. Статус */}
             <StatusPicker
-                categories={CATEGORIES}
+                categories={statuses}
                 currentStatus={form.status}
                 type={type}
                 onSelect={(status) => updateField("status", status)}

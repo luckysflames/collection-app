@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { View, FlatList, Text, StyleSheet, Dimensions } from "react-native";
 import { FolderOpen } from "lucide-react-native";
 
@@ -17,65 +17,93 @@ export const CategoryPage = ({
     isReordering,
     reorderBuffer,
     folderOrder,
+    showFoldersOnly = false,
 }) => {
     // --- LOGIC: Filtering & Sorting ---
     const pageData = useMemo(() => {
-        // 1. ФИЛЬТРАЦИЯ
         let filtered = data.filter((item) => {
+            // 0. Если мы внутри папки, показываем только её содержимое (без вложенных папок)
             if (isInsideFolder) return true;
 
+            // 1. Базовая проверка секции (Movies/Games и т.д.)
             if (item.appSection !== currentSection) return false;
 
-            // Выносим общую логику "корневого" элемента
-            const isVisibleRoot =
-                item.isFolder || !item.parentFolderIds?.length;
+            const isFolder = !!item.isFolder;
+            const hasParent =
+                item.parentFolderIds && item.parentFolderIds.length > 0;
 
-            if (category === "Всё") return !item.isFolder;
-            if (category === "Папки") return item.isFolder;
+            // --- ЛОГИКА ДЛЯ РАЗДЕЛА "Всё" ---
+            if (category === "Всё") {
+                if (showFoldersOnly) {
+                    // Кейс 1: Схлопываем всё, у чего есть папки
+                    if (isFolder) return true; // Показываем все папки
+                    return !hasParent; // Карточки показываем только если они "сироты"
+                }
+                // Показываем абсолютно всё плоским списком (папки скрыты, все карточки видны)
+                return !isFolder;
+            }
 
-            // Для статусных вкладок
-            const defaultStatus =
-                currentSection === "Книги"
-                    ? "Читаю"
-                    : currentSection === "Игры"
-                      ? "Играю"
-                      : "Смотрю";
-            const statusMatch = (item.status || defaultStatus) === category;
+            // --- ЛОГИКА ДЛЯ РАЗДЕЛА "Папки" ---
+            if (category === "Папки") {
+                return isFolder;
+            }
 
-            return statusMatch && isVisibleRoot;
-        });
+            // --- ЛОГИКА ДЛЯ СТАТУСНЫХ ВКЛАДОК (Смотрю, В планах и т.д.) ---
+            const itemStatus = item.status;
+            if (itemStatus !== category) return false;
 
-        // 2. СОРТИРОВКА (оставляем без изменений)
-        if (isInsideFolder && folderOrder?.length > 0) {
-            return [...filtered].sort(
-                (a, b) => folderOrder.indexOf(a.id) - folderOrder.indexOf(b.id),
-            );
-        }
+            if (showFoldersOnly) {
+                // Кейс 1 & 3: Группировка включена
+                if (isFolder) return true; // Пустая или полная папка со статусом "Смотрю" видна
 
-        return [...filtered].sort((a, b) => {
-            const getSortDate = (obj) => {
-                if (obj.createdAt) return Number(obj.createdAt);
-                const parts = String(obj.id).split("_");
-                const timestamp = parts.length > 1 ? Number(parts[1]) : 0;
-                return isNaN(timestamp) ? 0 : timestamp;
-            };
+                // Карточку показываем только если у неё нет родительской папки
+                // ИЛИ если её родительская папка имеет ДРУГОЙ статус (чтобы карточка не "исчезла" в никуда)
+                if (!hasParent) return true;
 
-            const dateA = getSortDate(a);
-            const dateB = getSortDate(b);
+                // Проверка: есть ли среди родителей папка с ТАКИМ ЖЕ статусом, как у карточки?
+                const hasSameStatusParent = item.parentFolderIds.some(
+                    (parentId) => {
+                        const parent = data.find((d) => d.id === parentId);
+                        return parent && parent.status === itemStatus;
+                    },
+                );
 
-            switch (sortType) {
-                case "alphabetical":
-                    return (a.title || "").localeCompare(b.title || "");
-                case "rating":
-                    return (b.rating || 0) - (a.rating || 0);
-                case "oldest":
-                    return dateA - dateB;
-                case "newest":
-                default:
-                    return dateB - dateA;
+                return !hasSameStatusParent;
+            } else {
+                // Группировка выключена: только карточки этого статуса (папки скрываем)
+                // Кейс 2 & 3: Если папка пустая, в этом режиме она скроется (так как isFolder === true)
+                return !isFolder;
             }
         });
-    }, [category, currentSection, data, isInsideFolder, sortType, folderOrder]);
+
+        // --- СОРТИРОВКА ---
+        const sorted = [...filtered].sort((a, b) => {
+            const getSortDate = (obj) => obj.createdAt || 0;
+            if (sortType === "alphabetical")
+                return (a.title || "").localeCompare(b.title || "");
+            if (sortType === "rating") return (b.rating || 0) - (a.rating || 0);
+            if (sortType === "oldest") return getSortDate(a) - getSortDate(b);
+            return getSortDate(b) - getSortDate(a);
+        });
+
+        // --- ДОБАВЛЕНИЕ СЧЕТЧИКА ---
+        return sorted.map((item) => {
+            if (item.isFolder) {
+                const count = data.filter((i) =>
+                    i.parentFolderIds?.includes(item.id),
+                ).length;
+                return { ...item, _computedCount: count };
+            }
+            return item;
+        });
+    }, [
+        category,
+        currentSection,
+        data,
+        isInsideFolder,
+        sortType,
+        showFoldersOnly,
+    ]);
 
     // --- COMPONENTS: Empty States ---
     const renderEmptyState = () => (
@@ -103,28 +131,36 @@ export const CategoryPage = ({
         </View>
     );
 
+    // Оборачиваем функцию нажатия, чтобы ссылка на неё не менялась
+    const handlePress = useCallback(
+        (item) => {
+            onCardPress?.(item);
+        },
+        [onCardPress],
+    );
+
     // --- RENDER ITEM ---
-    const renderItem = ({ item }) => {
-        const itemCount = item.isFolder
-            ? data.filter((i) => i.parentFolderIds?.includes(item.id)).length
-            : 0;
+    const renderItem = useCallback(
+        ({ item }) => {
+            // Логика расчета номера должна быть ЗДЕСЬ
+            const indexInBuffer = reorderBuffer
+                ? reorderBuffer.indexOf(item.id)
+                : -1;
+            const currentOrder =
+                indexInBuffer !== -1 ? indexInBuffer + 1 : null;
 
-        const orderIndex = reorderBuffer?.indexOf(item.id);
-        const orderNumber =
-            orderIndex !== undefined && orderIndex !== -1
-                ? orderIndex + 1
-                : null;
-
-        return (
-            <MediaCard
-                item={item}
-                itemCount={itemCount}
-                onPress={() => onCardPress?.(item)}
-                showOrderNumber={isReordering}
-                orderNumber={orderNumber}
-            />
-        );
-    };
+            return (
+                <MediaCard
+                    item={item}
+                    itemCount={item.isFolder ? item._computedCount : 0}
+                    onPress={handlePress}
+                    showOrderNumber={isReordering}
+                    orderNumber={currentOrder}
+                />
+            );
+        },
+        [handlePress, isReordering, reorderBuffer], // reorderBuffer в зависимостях важен!
+    );
 
     return (
         <View style={styles.pageWrapper}>
@@ -140,7 +176,16 @@ export const CategoryPage = ({
                 ListHeaderComponent={<>{ListHeaderComponent}</>}
                 renderItem={renderItem}
                 ListEmptyComponent={renderEmptyState}
-                removeClippedSubviews={false}
+                // Оптимизации:
+                initialNumToRender={8} // Сколько карточек рендерить сразу
+                maxToRenderPerBatch={10} // Сколько добавлять за один проход
+                windowSize={5} // Сколько экранов держать в памяти (меньше = меньше RAM)
+                removeClippedSubviews={true} // Выгружать из памяти то, что далеко за экраном
+                getItemLayout={(data, index) => ({
+                    length: 220, // Примерная высота вашей карточки
+                    offset: 220 * Math.floor(index / 2),
+                    index,
+                })}
             />
         </View>
     );

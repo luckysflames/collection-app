@@ -23,37 +23,44 @@ export const CategoryChips = forwardRef(
         const scrollViewRef = useRef(null);
         const [itemLayouts, setItemLayouts] = useState({});
 
-        // Убрали measuredCount, будем проверять наличие ключей в объекте
+        // Сбрасываем замеры только если список категорий физически изменился
         useEffect(() => {
             setItemLayouts({});
         }, [categories]);
 
-        // Проверяем, есть ли замеры для текущего списка категорий
-        const hasMeasurements = useMemo(() => {
-            return (
-                categories.length > 0 &&
-                categories.every((_, i) => itemLayouts[i])
-            );
-        }, [categories, itemLayouts]);
+        useEffect(() => {
+            const activeIndex = categories.indexOf(activeCategory);
+            const layout = itemLayouts[activeIndex];
 
-        const getInterpolationData = () => {
-            // Если замеров нет, возвращаем дефолтные значения, чтобы интерполяция не упала
-            if (!hasMeasurements) {
-                return {
-                    input: [0, SCREEN_WIDTH],
-                    outX: [0, 0],
-                    outW: [0, 0],
-                };
+            // Ключевое изменение: скроллим ТОЛЬКО когда замеры для ЭТОГО индекса готовы
+            if (activeIndex !== -1 && layout) {
+                const scrollToX =
+                    layout.x - SCREEN_WIDTH / 2 + layout.width / 2;
+
+                // Используем requestAnimationFrame, чтобы дождаться окончания отрисовки
+                requestAnimationFrame(() => {
+                    scrollViewRef.current?.scrollTo({
+                        x: Math.max(0, scrollToX),
+                        animated: true,
+                    });
+                });
+            }
+        }, [activeCategory, itemLayouts]);
+
+        const { input, outX, outW } = useMemo(() => {
+            const keys = Object.keys(itemLayouts);
+            // Если замеров еще нет или их мало — индикатор просто не виден (width: 0)
+            if (keys.length < categories.length || keys.length === 0) {
+                return { input: [0, 1], outX: [0, 0], outW: [0, 0] };
             }
 
-            const input = categories.map((_, i) => i * SCREEN_WIDTH);
-            const outX = categories.map((_, i) => itemLayouts[i].x);
-            const outW = categories.map((_, i) => itemLayouts[i].width);
-
-            return { input, outX, outW };
-        };
-
-        const { input, outX, outW } = getInterpolationData();
+            const measuredIndices = keys.map(Number).sort((a, b) => a - b);
+            return {
+                input: measuredIndices.map((i) => i * SCREEN_WIDTH),
+                outX: measuredIndices.map((i) => itemLayouts[i].x),
+                outW: measuredIndices.map((i) => itemLayouts[i].width),
+            };
+        }, [itemLayouts, categories.length]);
 
         const translateX = scrollX.interpolate({
             inputRange: input,
@@ -67,23 +74,13 @@ export const CategoryChips = forwardRef(
             extrapolate: "clamp",
         });
 
-        const onItemLayout = (index, event) => {
-            const { x, width } = event.nativeEvent.layout;
-            setItemLayouts((prev) => ({
-                ...prev,
-                [index]: { x, width },
-            }));
-        };
-
         useImperativeHandle(ref, () => ({
             scrollToIndex: (index) => {
                 const layout = itemLayouts[index];
-                if (layout && scrollViewRef.current) {
-                    // Важно: здесь НЕ нужно прибавлять 16, так как layout.x
-                    // уже считается внутри контейнера с отступами
+                if (layout) {
                     const scrollToX =
                         layout.x - SCREEN_WIDTH / 2 + layout.width / 2;
-                    scrollViewRef.current.scrollTo({
+                    scrollViewRef.current?.scrollTo({
                         x: Math.max(0, scrollToX),
                         animated: true,
                     });
@@ -98,28 +95,29 @@ export const CategoryChips = forwardRef(
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.contentContainer}
-                    scrollEventThrottle={16}
                 >
-                    {/* Рисуем индикатор всегда, когда есть хоть какие-то замеры, 
-                        чтобы он не "моргал" при переключении разделов */}
-                    {Object.keys(itemLayouts).length > 0 && (
-                        <Animated.View
-                            style={[
-                                styles.activeIndicator,
-                                {
-                                    width: chipWidth,
-                                    transform: [{ translateX }],
-                                    // Убеждаемся, что индикатор виден поверх фона, но под текстом
-                                    opacity: hasMeasurements ? 1 : 0,
-                                },
-                            ]}
-                        />
-                    )}
+                    <Animated.View
+                        style={[
+                            styles.activeIndicator,
+                            {
+                                width: chipWidth,
+                                transform: [{ translateX }],
+                                // Показываем индикатор только когда есть расчетные данные
+                                opacity: input.length > 1 ? 1 : 0,
+                            },
+                        ]}
+                    />
 
                     {categories.map((cat, index) => (
                         <TouchableOpacity
                             key={`${cat}-${index}`}
-                            onLayout={(e) => onItemLayout(index, e)}
+                            onLayout={(e) => {
+                                const { x, width } = e.nativeEvent.layout;
+                                setItemLayouts((prev) => ({
+                                    ...prev,
+                                    [index]: { x, width },
+                                }));
+                            }}
                             onPress={() => onPress(cat, index)}
                             activeOpacity={0.7}
                             style={styles.chip}

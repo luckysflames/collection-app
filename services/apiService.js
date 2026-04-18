@@ -38,7 +38,12 @@ export const searchMedia = async (text, category, page = 1) => {
     if (!text || text.length < 3) return [];
 
     try {
-        if (category === "Аниме") {
+        const isAnime = category === "Аниме" || category === "anime";
+        const isMovie = category === "Фильмы" || category === "movie";
+        const isBook = category === "Книги" || category === "book";
+        const isGame = category === "Игры" || category === "game";
+
+        if (isAnime) {
             const query = `
             query($search: String, $page: Int) {
               animes(search: $search, limit: 15, page: $page, order: popularity) {
@@ -62,7 +67,7 @@ export const searchMedia = async (text, category, page = 1) => {
             }));
         }
 
-        if (category === "Фильмы") {
+        if (isMovie) {
             const res = await fetch(
                 `${TMDB_BASE_URL}/search/movie?query=${encodeURIComponent(text)}&language=ru-RU&page=${page}`,
                 { headers: { Authorization: `Bearer ${TMDB_API_KEY.trim()}` } },
@@ -80,7 +85,7 @@ export const searchMedia = async (text, category, page = 1) => {
             );
         }
 
-        if (category === "Книги") {
+        if (isBook) {
             const maxResults = 15;
             const startIndex = (page - 1) * maxResults;
             const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(text)}&maxResults=${maxResults}&startIndex=${startIndex}&hl=ru&key=${GOOGLE_BOOKS_KEY}`;
@@ -103,7 +108,7 @@ export const searchMedia = async (text, category, page = 1) => {
             );
         }
 
-        if (category === "Игры") {
+        if (isGame) {
             const res = await fetch(
                 `https://api.rawg.io/api/games?key=${RAWG_API_KEY}&search=${encodeURIComponent(text)}&page_size=15&page=${page}&search_precise=true`,
             );
@@ -119,6 +124,8 @@ export const searchMedia = async (text, category, page = 1) => {
                 })) || []
             );
         }
+
+        return [];
     } catch (e) {
         console.error("Search API Error:", e);
         return [];

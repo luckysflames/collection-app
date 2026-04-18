@@ -34,15 +34,14 @@ export default function MyCustomTabBar({ state, descriptors, navigation }) {
 
                         if (event.defaultPrevented) return;
 
-                        if (isFocused) {
-                            if (route.name === "Коллекция") {
-                                // Используем navigate с явным указанием экрана
-                                // Это работает без ошибок, даже если уже на Дашборде
-                                navigation.navigate("Коллекция", {
-                                    screen: "Дашборд",
-                                });
-                            }
-                        } else {
+                        if (route.name === "Коллекция") {
+                            navigation.navigate("Коллекция", {
+                                screen: "Дашборд",
+                            });
+                            return;
+                        }
+
+                        if (!isFocused) {
                             navigation.navigate(route.name);
                         }
                     };

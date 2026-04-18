@@ -11,20 +11,18 @@ import { SUB_CATEGORIES } from "../../../constants";
 
 const { width } = Dimensions.get("window");
 
-// const CATEGORIES = [
-//     {
-//         id: "Игры",
-//         icon: "controller-classic",
-//         color: "#7D8AFF",
-//         // Если у вас есть ассеты картинок как в дашборде, можно использовать их
-//         // Но здесь оставим MaterialCommunityIcons для надежности
-//     },
-//     { id: "Фильмы", icon: "movie-roll", color: "#FF7D7D" },
-//     { id: "Аниме", icon: "video-input-antenna", color: "#FFD47D" },
-//     { id: "Книги", icon: "book-open-variant", color: "#7DFF8E" },
-// ];
-
 export const CategorySelector = ({ onSelect, insets }) => {
+    // Вспомогательная функция для склонения
+    const getLabel = (id) => {
+        const labels = {
+            game: "игру",
+            book: "книгу",
+            anime: "аниме",
+            movie: "фильм",
+        };
+        return labels[id] || "медиа";
+    };
+
     return (
         <View style={[styles.container, { paddingTop: insets.top - 20 }]}>
             <Text style={styles.headerTitle}>Поиск</Text>
@@ -54,7 +52,7 @@ export const CategorySelector = ({ onSelect, insets }) => {
                         </View>
 
                         <View style={styles.cardFooter}>
-                            <Text style={styles.cardText}>{cat.id}</Text>
+                            <Text style={styles.cardText}>{cat.label}</Text>
                             <Text style={styles.subText}>
                                 Найти {getLabel(cat.id)}
                             </Text>
@@ -64,22 +62,6 @@ export const CategorySelector = ({ onSelect, insets }) => {
             </View>
         </View>
     );
-};
-
-// Вспомогательные функции для текста
-const getLabel = (id) => {
-    if (id === "Игры") return "игру";
-    if (id === "Книги") return "книгу";
-    if (id === "Аниме") return "аниме";
-    return "фильм";
-};
-
-// Временные эмодзи (замените на свои Image source, если хотите иконки как в дашборде)
-const getEmoji = (id) => {
-    if (id === "Игры") return "🎮";
-    if (id === "Книги") return "📖";
-    if (id === "Аниме") return "⛩️";
-    return "🎬";
 };
 
 const styles = StyleSheet.create({

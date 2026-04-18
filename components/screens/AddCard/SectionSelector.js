@@ -8,17 +8,17 @@ export default function SectionSelector({ sections, currentType, onSelect }) {
             <View style={styles.chipRow}>
                 {sections.map((s) => (
                     <TouchableOpacity
-                        key={s.value}
+                        key={s.id}
                         style={[
                             styles.chip,
-                            currentType === s.value && styles.activeChip,
+                            currentType === s.id && styles.activeChip,
                         ]}
-                        onPress={() => onSelect(s.value)}
+                        onPress={() => onSelect(s.id)}
                     >
                         <Text
                             style={[
                                 styles.chipText,
-                                currentType === s.value
+                                currentType === s.id
                                     ? styles.activeChipText
                                     : styles.chipText,
                             ]}

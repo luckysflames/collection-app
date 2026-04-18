@@ -1,6 +1,14 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+    DEFAULT_FALLBACK_STATUS,
+    DEFAULT_STATUSES,
+    SECTION_MAPPING,
+} from "../constants";
+
+// Хелпер для получения ключа
+const getSectionKey = (section) => SECTION_MAPPING[section] || section;
 
 export const useCollectionStore = create(
     persist(
@@ -9,72 +17,118 @@ export const useCollectionStore = create(
             myCollection: [],
             isCompactMenu: false,
             collectionGoal: 500,
-
-            availableStatuses: {
-                Movies: [
-                    "Смотрю",
-                    "В планах",
-                    "Просмотрено",
-                    "Пересматриваю",
-                    "Брошено",
-                    "Отложено",
-                ],
-                Books: [
-                    "Читаю",
-                    "В планах",
-                    "Прочитано",
-                    "Перечитываю",
-                    "Брошено",
-                    "Отложено",
-                ],
-                Games: [
-                    "Играю",
-                    "В планах",
-                    "Прошёл",
-                    "Переигрываю",
-                    "Брошено",
-                    "Отложено",
-                ],
+            availableStatuses: {},
+            defaultTabs: {
+                Movies: "Всё",
+                Books: "Всё",
+                Games: "Всё",
+                Anime: "Всё",
             },
+            version: 0,
 
-            // --- GETTERS (HELPERS) ---
+            incVersion: () => set((state) => ({ version: state.version + 1 })),
+
+            // --- GETTERS ---
             getStatusesForSection: (section) => {
-                const statuses = get().availableStatuses;
-                const mapping = {
-                    Фильмы: "Movies",
-                    Книги: "Books",
-                    Игры: "Games",
-                };
-                const key = mapping[section] || "Movies";
-                return statuses[key];
+                const key = getSectionKey(section);
+                const saved = get().availableStatuses[key];
+
+                let baseList =
+                    saved && saved.length > 0
+                        ? saved
+                        : [...(DEFAULT_STATUSES[key] || [])];
+
+                // ПРИНУДИТЕЛЬНАЯ ПРОВЕРКА (чтобы появились у старых пользователей)
+                const mandatory = ["Всё", "Папки", DEFAULT_FALLBACK_STATUS];
+                mandatory.forEach((status) => {
+                    if (!baseList.includes(status)) {
+                        baseList = [status, ...baseList];
+                    }
+                });
+
+                return baseList;
             },
 
             // --- ACTIONS ---
             setCollectionGoal: (goal) => set({ collectionGoal: goal }),
             setIsCompactMenu: (value) => set({ isCompactMenu: value }),
 
-            addCustomStatus: (section, newStatus) =>
+            setDefaultTab: (section, status) => {
+                const key = getSectionKey(section);
+                set((state) => ({
+                    defaultTabs: {
+                        ...state.defaultTabs,
+                        [key]: status,
+                    },
+                    version: state.version + 1,
+                }));
+            },
+
+            setStatusesForSection: (section, newStatuses) => {
+                const key = getSectionKey(section);
+                set((state) => ({
+                    availableStatuses: {
+                        ...state.availableStatuses,
+                        [key]: newStatuses,
+                    },
+                    version: state.version + 1,
+                }));
+            },
+
+            addCustomStatus: (section, newStatus) => {
+                const key = getSectionKey(section);
+                const current = get().getStatusesForSection(section);
+
+                if (current.includes(newStatus)) return;
+
+                set((state) => ({
+                    availableStatuses: {
+                        ...state.availableStatuses,
+                        [key]: [...current, newStatus],
+                    },
+                    version: state.version + 1,
+                }));
+            },
+
+            removeCustomStatus: (section, statusToDelete) => {
+                const systemStatuses = [
+                    "Всё",
+                    "Папки",
+                    DEFAULT_FALLBACK_STATUS,
+                ];
+                if (systemStatuses.includes(statusToDelete)) return;
+
+                const key = getSectionKey(section);
+                const currentStatuses = get().getStatusesForSection(section);
+                const nextStatuses = currentStatuses.filter(
+                    (s) => s !== statusToDelete,
+                );
+
                 set((state) => {
-                    const mapping = {
-                        Фильмы: "Movies",
-                        Книги: "Books",
-                        Игры: "Games",
-                    };
-                    const key = mapping[section] || section;
+                    // Если удаляемый статус был дефолтным, сбрасываем на "Всё"
+                    const isDefault = state.defaultTabs[key] === statusToDelete;
+                    const nextDefaultTabs = isDefault
+                        ? { ...state.defaultTabs, [key]: "Всё" }
+                        : state.defaultTabs;
 
                     return {
                         availableStatuses: {
                             ...state.availableStatuses,
-                            [key]: [
-                                ...(state.availableStatuses[key] || []),
-                                newStatus,
-                            ],
+                            [key]: nextStatuses,
                         },
+                        defaultTabs: nextDefaultTabs,
+                        myCollection: state.myCollection.map((item) =>
+                            item.appSection === section &&
+                            item.status === statusToDelete
+                                ? { ...item, status: DEFAULT_FALLBACK_STATUS }
+                                : item,
+                        ),
+                        version: state.version + 1,
                     };
-                }),
+                });
+            },
 
-            reorderCollection: (newOrder) => set({ myCollection: newOrder }),
-
+            // --- COLLECTION CRUD ---
             addToCollection: (item) =>
                 set((state) => {
                     if (
@@ -86,6 +140,8 @@ export const useCollectionStore = create(
                     }
                     const newItem = {
                         ...item,
+                        // Если статус не передан, ставим дефолтный
+                        status: item.status || DEFAULT_FALLBACK_STATUS,
                         parentFolderIds: item.parentFolderIds || [],
                         createdAt: item.createdAt || Date.now(),
                     };
@@ -108,39 +164,34 @@ export const useCollectionStore = create(
                     );
                     if (!itemToDelete) return state;
 
-                    // 1. Удаляем сам элемент
                     let nextCollection = state.myCollection.filter(
-                        (item) => String(item.id) !== String(id),
+                        (i) => String(i.id) !== String(id),
                     );
 
-                    // 2. Если удаляемый объект - папка, чистим ссылки на неё у детей
                     if (itemToDelete.isFolder) {
-                        nextCollection = nextCollection.map((item) => ({
-                            ...item,
-                            parentFolderIds: (
-                                item.parentFolderIds || []
-                            ).filter((fId) => String(fId) !== String(id)),
+                        nextCollection = nextCollection.map((i) => ({
+                            ...i,
+                            parentFolderIds: (i.parentFolderIds || []).filter(
+                                (fId) => String(fId) !== String(id),
+                            ),
                         }));
                     } else {
-                        // 3. Если это карточка, чистим её ID из списков сортировки (itemsOrder) внутри папок
-                        nextCollection = nextCollection.map((item) => {
-                            if (
-                                item.isFolder &&
-                                item.itemsOrder?.includes(id)
-                            ) {
-                                return {
-                                    ...item,
-                                    itemsOrder: item.itemsOrder.filter(
-                                        (itemId) =>
-                                            String(itemId) !== String(id),
-                                    ),
-                                };
-                            }
-                            return item;
-                        });
+                        nextCollection = nextCollection.map((i) =>
+                            i.isFolder && i.itemsOrder?.includes(id)
+                                ? {
+                                      ...i,
+                                      itemsOrder: i.itemsOrder.filter(
+                                          (itemId) =>
+                                              String(itemId) !== String(id),
+                                      ),
+                                  }
+                                : i,
+                        );
                     }
                     return { myCollection: nextCollection };
                 }),
+
+            reorderCollection: (newOrder) => set({ myCollection: newOrder }),
 
             // --- FOLDER METHODS ---
             createFolder: (folderName, section, status, selectedItemIds) =>

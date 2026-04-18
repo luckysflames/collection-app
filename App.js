@@ -2,6 +2,7 @@ import React from "react";
 import {
     CommonActions,
     DefaultTheme,
+    getFocusedRouteNameFromRoute,
     NavigationContainer,
     StackActions,
 } from "@react-navigation/native";
@@ -21,10 +22,13 @@ import SettingsScreen from "./screens/SettingsScreen";
 import FolderDetailScreen from "./screens/FolderDetailScreen";
 import MyCustomTabBar from "./components/layout/TabBar/MyCustomTabBar";
 import CollectionDashboard from "./screens/CollectionDashboard";
+import { StatusManagerScreen } from "./screens/StatusManagerScreen";
+import { useCollectionStore } from "./store/useCollectionStore";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 const CollectionStack = createStackNavigator();
+const SettingsStack = createStackNavigator();
 
 const MyTheme = {
     ...DefaultTheme,
@@ -35,23 +39,16 @@ const MyTheme = {
 };
 
 function CollectionStackScreen() {
+    // Подписываемся на версию из стора
+    const version = useCollectionStore((state) => state.version);
+
     return (
         <CollectionStack.Navigator
+            // Как только версия изменится, стек пересоберется с нуля
+            key={`collection-stack-v${version}`}
             screenOptions={{
                 headerShown: false,
-                // Плавное скольжение справа (стандарт iOS/Android 10+)
                 cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-                // Настройка скорости и типа кривой анимации
-                transitionSpec: {
-                    open: {
-                        animation: "spring",
-                        config: { stiffness: 1000, damping: 500, mass: 3 },
-                    },
-                    close: {
-                        animation: "spring",
-                        config: { stiffness: 1000, damping: 500, mass: 3 },
-                    },
-                },
             }}
         >
             <CollectionStack.Screen
@@ -70,6 +67,7 @@ function HomeTabs() {
             screenOptions={{ headerShown: false, animation: "fade" }}
         >
             <Tab.Screen name="Поиск" component={SearchScreen} />
+
             <Tab.Screen name="Создать" component={AddCardScreen} />
 
             <Tab.Screen name="Коллекция" component={CollectionStackScreen} />
@@ -103,6 +101,13 @@ export default function App() {
                         <Stack.Screen
                             name="Details"
                             component={DetailsScreen}
+                        />
+                        <Stack.Screen
+                            name="StatusManager"
+                            component={StatusManagerScreen}
+                            options={{
+                                gestureEnabled: true, // Позволяем свайп назад
+                            }}
                         />
                         <Stack.Screen
                             name="FolderDetail"

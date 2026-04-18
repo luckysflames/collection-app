@@ -101,7 +101,7 @@ export default function CollectionDashboard({ navigation }) {
                                 </Text>
                             </View>
                             <View style={styles.cardFooter}>
-                                <Text style={styles.cardText}>{cat.id}</Text>
+                                <Text style={styles.cardText}>{cat.label}</Text>
                                 <Text style={styles.subText}>
                                     Перейти к списку
                                 </Text>

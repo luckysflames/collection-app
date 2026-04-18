@@ -7,7 +7,12 @@ import {
     View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ChevronDown, ChevronUp } from "lucide-react-native"; // Добавим иконки для наглядности
+import { ChevronDown, ChevronUp } from "lucide-react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+
+// --- ИМПОРТ КОНСТАНТ ---
+// Теперь используем единый источник истины
+import { SECTIONS } from "../constants";
 
 import MovieFields from "../components/screens/AddCard/Fields/MovieFields";
 import AnimeFields from "../components/screens/AddCard/Fields/AnimeFields";
@@ -19,17 +24,8 @@ import SectionSelector from "../components/screens/AddCard/SectionSelector";
 import StatusPicker from "../components/screens/AddCard/StatusPicker";
 import { useAddCardForm } from "../hooks/useAddCardForm";
 import { useMediaCategories } from "../hooks/useMediaCategories";
-import { ErrorModal } from "../components/ui/ErrorModal";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { WarnModal } from "../components/ui/WarnModal";
 
-const SECTIONS = [
-    { label: "Фильмы", value: "movie" },
-    { label: "Игры", value: "game" },
-    { label: "Аниме", value: "anime" },
-    { label: "Книги", value: "book" },
-];
-
-// Вспомогательный компонент для сворачивания
 const CollapsibleHeader = ({ title, isOpen, onPress }) => (
     <TouchableOpacity
         style={styles.collapsibleHeader}
@@ -47,14 +43,19 @@ const CollapsibleHeader = ({ title, isOpen, onPress }) => (
 
 export default function AddCardScreen({ navigation }) {
     const insets = useSafeAreaInsets();
-    const [isOptionalVisible, setIsOptionalVisible] = useState(false); // Состояние сворачивания
+    const [isOptionalVisible, setIsOptionalVisible] = useState(false);
 
     const { form, updateField, handleSave, errorModal, closeError } =
         useAddCardForm(navigation);
 
-    const { CATEGORIES } = useMediaCategories(
-        SECTIONS.find((s) => s.value === form.type)?.label || "Фильмы",
+    const currentSection = SECTIONS.find(
+        (s) => (s.id || s.value) === form.type,
     );
+    const sectionLabel =
+        currentSection?.title || currentSection?.label || "Фильмы";
+
+    const { statuses } = useMediaCategories(form.type);
+    const filteredStatuses = statuses.filter(s => s !== "Всё" && s !== "Папки");
 
     return (
         <KeyboardAwareScrollView
@@ -62,25 +63,21 @@ export default function AddCardScreen({ navigation }) {
             contentContainerStyle={[
                 styles.scrollContainer,
                 {
-                    paddingTop: insets.top - 10,
-                    paddingBottom: insets.bottom + 80,
+                    paddingTop: insets.top - 20,
                 },
             ]}
-            // Вот ваша амплитуда:
-            extraScrollHeight={100}
-            // Включает плавную прокрутку на Android:
+            extraScrollHeight={150}
             enableOnAndroid={true}
-            // Позволяет прокручивать до конца, даже если клавиатура открыта:
-            extraHeight={Platform.select({ android: 200 })}
+            keyboardShouldPersistTaps="handled"
         >
             <Text style={styles.header}>Создать карточку</Text>
 
-            {/* Блок загрузки и выбора типа */}
             <View style={styles.section}>
                 <ImageUploader
                     image={form.image}
                     onImagePick={(uri) => updateField("image", uri)}
                 />
+                {/* Передаем глобальные SECTIONS */}
                 <SectionSelector
                     sections={SECTIONS}
                     currentType={form.type}
@@ -88,24 +85,22 @@ export default function AddCardScreen({ navigation }) {
                 />
             </View>
 
-            {/* Обязательные поля */}
             <View style={styles.section}>
                 <CommonField
                     label="Название (обязательно)"
-                    placeholder="Звёздное дитя"
+                    placeholder="Например: Начало"
                     form={form}
                     updateField={updateField}
                     fieldName="title"
                 />
                 <StatusPicker
-                    categories={CATEGORIES}
+                    categories={filteredStatuses}
                     currentStatus={form.status}
                     type={form.type}
                     onSelect={(status) => updateField("status", status)}
                 />
             </View>
 
-            {/* Необязательные поля (Сворачиваемые) */}
             <View style={styles.section}>
                 <CollapsibleHeader
                     title="Дополнительная информация"
@@ -147,7 +142,7 @@ export default function AddCardScreen({ navigation }) {
 
                         <CommonField
                             label="Жанры"
-                            placeholder="Драма, Сэйнэн, ..."
+                            placeholder="Драма, Триллер..."
                             form={form}
                             updateField={updateField}
                             fieldName="genres"
@@ -155,7 +150,7 @@ export default function AddCardScreen({ navigation }) {
 
                         <CommonField
                             label="Описание"
-                            placeholder="Красная ковровая дорожка, яркие..."
+                            placeholder="О чем этот шедевр?"
                             form={form}
                             updateField={updateField}
                             fieldName="description"
@@ -169,13 +164,13 @@ export default function AddCardScreen({ navigation }) {
                 <Text style={styles.saveButtonText}>Создать карточку</Text>
             </TouchableOpacity>
 
-            <View style={{ height: insets.bottom + 100 }} />
-
-            <ErrorModal
+            <WarnModal
                 visible={errorModal.visible}
+                type="error"
                 title="Ошибка заполнения"
                 message={errorModal.message}
                 onClose={closeError}
+                confirmText="Исправить"
             />
         </KeyboardAwareScrollView>
     );
@@ -185,7 +180,7 @@ const styles = StyleSheet.create({
     scrollContainer: { paddingHorizontal: 20, flexGrow: 1 },
     header: {
         color: "#fff",
-        fontSize: 28,
+        fontSize: 24,
         fontWeight: "800",
         marginBottom: 25,
         letterSpacing: -0.5,
@@ -219,6 +214,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         alignItems: "center",
         marginTop: 10,
+        marginBottom: 120,
         shadowColor: "#7D8AFF",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,

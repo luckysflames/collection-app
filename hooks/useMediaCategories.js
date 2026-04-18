@@ -1,29 +1,45 @@
 import { useMemo } from "react";
 import { useCollectionStore } from "../store/useCollectionStore";
+import { SECTION_MAPPING } from "../constants"; // Импортируем маппинг
 
-export const useMediaCategories = (section) => {
-    // Получаем функцию-геттер из стора
+export const useMediaCategories = (sectionId) => {
+    // sectionId теперь "movie"
     const getStatusesForSection = useCollectionStore(
         (state) => state.getStatusesForSection,
     );
+    const defaultTabs = useCollectionStore((state) => state.defaultTabs);
 
     return useMemo(() => {
-        // Получаем массив статусов напрямую из логики стора
-        const rawStatuses = getStatusesForSection(section);
+        // Теперь передаем в стор латинский id напрямую
+        const CATEGORIES = getStatusesForSection(sectionId);
 
-        // Добавляем "Папки" в начало
-        const CATEGORIES = ["Всё", "Папки", ...rawStatuses];
+        const sectionKey = SECTION_MAPPING[sectionId] || sectionId;
+        const defaultActive = defaultTabs[sectionKey] || "Всё";
 
-        // Определяем человекочитаемое название для заголовков
         let sectionName = "";
-        if (section === "Книги") sectionName = "книг";
-        else if (section === "Игры") sectionName = "игр";
-        else if (section === "Аниме") sectionName = "аниме";
-        else sectionName = "фильмов";
+        // Исправляем case под латиницу
+        switch (sectionId) {
+            case "book":
+                sectionName = "книг";
+                break;
+            case "game":
+                sectionName = "игр";
+                break;
+            case "anime":
+                sectionName = "аниме";
+                break;
+            case "movie":
+                sectionName = "фильмов";
+                break;
+            default:
+                sectionName = "элементов";
+        }
 
-        // Дефолтным активным элементом делаем "Папки"
-        const defaultActive = "Всё";
-
-        return { CATEGORIES, sectionName, defaultActive };
-    }, [section, getStatusesForSection]);
+        return {
+            CATEGORIES,
+            statuses: CATEGORIES,
+            sectionName,
+            defaultActive,
+        };
+    }, [sectionId, getStatusesForSection, defaultTabs]);
 };

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
     View,
     StyleSheet,
@@ -6,8 +6,10 @@ import {
     TouchableOpacity,
     Text,
     ActivityIndicator,
+    BackHandler,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { useMediaSearch } from "../hooks/useMediaSearch";
@@ -34,20 +36,41 @@ export default function SearchScreen({ navigation }) {
         isEnd,
         getCategoryById,
         clearCache,
-    } = useMediaSearch();
+    } = useMediaSearch("movie");
 
-    // Вход в категорию
-    const handlePickCategory = (cat) => {
-        setActiveCategory(cat);
+    const handlePickCategory = (catId) => {
+        setActiveCategory(catId);
         setIsCategorySelected(true);
     };
 
-    // Выход назад к выбору категорий
-    const handleReset = () => {
+    // Логика сброса (вынесем в отдельную функцию для удобства)
+    const handleReset = useCallback(() => {
         setIsCategorySelected(false);
         setQuery("");
-        clearCache(); // Очищаем всё при выходе
-    };
+        clearCache();
+    }, [clearCache, setQuery]);
+
+    // Перехват кнопки "Назад"
+    useFocusEffect(
+        useCallback(() => {
+            const onBackPress = () => {
+                if (isCategorySelected) {
+                    handleReset(); // Если категория выбрана, сбрасываем её
+                    return true; // Блокируем стандартный переход назад
+                }
+                return false; // Позволяем стандартное поведение
+            };
+
+            // Создаем подписку
+            const subscription = BackHandler.addEventListener(
+                "hardwareBackPress",
+                onBackPress,
+            );
+
+            // Правильная очистка через .remove()
+            return () => subscription.remove();
+        }, [isCategorySelected, handleReset]),
+    );
 
     if (!isCategorySelected) {
         return (
@@ -56,13 +79,14 @@ export default function SearchScreen({ navigation }) {
     }
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top - 20 }]}>
+        <View style={styles.container}>
             <SearchHeader
                 activeCategory={activeCategory}
                 query={query}
                 setQuery={setQuery}
                 onSearch={() => handleSearch(query, activeCategory, true)}
                 handleReset={handleReset}
+                topInset={insets.top}
             />
 
             {loading ? (
@@ -86,7 +110,6 @@ export default function SearchScreen({ navigation }) {
                             }
                         />
                     )}
-                    // ПАГИНАЦИЯ
                     onEndReachedThreshold={0.5}
                     onEndReached={() => {
                         if (
@@ -98,16 +121,14 @@ export default function SearchScreen({ navigation }) {
                             handleSearch(query, activeCategory, false);
                         }
                     }}
-                    // ИНДИКАТОР ЗАГРУЗКИ ДОП. ДАННЫХ
                     ListFooterComponent={() =>
-                        loadingMore ? (
+                        loadingMore && (
                             <ActivityIndicator
                                 color="#7D8AFF"
                                 style={{ marginVertical: 20 }}
                             />
-                        ) : null
+                        )
                     }
-                    // СОСТОЯНИЕ "НИЧЕГО НЕ НАЙДЕНО"
                     ListEmptyComponent={() =>
                         !loading && (
                             <NoResultsFooter
