@@ -1,20 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
-import {
-    Modal,
-    View,
-    Text,
-    TouchableOpacity,
-    Pressable,
-    StyleSheet,
-    Animated,
-    PanResponder,
-    Dimensions,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { BottomSheet } from "../ui/BottomSheet";
 import { useCollectionStore } from "../../store/useCollectionStore";
 import { FAVORITE_STATUS, STATUS_SELECTION_EXCLUDE } from "../../constants";
-
-const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 export default function StatusModal({
     visible,
@@ -27,188 +15,80 @@ export default function StatusModal({
     const getStatusesForSection = useCollectionStore(
         (state) => state.getStatusesForSection,
     );
-    const STATUSES = getStatusesForSection(category); // "Фильмы", "Книги" или "Игры"
 
-    const insets = useSafeAreaInsets();
+    // Получаем список доступных статусов
+    const STATUSES = getStatusesForSection(category);
+
     const selectableStatuses = [
         { label: "Без статуса", value: null },
         ...STATUSES.filter(
-            (s) =>
-                ![...STATUS_SELECTION_EXCLUDE, FAVORITE_STATUS].includes(s),
+            (s) => ![...STATUS_SELECTION_EXCLUDE, FAVORITE_STATUS].includes(s),
         ).map((s) => ({ label: s, value: s })),
     ];
 
-    // Локальный стейт, чтобы модалка не исчезала раньше времени
-    const [shouldRender, setShouldRender] = useState(visible);
-    const panY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-
-    // Синхронизируем пропс visible с локальным состоянием
-    useEffect(() => {
-        if (visible) {
-            setShouldRender(true);
-            Animated.spring(panY, {
-                toValue: 0,
-                useNativeDriver: true,
-                tension: 50,
-                friction: 10,
-            }).start();
-        } else {
-            // Если родитель скрыл модалку (например, через стейт),
-            // но мы еще не запустили closeModal, делаем это принудительно
-            // Но чаще всего закрытие идет через нашу функцию closeModal ниже
-        }
-    }, [visible]);
-
-    const panResponder = useRef(
-        PanResponder.create({
-            onStartShouldSetPanResponder: () => true,
-            onMoveShouldSetPanResponder: () => true,
-            onPanResponderMove: (_, gestureState) => {
-                // Разрешаем тянуть только вниз (dy > 0)
-                if (gestureState.dy > 0) {
-                    panY.setValue(gestureState.dy);
-                }
-            },
-            onPanResponderRelease: (_, gestureState) => {
-                // Если смахнули вниз больше чем на 150 пикселей — закрываем
-                if (gestureState.dy > 150 || gestureState.vy > 0.5) {
-                    closeModal();
-                } else {
-                    // Иначе возвращаем на место с эффектом пружины
-                    Animated.spring(panY, {
-                        toValue: 0,
-                        useNativeDriver: true,
-                    }).start();
-                }
-            },
-        }),
-    ).current;
-
-    const closeModal = () => {
-        Animated.timing(panY, {
-            toValue: SCREEN_HEIGHT,
-            duration: 250, // Чуть медленнее для плавности
-            useNativeDriver: true,
-        }).start(() => {
-            setShouldRender(false); // Сначала убираем рендер
-            onClose(); // Потом уведомляем родителя
-        });
+    const handleSelect = (value) => {
+        onSelect(value);
+        onClose(); // BottomSheet сам запустит анимацию закрытия
     };
 
-    if (!shouldRender && !visible) return null;
+    const handleRemove = () => {
+        onClose();
+        // Задержка, чтобы удаление не "лагало" во время анимации закрытия
+        setTimeout(() => {
+            if (removeCard) removeCard();
+        }, 300);
+    };
 
     return (
-        <Modal
-            transparent
-            visible={visible || shouldRender}
-            animationType="none"
-            statusBarTranslucent
-            onRequestClose={closeModal}
+        <BottomSheet
+            visible={visible}
+            onClose={onClose}
+            containerStyle={styles.contentCustom}
         >
-            <Animated.View
-                style={[
-                    styles.overlay,
-                    {
-                        // Плавно проявляем черный фон
-                        opacity: panY.interpolate({
-                            inputRange: [0, SCREEN_HEIGHT / 2],
-                            outputRange: [1, 0],
-                            extrapolate: "clamp",
-                        }),
-                    },
-                ]}
-            >
-                {/* Кликабельный фон для закрытия */}
-                <Pressable
-                    style={StyleSheet.absoluteFill}
-                    onPress={closeModal}
-                />
+            <Text style={styles.header}>Статус</Text>
 
-                <Animated.View
-                    style={[
-                        styles.content,
-                        {
-                            paddingBottom:
-                                insets.bottom > 0 ? insets.bottom + 20 : 80,
-                            transform: [{ translateY: panY }],
-                        },
-                    ]}
-                    {...panResponder.panHandlers} // Привязываем жесты к контенту
+            {selectableStatuses.map((option) => {
+                const isActive =
+                    currentStatus === option.value ||
+                    (currentStatus == null && option.value == null);
+
+                return (
+                    <TouchableOpacity
+                        key={option.label}
+                        onPress={() => handleSelect(option.value)}
+                        style={styles.option}
+                        activeOpacity={0.7}
+                    >
+                        <Text
+                            style={[
+                                styles.optionText,
+                                isActive && styles.activeText,
+                            ]}
+                        >
+                            {option.label}
+                        </Text>
+                        {isActive && <View style={styles.activeDot} />}
+                    </TouchableOpacity>
+                );
+            })}
+
+            {!!removeCard && (
+                <TouchableOpacity
+                    onPress={handleRemove}
+                    style={styles.removeBtn}
                 >
-                    <View style={styles.handle} />
-                    <Text style={styles.header}>Статус</Text>
-
-                    {selectableStatuses.map((option) => (
-                        <TouchableOpacity
-                            key={option.label}
-                            onPress={() => {
-                                onSelect(option.value);
-                                closeModal();
-                            }}
-                            style={styles.option}
-                        >
-                            <Text
-                                style={[
-                                    styles.optionText,
-                                    currentStatus === option.value && {
-                                        color: "#7D8AFF",
-                                        fontWeight: "600",
-                                    },
-                                ]}
-                            >
-                                {option.label}
-                            </Text>
-                            {(currentStatus === option.value ||
-                                (currentStatus == null &&
-                                    option.value == null)) && (
-                                <View style={styles.activeDot} />
-                            )}
-                        </TouchableOpacity>
-                    ))}
-
-                    {!!removeCard && (
-                        <TouchableOpacity
-                            onPress={() => {
-                                // Закрываем модалку и вызываем функцию удаления
-                                closeModal();
-                                // Вызываем именно removeCard, так как это имя пропса
-                                setTimeout(() => removeCard(), 300);
-                            }}
-                            style={styles.removeBtn}
-                        >
-                            <Text style={styles.removeText}>
-                                Удалить из коллекции
-                            </Text>
-                        </TouchableOpacity>
-                    )}
-                </Animated.View>
-            </Animated.View>
-        </Modal>
+                    <Text style={styles.removeText}>Удалить из коллекции</Text>
+                </TouchableOpacity>
+            )}
+        </BottomSheet>
     );
 }
 
 const styles = StyleSheet.create({
-    overlay: {
-        flex: 1,
-        backgroundColor: "rgba(0,0,0,0.7)",
-        justifyContent: "flex-end",
-        marginTop: -50,
-        marginBottom: -50,
-    },
-    content: {
-        backgroundColor: "#0B1534",
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
+    contentCustom: {
+        backgroundColor: "#0B1534", // Твой специфичный цвет фона
         paddingHorizontal: 30,
-        paddingTop: 15,
-    },
-    handle: {
-        width: 40,
-        height: 5,
-        backgroundColor: "rgba(255,255,255,0.2)",
-        borderRadius: 3,
-        alignSelf: "center",
-        marginBottom: 15,
+        paddingTop: 5, // Немного отступа под индикатором (handle)
     },
     header: {
         color: "#fff",
@@ -225,7 +105,14 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: "rgba(255,255,255,0.05)",
     },
-    optionText: { color: "#fff", fontSize: 18 },
+    optionText: {
+        color: "#fff",
+        fontSize: 18,
+    },
+    activeText: {
+        color: "#7D8AFF",
+        fontWeight: "600",
+    },
     activeDot: {
         width: 10,
         height: 10,

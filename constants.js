@@ -151,3 +151,71 @@ export const INITIAL_FORM_STATE = {
     platforms: "",
     duration: "",
 };
+
+// Названия для кнопки управления (MainControls)
+export const SORT_LABELS = {
+    newest: "Сначала новые",
+    oldest: "Сначала старые",
+    rating_desc: "Сначала лучшие",
+    rating_asc: "Сначала худшие",
+    alphabet_asc: "От А до Я",
+    alphabet_desc: "От Я до А",
+};
+
+// Конфигурация уровней сортировки для SortModal
+export const SORT_TYPES = [
+    { id: "date", label: "По дате", icon: "Clock" },
+    { id: "rating", label: "По рейтингу", icon: "Star" },
+    { id: "alphabet", label: "По алфавиту", icon: "CaseSensitive" },
+];
+
+// Подкатегории для SortModal
+export const SORT_SUB_OPTIONS = {
+    date: [
+        { id: "newest", label: "Сначала новые", icon: "ArrowDownWideNarrow" },
+        { id: "oldest", label: "Сначала старые", icon: "ArrowUpNarrowWide" },
+    ],
+    rating: [
+        {
+            id: "rating_desc",
+            label: "Сначала лучшие",
+            icon: "Star",
+        },
+        {
+            id: "rating_asc",
+            label: "Сначала худшие",
+            icon: "StarOff",
+        },
+    ],
+    alphabet: [
+        { id: "alphabet_asc", label: "От А до Я", icon: "ArrowDownAZ" },
+        { id: "alphabet_desc", label: "От Я до А", icon: "ArrowUpAZ" },
+    ],
+};
+
+export const API_SERVICES = [
+    {
+        name: "RAWG API",
+        desc: "Крупнейшая база видеоигр. Скриншоты, даты выхода и платформы.",
+        url: "https://rawg.io/apidocs",
+        icon: "game-controller-outline",
+    },
+    {
+        name: "TMDB API",
+        desc: "Информация о фильмах и сериалах: постеры, трейлеры и рейтинги.",
+        url: "https://www.themoviedb.org",
+        icon: "film-outline",
+    },
+    {
+        name: "Shikimori",
+        desc: "Энциклопедия аниме и манги с огромным комьюнити.",
+        url: "https://shikimori.one",
+        icon: "leaf-outline",
+    },
+    {
+        name: "Google Books",
+        desc: "Поиск книг по названию, автору или ISBN по всему миру.",
+        url: "https://books.google.com",
+        icon: "book-outline",
+    },
+];

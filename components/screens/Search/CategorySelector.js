@@ -39,8 +39,6 @@ export const CategorySelector = ({ onSelect, insets }) => {
                         activeOpacity={0.8}
                         onPress={() => onSelect(cat.id)}
                     >
-                        {/* Эффект свечения в углу, как на дашборде */}
-                        <View style={styles.cardGlow} />
                         <View style={styles.cardHeader}>
                             <View style={styles.iconWrapper}>
                                 <Image
@@ -98,15 +96,6 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: "rgba(125, 138, 255, 0.1)",
         overflow: "hidden", // Чтобы свечение не вылезало
-    },
-    cardGlow: {
-        position: "absolute",
-        top: -40,
-        right: -40,
-        width: 100,
-        height: 100,
-        backgroundColor: "rgba(125, 138, 255, 0.05)",
-        borderRadius: 50,
     },
     cardHeader: {
         flexDirection: "row",

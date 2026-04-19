@@ -1,9 +1,8 @@
-import React, { useCallback, useMemo } from "react";
-import { View, FlatList, Text, StyleSheet, Dimensions } from "react-native";
-import { FolderOpen } from "lucide-react-native";
-import { FAVORITE_STATUS } from "../../constants";
-
+import React, { useCallback } from "react";
+import { View, FlatList, StyleSheet, Dimensions, Platform } from "react-native";
 import { MediaCard } from "../ui/MediaCard";
+import { EmptyState } from "./EmptyState"; // Вынесли отдельно
+import { useFilteredCollection } from "../../hooks/useFilteredCollection";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -17,133 +16,18 @@ export const CategoryPage = ({
     onCardPress,
     isReordering,
     reorderBuffer,
-    folderOrder,
     showFoldersOnly = false,
 }) => {
-    // --- LOGIC: Filtering & Sorting ---
-    const pageData = useMemo(() => {
-        let filtered = data.filter((item) => {
-            // 0. Если мы внутри папки, показываем только её содержимое (без вложенных папок)
-            if (isInsideFolder) return true;
-
-            // 1. Базовая проверка секции (Movies/Games и т.д.)
-            if (item.appSection !== currentSection) return false;
-
-            const isFolder = !!item.isFolder;
-            const hasParent =
-                item.parentFolderIds && item.parentFolderIds.length > 0;
-
-            // --- ЛОГИКА ДЛЯ РАЗДЕЛА "Всё" ---
-            if (category === "Всё") {
-                if (showFoldersOnly) {
-                    // Кейс 1: Схлопываем всё, у чего есть папки
-                    if (isFolder) return true; // Показываем все папки
-                    return !hasParent; // Карточки показываем только если они "сироты"
-                }
-                // Показываем абсолютно всё плоским списком (папки скрыты, все карточки видны)
-                return !isFolder;
-            }
-
-            // --- ЛОГИКА ДЛЯ РАЗДЕЛА "Папки" ---
-            if (category === "Папки") {
-                return isFolder;
-            }
-
-            // --- ЛОГИКА ДЛЯ ИЗБРАННОГО ---
-            if (category === FAVORITE_STATUS) {
-                if (!item.isFavorite) return false;
-
-                if (showFoldersOnly) {
-                    return true;
-                }
-
-                return !isFolder;
-            }
-
-            // --- ЛОГИКА ДЛЯ СТАТУСНЫХ ВКЛАДОК (Смотрю, В планах и т.д.) ---
-            const itemStatus = item.status;
-            if (itemStatus !== category) return false;
-
-            if (showFoldersOnly) {
-                // Кейс 1 & 3: Группировка включена
-                if (isFolder) return true; // Пустая или полная папка со статусом "Смотрю" видна
-
-                // Карточку показываем только если у неё нет родительской папки
-                // ИЛИ если её родительская папка имеет ДРУГОЙ статус (чтобы карточка не "исчезла" в никуда)
-                if (!hasParent) return true;
-
-                // Проверка: есть ли среди родителей папка с ТАКИМ ЖЕ статусом, как у карточки?
-                const hasSameStatusParent = item.parentFolderIds.some(
-                    (parentId) => {
-                        const parent = data.find((d) => d.id === parentId);
-                        return parent && parent.status === itemStatus;
-                    },
-                );
-
-                return !hasSameStatusParent;
-            } else {
-                // Группировка выключена: только карточки этого статуса (папки скрываем)
-                // Кейс 2 & 3: Если папка пустая, в этом режиме она скроется (так как isFolder === true)
-                return !isFolder;
-            }
-        });
-
-        // --- СОРТИРОВКА ---
-        const sorted = [...filtered].sort((a, b) => {
-            const getSortDate = (obj) => obj.createdAt || 0;
-            if (sortType === "alphabetical")
-                return (a.title || "").localeCompare(b.title || "");
-            if (sortType === "rating") return (b.rating || 0) - (a.rating || 0);
-            if (sortType === "oldest") return getSortDate(a) - getSortDate(b);
-            return getSortDate(b) - getSortDate(a);
-        });
-
-        // --- ДОБАВЛЕНИЕ СЧЕТЧИКА ---
-        return sorted.map((item) => {
-            if (item.isFolder) {
-                const count = data.filter((i) =>
-                    i.parentFolderIds?.includes(item.id),
-                ).length;
-                return { ...item, _computedCount: count };
-            }
-            return item;
-        });
-    }, [
+    // Используем наш новый хук
+    const pageData = useFilteredCollection({
+        data,
         category,
         currentSection,
-        data,
-        isInsideFolder,
         sortType,
         showFoldersOnly,
-    ]);
+        isInsideFolder,
+    });
 
-    // --- COMPONENTS: Empty States ---
-    const renderEmptyState = () => (
-        <View style={styles.emptyContainer}>
-            {isInsideFolder ? (
-                <>
-                    <View style={styles.emptyIconCircle}>
-                        <FolderOpen
-                            size={42}
-                            color="rgba(125, 138, 255, 0.3)"
-                        />
-                    </View>
-                    <Text style={styles.emptyTitle}>
-                        В папке пока ничего нет
-                    </Text>
-                    <Text style={styles.emptySubtitle}>
-                        Вы можете добавить сюда карточки из вашей коллекции
-                    </Text>
-                </>
-            ) : (
-                <Text style={styles.emptyText}>
-                    В разделе "{category}" пока пусто
-                </Text>
-            )}
-        </View>
-    );
-
-    // Оборачиваем функцию нажатия, чтобы ссылка на неё не менялась
     const handlePress = useCallback(
         (item) => {
             onCardPress?.(item);
@@ -151,10 +35,8 @@ export const CategoryPage = ({
         [onCardPress],
     );
 
-    // --- RENDER ITEM ---
     const renderItem = useCallback(
         ({ item }) => {
-            // Логика расчета номера должна быть ЗДЕСЬ
             const indexInBuffer = reorderBuffer
                 ? reorderBuffer.indexOf(item.id)
                 : -1;
@@ -171,7 +53,7 @@ export const CategoryPage = ({
                 />
             );
         },
-        [handlePress, isReordering, reorderBuffer], // reorderBuffer в зависимостях важен!
+        [handlePress, isReordering, reorderBuffer],
     );
 
     return (
@@ -185,17 +67,22 @@ export const CategoryPage = ({
                     styles.listPadding,
                     { paddingTop: isInsideFolder ? 0 : 10 },
                 ]}
-                ListHeaderComponent={<>{ListHeaderComponent}</>}
+                ListHeaderComponent={ListHeaderComponent}
                 renderItem={renderItem}
-                ListEmptyComponent={renderEmptyState}
-                // Оптимизации:
-                initialNumToRender={8} // Сколько карточек рендерить сразу
-                maxToRenderPerBatch={10} // Сколько добавлять за один проход
-                windowSize={5} // Сколько экранов держать в памяти (меньше = меньше RAM)
-                removeClippedSubviews={true} // Выгружать из памяти то, что далеко за экраном
+                ListEmptyComponent={
+                    <EmptyState
+                        category={category}
+                        isInsideFolder={isInsideFolder}
+                    />
+                }
+                // Оптимизации производительности
+                removeClippedSubviews={Platform.OS === "android"}
+                initialNumToRender={10}
+                maxToRenderPerBatch={10}
+                windowSize={7}
                 getItemLayout={(data, index) => ({
-                    length: 220, // Примерная высота вашей карточки
-                    offset: 220 * Math.floor(index / 2),
+                    length: 230, // Уточни высоту карточки с учетом отступов
+                    offset: 230 * Math.floor(index / 2),
                     index,
                 })}
             />
@@ -207,50 +94,4 @@ const styles = StyleSheet.create({
     pageWrapper: { flex: 1, width: SCREEN_WIDTH },
     row: { justifyContent: "space-between", paddingHorizontal: 16 },
     listPadding: { paddingBottom: 100 },
-
-    // Кнопка добавления
-    addBtnSmall: {
-        backgroundColor: "#7D8AFF",
-        paddingVertical: 12,
-        marginHorizontal: 18,
-        marginBottom: 20,
-        borderRadius: 12,
-        alignItems: "center",
-    },
-    addBtnSmallText: { color: "#fff", fontSize: 14, fontWeight: "600" },
-
-    // Пустые состояния
-    emptyContainer: {
-        alignItems: "center",
-        marginTop: 40,
-        paddingHorizontal: 40,
-    },
-    emptyIconCircle: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: "rgba(125, 138, 255, 0.03)",
-        justifyContent: "center",
-        alignItems: "center",
-        marginBottom: 16,
-    },
-    emptyTitle: {
-        color: "#fff",
-        fontSize: 17,
-        fontWeight: "600",
-        marginBottom: 8,
-    },
-    emptySubtitle: {
-        color: "#8E94A4",
-        fontSize: 14,
-        textAlign: "center",
-        lineHeight: 20,
-        opacity: 0.7,
-    },
-    emptyText: {
-        color: "#4E5564",
-        fontSize: 14,
-        textAlign: "center",
-        marginTop: 20,
-    },
 });

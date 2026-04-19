@@ -1,15 +1,15 @@
 import React from "react";
 import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { ListFilter, Folder } from "lucide-react-native";
+import { SORT_LABELS } from "../../../constants";
 
-const SORT_LABELS = {
-    newest: "Сначала новые",
-    oldest: "Сначала старые",
-    alphabetical: "По алфавиту",
-    rating: "По рейтингу",
-};
-
-export const MainControls = ({ sortType, count, onSortPress, showFoldersOnly, onToggleFolderMode }) => (
+export const MainControls = ({
+    sortType,
+    count,
+    onSortPress,
+    showFoldersOnly,
+    onToggleFolderMode,
+}) => (
     <View style={styles.staticControlsRow}>
         <View style={styles.countBadge}>
             <Text style={styles.countText}>
@@ -22,7 +22,10 @@ export const MainControls = ({ sortType, count, onSortPress, showFoldersOnly, on
                 onPress={onToggleFolderMode}
                 activeOpacity={0.7}
             >
-                <Folder size={18} color={showFoldersOnly ? "#fff" : "#7D8AFF"} />
+                <Folder
+                    size={18}
+                    color={showFoldersOnly ? "#fff" : "#7D8AFF"}
+                />
             </TouchableOpacity>
             <TouchableOpacity
                 style={styles.sortBtn}

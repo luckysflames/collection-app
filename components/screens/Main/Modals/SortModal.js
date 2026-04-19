@@ -1,21 +1,43 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
     View,
     Text,
     StyleSheet,
     TouchableOpacity,
-    Modal,
-    TouchableWithoutFeedback,
-    Platform,
+    Animated,
+    Dimensions,
 } from "react-native";
 import {
     Check,
-    SortAsc,
     Clock,
     Star,
+    StarOff,
     X,
     CaseSensitive,
+    ChevronLeft,
+    ChevronRight,
+    ArrowUpNarrowWide,
+    ArrowDownWideNarrow,
+    ArrowDownAZ,
+    ArrowUpAZ,
 } from "lucide-react-native";
+import { BottomSheet } from "../../../ui/BottomSheet";
+import { SORT_TYPES, SORT_SUB_OPTIONS } from "../../../../constants";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+const ICON_COMPONENTS = {
+    Clock,
+    Star,
+    StarOff,
+    CaseSensitive,
+    ArrowUpNarrowWide,
+    ArrowDownWideNarrow,
+    ArrowDownAZ,
+    ArrowUpAZ,
+    Check,
+    ChevronRight,
+};
 
 export const SortModal = ({
     isVisible,
@@ -23,163 +45,226 @@ export const SortModal = ({
     currentSort,
     onSelectSort,
 }) => {
-    const sortOptions = [
-        { id: "newest", label: "Сначала новые", icon: Clock },
-        { id: "oldest", label: "Сначала старые", icon: SortAsc },
-        { id: "rating", label: "По рейтингу", icon: Star },
-        { id: "alphabetical", label: "По алфавиту", icon: CaseSensitive }, // Другая иконка
-    ];
+    const [viewLevel, setViewLevel] = useState("main");
+    const [selectedType, setSelectedType] = useState(null);
 
-    const Content = (
-        <View style={styles.modalContent}>
-            {/* Индикатор для свайпа вниз (визуальный) */}
-            <View style={styles.pullIndicator} />
+    // Анимация сдвига страниц (горизонтальная)
+    const slideAnim = useRef(new Animated.Value(0)).current;
 
-            <View style={styles.header}>
-                <Text style={styles.title}>Сортировка</Text>
-                <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-                    <X size={22} color="#8E94A4" />
-                </TouchableOpacity>
-            </View>
+    // Сбрасываем уровень при каждом открытии
+    useEffect(() => {
+        if (isVisible) {
+            setViewLevel("main");
+            slideAnim.setValue(0);
+        }
+    }, [isVisible]);
 
-            <View style={styles.optionsContainer}>
-                {sortOptions.map((option) => {
-                    const Icon = option.icon;
-                    const isSelected = currentSort === option.id;
+    const animatePage = (toValue, callback) => {
+        Animated.timing(slideAnim, {
+            toValue,
+            duration: 280,
+            useNativeDriver: true,
+        }).start(callback);
+    };
 
-                    return (
-                        <TouchableOpacity
-                            key={option.id}
-                            activeOpacity={0.7}
-                            style={[
-                                styles.optionItem,
-                                isSelected && styles.optionItemActive,
-                            ]}
-                            onPress={() => {
-                                onSelectSort(option.id);
-                                onClose();
-                            }}
-                        >
-                            <View style={styles.optionLeft}>
-                                <View
-                                    style={[
-                                        styles.iconBox,
-                                        isSelected && styles.iconBoxActive,
-                                    ]}
-                                >
-                                    <Icon
-                                        size={20}
-                                        color={isSelected ? "#fff" : "#8E94A4"}
-                                    />
-                                </View>
-                                <Text
-                                    style={[
-                                        styles.optionLabel,
-                                        isSelected && styles.optionLabelActive,
-                                    ]}
-                                >
-                                    {option.label}
-                                </Text>
-                            </View>
+    const goToSubLevel = (typeId) => {
+        setSelectedType(typeId);
+        setViewLevel("sub");
+        animatePage(-SCREEN_WIDTH);
+    };
 
-                            {isSelected && (
-                                <Check
-                                    size={20}
-                                    color="#7D8AFF"
-                                    strokeWidth={3}
-                                />
-                            )}
-                        </TouchableOpacity>
-                    );
-                })}
-            </View>
-        </View>
-    );
+    const goBack = () => {
+        animatePage(0, () => setViewLevel("main"));
+    };
+
+    const renderOption = (item, isSelected, onPress) => {
+        const IconComponent = ICON_COMPONENTS[item.icon];
+
+        return (
+            <TouchableOpacity
+                key={item.id}
+                onPress={onPress}
+                activeOpacity={0.7}
+                style={[
+                    styles.optionItem,
+                    isSelected && styles.optionItemActive,
+                ]}
+            >
+                <View style={styles.optionLeft}>
+                    <View
+                        style={[
+                            styles.iconBox,
+                            isSelected && styles.iconBoxActive,
+                        ]}
+                    >
+                        {IconComponent && (
+                            <IconComponent
+                                size={20}
+                                color={isSelected ? "#fff" : "#8E94A4"}
+                            />
+                        )}
+                    </View>
+                    <Text
+                        style={[
+                            styles.optionLabel,
+                            isSelected && styles.optionLabelActive,
+                        ]}
+                    >
+                        {item.label}
+                    </Text>
+                </View>
+
+                {viewLevel === "main" ? (
+                    <ChevronRight size={20} color="rgba(142, 148, 164, 0.5)" />
+                ) : (
+                    isSelected && (
+                        <Check size={20} color="#7D8AFF" strokeWidth={3} />
+                    )
+                )}
+            </TouchableOpacity>
+        );
+    };
 
     return (
-        <Modal
+        <BottomSheet
             visible={isVisible}
-            transparent
-            animationType="slide"
-            onRequestClose={onClose}
+            onClose={onClose}
+            containerStyle={styles.bottomSheetCustom}
         >
-            <TouchableWithoutFeedback onPress={onClose}>
-                <View style={styles.overlay}>
-                    {/* Если хочешь блюр фона — используй BlurView, если нет — оставь View */}
-                    <TouchableWithoutFeedback>
-                        {Content}
-                    </TouchableWithoutFeedback>
+            {/* Header */}
+            <View style={styles.header}>
+                <View style={styles.headerLeft}>
+                    {viewLevel === "sub" ? (
+                        <TouchableOpacity
+                            onPress={goBack}
+                            style={styles.backBtn}
+                        >
+                            <ChevronLeft size={24} color="#fff" />
+                            <Text style={styles.title}>Назад</Text>
+                        </TouchableOpacity>
+                    ) : (
+                        <Text style={styles.title}>Сортировка</Text>
+                    )}
                 </View>
-            </TouchableWithoutFeedback>
-        </Modal>
+            </View>
+
+            {/* Content with Sliding Pages */}
+            <View style={styles.overflowHidden}>
+                <Animated.View
+                    style={[
+                        styles.flexRow,
+                        { transform: [{ translateX: slideAnim }] },
+                    ]}
+                >
+                    {/* Page 1: Main Categories */}
+                    <View style={styles.page}>
+                        <View style={styles.optionsContainer}>
+                            {SORT_TYPES.map((type) => {
+                                const isActive =
+                                    currentSort === type.id ||
+                                    SORT_SUB_OPTIONS[type.id]?.some(
+                                        (sub) => sub.id === currentSort,
+                                    );
+                                return renderOption(type, isActive, () =>
+                                    goToSubLevel(type.id),
+                                );
+                            })}
+                        </View>
+                    </View>
+
+                    {/* Page 2: Sub Options */}
+                    <View style={styles.page}>
+                        <View style={styles.optionsContainer}>
+                            {selectedType &&
+                                SORT_SUB_OPTIONS[selectedType]?.map((sub) =>
+                                    renderOption(
+                                        sub,
+                                        currentSort === sub.id,
+                                        () => {
+                                            onSelectSort(sub.id);
+                                            onClose(); // Закрываем через BottomSheet
+                                        },
+                                    ),
+                                )}
+                        </View>
+                    </View>
+                </Animated.View>
+            </View>
+        </BottomSheet>
     );
 };
 
 const styles = StyleSheet.create({
-    overlay: {
-        flex: 1,
-        backgroundColor: "rgba(3, 7, 18, 0.85)", // Чуть темнее
-        justifyContent: "flex-end",
-    },
-    modalContent: {
+    bottomSheetCustom: {
         backgroundColor: "#0B1534",
-        borderTopLeftRadius: 32,
-        borderTopRightRadius: 32,
-        paddingBottom: Platform.OS === "ios" ? 50 : 30,
-        paddingHorizontal: 24,
-        borderWidth: 1,
-        borderColor: "rgba(255, 255, 255, 0.08)",
-    },
-    pullIndicator: {
-        width: 40,
-        height: 4,
-        backgroundColor: "rgba(255, 255, 255, 0.1)",
-        borderRadius: 2,
-        alignSelf: "center",
-        marginTop: 12,
+        paddingHorizontal: 0, // Убираем тут, чтобы страницы были во всю ширину
     },
     header: {
         flexDirection: "row",
-        justifyContent: "space-between",
+        justifyContent: "center",
         alignItems: "center",
-        paddingVertical: 24,
+        paddingHorizontal: 30,
+        paddingTop: 10,
+        paddingBottom: 20,
+        minHeight: 60,
     },
     title: {
-        fontSize: 20,
-        fontWeight: "800",
+        fontSize: 22,
+        fontWeight: "bold",
         color: "#fff",
-        letterSpacing: 0.5,
     },
-    optionsContainer: { gap: 8 },
+    backBtn: {
+        flexDirection: "row",
+        alignItems: "center",
+        left: -8,
+    },
+    closeBtn: { padding: 4 },
+    overflowHidden: {
+        overflow: "hidden",
+        width: SCREEN_WIDTH,
+    },
+    flexRow: {
+        flexDirection: "row",
+        width: SCREEN_WIDTH * 2,
+    },
+    page: {
+        width: SCREEN_WIDTH,
+        paddingHorizontal: 30,
+    },
+    optionsContainer: { gap: 10 },
     optionItem: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        paddingVertical: 12,
-        paddingHorizontal: 12,
-        borderRadius: 16,
+        paddingVertical: 15,
+        paddingHorizontal: 15,
+        borderRadius: 20,
         backgroundColor: "rgba(255, 255, 255, 0.03)",
+        borderBottomWidth: 1,
+        borderBottomColor: "rgba(255, 255, 255, 0.05)",
     },
     optionItemActive: {
-        backgroundColor: "rgba(125, 138, 255, 0.15)",
-        borderColor: "rgba(125, 138, 255, 0.2)",
+        backgroundColor: "rgba(125, 138, 255, 0.1)",
+        borderColor: "rgba(125, 138, 255, 0.3)",
         borderWidth: 1,
     },
     optionLeft: { flexDirection: "row", alignItems: "center" },
     iconBox: {
-        width: 40,
-        height: 40,
-        borderRadius: 12,
+        width: 42,
+        height: 42,
+        borderRadius: 14,
         backgroundColor: "rgba(255, 255, 255, 0.05)",
         justifyContent: "center",
         alignItems: "center",
     },
     iconBoxActive: { backgroundColor: "#7D8AFF" },
     optionLabel: {
-        fontSize: 16,
+        fontSize: 18,
         color: "#8E94A4",
-        marginLeft: 16,
-        fontWeight: "500",
+        marginLeft: 15,
     },
-    optionLabelActive: { color: "#fff", fontWeight: "700" },
+    optionLabelActive: {
+        color: "#fff",
+        fontWeight: "600",
+    },
 });

@@ -1,19 +1,14 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import {
-    Modal,
     View,
     Text,
     TouchableOpacity,
-    Pressable,
     StyleSheet,
-    Animated,
-    PanResponder,
-    Dimensions,
     FlatList,
+    Dimensions,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FolderPlus, Folder as FolderIcon, Check } from "lucide-react-native";
-
+import { BottomSheet } from "../../../ui/BottomSheet";
 import { useCollectionStore } from "../../../../store/useCollectionStore";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -26,36 +21,9 @@ export default function FolderSelectModal({
     onCreateNew,
     selectedFolderIds = [], // Список ID папок, где уже есть этот айтем
 }) {
-    const insets = useSafeAreaInsets();
-    const [shouldRender, setShouldRender] = useState(visible);
-    const panY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-
     const myCollection = useCollectionStore((state) => state.myCollection);
 
-    useEffect(() => {
-        if (visible) {
-            setShouldRender(true);
-            Animated.spring(panY, {
-                toValue: 0,
-                useNativeDriver: true,
-                tension: 50,
-                friction: 10,
-            }).start();
-        }
-    }, [visible]);
-
-    const closeModal = () => {
-        Animated.timing(panY, {
-            toValue: SCREEN_HEIGHT,
-            duration: 250,
-            useNativeDriver: true,
-        }).start(() => {
-            setShouldRender(false);
-            onClose();
-        });
-    };
-
-    // ОБНОВЛЕНО: Считаем айтемы, у которых id этой папки есть в массиве parentFolderIds
+    // Считаем айтемы, у которых id этой папки есть в массиве parentFolderIds
     const getItemCount = (folderId) => {
         return myCollection.filter(
             (item) =>
@@ -63,192 +31,104 @@ export default function FolderSelectModal({
         ).length;
     };
 
-    const panResponder = useRef(
-        PanResponder.create({
-            onStartShouldSetPanResponder: () => true,
-            onMoveShouldSetPanResponder: (_, gestureState) =>
-                gestureState.dy > 5,
-            onPanResponderMove: (_, gestureState) => {
-                if (gestureState.dy > 0) panY.setValue(gestureState.dy);
-            },
-            onPanResponderRelease: (_, gestureState) => {
-                if (gestureState.dy > 150 || gestureState.vy > 0.5) {
-                    closeModal();
-                } else {
-                    Animated.spring(panY, {
-                        toValue: 0,
-                        useNativeDriver: true,
-                    }).start();
-                }
-            },
-        }),
-    ).current;
+    const renderFolderItem = ({ item }) => {
+        const isSelected = selectedFolderIds.includes(item.id);
 
-    if (!shouldRender && !visible) return null;
+        return (
+            <TouchableOpacity
+                style={[
+                    styles.folderItem,
+                    isSelected && styles.folderItemActive,
+                ]}
+                onPress={() => onSelect(item.id)}
+                activeOpacity={0.7}
+            >
+                <View
+                    style={[
+                        styles.folderIconWrapper,
+                        isSelected && styles.folderIconWrapperActive,
+                    ]}
+                >
+                    <FolderIcon
+                        color={isSelected ? "#7D8AFF" : "#8E94A4"}
+                        size={20}
+                    />
+                </View>
+
+                <View style={styles.folderInfo}>
+                    <Text
+                        style={[
+                            styles.folderText,
+                            isSelected && styles.folderTextActive,
+                        ]}
+                    >
+                        {item.title}
+                    </Text>
+                    <Text style={styles.folderSubtext}>
+                        Элементов: {getItemCount(item.id)}
+                    </Text>
+                </View>
+
+                {isSelected && (
+                    <View style={styles.checkWrapper}>
+                        <Check color="#7D8AFF" size={20} strokeWidth={3} />
+                    </View>
+                )}
+            </TouchableOpacity>
+        );
+    };
 
     return (
-        <Modal
-            transparent
-            visible={visible || shouldRender}
-            animationType="none"
-            statusBarTranslucent
-            onRequestClose={closeModal}
+        <BottomSheet
+            visible={visible}
+            onClose={onClose}
+            containerStyle={styles.sheetContainer}
         >
-            <Animated.View
-                style={[
-                    styles.overlay,
-                    {
-                        opacity: panY.interpolate({
-                            inputRange: [0, SCREEN_HEIGHT / 2],
-                            outputRange: [1, 0],
-                            extrapolate: "clamp",
-                        }),
-                    },
-                ]}
+            <Text style={styles.header}>Добавить в папку</Text>
+
+            <TouchableOpacity
+                style={styles.createBtn}
+                onPress={() => {
+                    onClose(); // Сначала закрываем текущую модалку
+                    setTimeout(() => onCreateNew(), 300); // Даем время на анимацию ухода
+                }}
             >
-                <Pressable
-                    style={StyleSheet.absoluteFill}
-                    onPress={closeModal}
-                />
+                <View style={styles.createIconBg}>
+                    <FolderPlus color="#fff" size={20} />
+                </View>
+                <Text style={styles.createBtnText}>Создать новую папку</Text>
+            </TouchableOpacity>
 
-                <Animated.View
-                    style={[
-                        styles.content,
-                        {
-                            paddingBottom:
-                                insets.bottom > 0 ? insets.bottom + 10 : 20,
-                            transform: [{ translateY: panY }],
-                        },
-                    ]}
-                    {...panResponder.panHandlers}
-                >
-                    <View style={styles.handle} />
-                    <Text style={styles.header}>Добавить в папку</Text>
-
-                    <TouchableOpacity
-                        style={styles.createBtn}
-                        onPress={() => {
-                            onCreateNew();
-                            closeModal();
-                        }}
-                    >
-                        <View style={styles.createIconBg}>
-                            <FolderPlus color="#fff" size={20} />
-                        </View>
-                        <Text style={styles.createBtnText}>
-                            Создать новую папку
+            <View style={styles.listContainer}>
+                <FlatList
+                    data={folders}
+                    keyExtractor={(item) => item.id}
+                    showsVerticalScrollIndicator={false}
+                    renderItem={renderFolderItem}
+                    contentContainerStyle={styles.listContent}
+                    ListEmptyComponent={
+                        <Text style={styles.emptyText}>
+                            У вас пока нет папок
                         </Text>
-                    </TouchableOpacity>
+                    }
+                />
+            </View>
 
-                    <View style={{ maxHeight: SCREEN_HEIGHT * 0.5 }}>
-                        <FlatList
-                            data={folders}
-                            keyExtractor={(item) => item.id}
-                            showsVerticalScrollIndicator={false}
-                            renderItem={({ item }) => {
-                                const isSelected = selectedFolderIds.includes(
-                                    item.id,
-                                );
-                                return (
-                                    <TouchableOpacity
-                                        style={[
-                                            styles.folderItem,
-                                            isSelected &&
-                                                styles.folderItemActive,
-                                        ]}
-                                        onPress={() => {
-                                            onSelect(item.id); // handleAddToFolder в useDetailsActions разберется: добавить или удалить
-                                        }}
-                                    >
-                                        <View
-                                            style={[
-                                                styles.folderIconWrapper,
-                                                isSelected &&
-                                                    styles.folderIconWrapperActive,
-                                            ]}
-                                        >
-                                            <FolderIcon
-                                                color={
-                                                    isSelected
-                                                        ? "#7D8AFF"
-                                                        : "#8E94A4"
-                                                }
-                                                size={20}
-                                            />
-                                        </View>
-
-                                        <View style={styles.folderInfo}>
-                                            <Text
-                                                style={[
-                                                    styles.folderText,
-                                                    isSelected &&
-                                                        styles.folderTextActive,
-                                                ]}
-                                            >
-                                                {item.title}
-                                            </Text>
-                                            <Text style={styles.folderSubtext}>
-                                                Элементов:{" "}
-                                                {getItemCount(item.id)}
-                                            </Text>
-                                        </View>
-
-                                        {isSelected && (
-                                            <View style={styles.checkWrapper}>
-                                                <Check
-                                                    color="#7D8AFF"
-                                                    size={20}
-                                                    strokeWidth={3}
-                                                />
-                                            </View>
-                                        )}
-                                    </TouchableOpacity>
-                                );
-                            }}
-                            ListEmptyComponent={
-                                <Text style={styles.emptyText}>
-                                    У вас пока нет папок
-                                </Text>
-                            }
-                        />
-                    </View>
-
-                    <TouchableOpacity
-                        style={styles.closeBtn}
-                        onPress={closeModal}
-                    >
-                        <Text style={styles.closeBtnText}>Готово</Text>
-                    </TouchableOpacity>
-                </Animated.View>
-            </Animated.View>
-        </Modal>
+            <TouchableOpacity style={styles.doneBtn} onPress={onClose}>
+                <Text style={styles.doneBtnText}>Готово</Text>
+            </TouchableOpacity>
+        </BottomSheet>
     );
 }
 
 const styles = StyleSheet.create({
-    overlay: {
-        flex: 1,
-        backgroundColor: "rgba(0,0,0,0.8)",
-        justifyContent: "flex-end",
-    },
-    content: {
+    sheetContainer: {
         backgroundColor: "#0B1534",
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
         paddingHorizontal: 20,
-        paddingTop: 15,
-    },
-    handle: {
-        width: 40,
-        height: 5,
-        backgroundColor: "rgba(255,255,255,0.2)",
-        borderRadius: 3,
-        alignSelf: "center",
-        marginBottom: 15,
     },
     header: {
         color: "#fff",
-        fontSize: 20,
+        fontSize: 22,
         fontWeight: "bold",
         marginBottom: 20,
         textAlign: "center",
@@ -277,16 +157,25 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "700",
     },
+    listContainer: {
+        maxHeight: SCREEN_HEIGHT * 0.45, // Чуть ограничил высоту списка
+    },
+    listContent: {
+        paddingBottom: 10,
+    },
     folderItem: {
         flexDirection: "row",
         alignItems: "center",
         paddingVertical: 12,
         paddingHorizontal: 12,
-        borderRadius: 15,
-        marginBottom: 4,
+        borderRadius: 18,
+        marginBottom: 8,
+        backgroundColor: "rgba(255,255,255,0.02)",
     },
     folderItemActive: {
-        backgroundColor: "rgba(125, 138, 255, 0.05)",
+        backgroundColor: "rgba(125, 138, 255, 0.06)",
+        borderWidth: 1,
+        borderColor: "rgba(125, 138, 255, 0.2)",
     },
     folderIconWrapper: {
         width: 44,
@@ -325,14 +214,14 @@ const styles = StyleSheet.create({
         marginVertical: 30,
         fontSize: 15,
     },
-    closeBtn: {
-        marginTop: 20,
+    doneBtn: {
+        marginTop: 15,
         alignItems: "center",
         padding: 16,
         backgroundColor: "#7D8AFF",
         borderRadius: 20,
     },
-    closeBtnText: {
+    doneBtnText: {
         color: "#fff",
         fontSize: 16,
         fontWeight: "bold",
