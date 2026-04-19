@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 import {
     DEFAULT_FALLBACK_STATUS,
     DEFAULT_STATUS_BY_SECTION,
+    INITIAL_FORM_STATE,
+    SECTION_MAPPING,
+    SECTIONS,
+    FAVORITE_STATUS,
 } from "../constants";
 
 export const useAddCardForm = (navigation) => {
@@ -11,67 +15,18 @@ export const useAddCardForm = (navigation) => {
         (state) => state.addToCollection,
     );
 
-    const [form, setForm] = useState({
-        type: "movie",
-        title: "",
-        // Доп. названия (массив строк)
-        extraTitles: [""],
-        year: "", // Используем как основную дату (ГГГГ или ДД.ММ.ГГГГ)
-        // Общие поля
-        genres: "",
-        description: "",
-        status: "Смотрю",
-        image: null,
-
-        // Специфичные поля (будем доставать по ключам)
-        budget: "",
-        movieStatus: "released",
-        countries: "",
-        companies: "",
-        originalTitle: "",
-
-        // Аниме
-        englishTitle: "",
-        japaneseTitle: "",
-        animeKind: "tv", // tv, movie, etc
-        rating: "pg_13",
-        airedOn: "", // период с
-        releasedOn: "", // период по
-        episodes: "",
-        episodesAired: "",
-        studios: "",
-
-        // Книги
-        pageCount: "",
-        maturity: "",
-        authors: "",
-        publisher: "",
-
-        // Игры
-        metacritic: "",
-        esrb: "",
-        developers: "",
-        platforms: "",
-        duration: "", // Универсальное (мин для кино, часы для игр)
-    });
+    const [form, setForm] = useState(INITIAL_FORM_STATE);
 
     const [errorModal, setErrorModal] = useState({
         visible: false,
         message: "",
     });
 
-    // Автоматическая смена статуса при изменении типа
+    // При смене типа карточки статус остается "Избранное"
     useEffect(() => {
-        const defaultStatusMap = {
-            movie: "Смотрю",
-            anime: "Смотрю",
-            book: "Читаю",
-            game: "Играю",
-        };
-
         setForm((prev) => ({
             ...prev,
-            status: defaultStatusMap[form.type] || DEFAULT_FALLBACK_STATUS,
+            status: FAVORITE_STATUS,
         }));
     }, [form.type]);
 
@@ -88,7 +43,7 @@ export const useAddCardForm = (navigation) => {
     };
 
     const handleSave = () => {
-        if (!form.title) {
+        if (!form.title.trim()) {
             setErrorModal({
                 visible: true,
                 message:
@@ -104,17 +59,13 @@ export const useAddCardForm = (navigation) => {
             description: form.description,
             genres: split(form.genres),
             image: form.image || "https://via.placeholder.com/300x450",
-            status: form.status,
+            status:
+                form.status === FAVORITE_STATUS ? "Без статуса" : form.status,
             userNotes: "",
             isCustom: true,
-            appSection:
-                form.type === "movie"
-                    ? "Фильмы"
-                    : form.type === "anime"
-                      ? "Аниме"
-                      : form.type === "game"
-                        ? "Игры"
-                        : "Книги",
+            isFavorite: form.status === FAVORITE_STATUS,
+            appSection: form.type,
+            parentFolderIds: [],
         };
 
         let extendedData = {};
@@ -169,7 +120,9 @@ export const useAddCardForm = (navigation) => {
 
         const finalCard = { ...baseCard, ...extendedData };
         addToCollection(finalCard);
-        navigation.goBack();
+        setForm(INITIAL_FORM_STATE);
+
+        navigation.navigate("Коллекция", { screen: "Дашборд" });
     };
 
     return {

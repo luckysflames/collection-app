@@ -9,7 +9,7 @@ import {
     Pressable,
 } from "react-native";
 import { BlurView } from "expo-blur";
-import { Ionicons } from "@expo/vector-icons"; // Используем иконки для стиля
+import { Ionicons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 
@@ -18,28 +18,40 @@ export const WarnModal = ({
     title,
     message,
     onClose,
-    onConfirm, // Если передан, будет кнопка подтверждения
+    onConfirm,
     confirmText = "Удалить",
     cancelText = "Отмена",
+    confirmDisabled = false,
     type = "warning",
+    children,
 }) => {
-    // Определяем иконку и цвет в зависимости от типа
     const getIcon = () => {
         switch (type) {
             case "success":
                 return { name: "checkmark-circle", color: "#4ADE80" };
             case "warning":
                 return { name: "alert-circle", color: "#FACC15" };
-            default:
+            case "error": // Явно добавил error
                 return { name: "close-circle", color: "#FF6B6B" };
+            default:
+                return { name: "information-circle", color: "#7D8AFF" };
         }
     };
 
     const icon = getIcon();
 
     return (
-        <Modal visible={visible} transparent animationType="fade">
+        <Modal
+            visible={visible}
+            transparent
+            animationType="fade"
+            onRequestClose={onClose} // Важно для кнопки "Назад" на Android
+            statusBarTranslucent
+        >
             <View style={styles.overlay}>
+                {/* Используем BlurView только как фон. 
+                   Pressable только на область ВНЕ контента. 
+                */}
                 <Pressable style={StyleSheet.absoluteFill} onPress={onClose}>
                     <BlurView
                         intensity={20}
@@ -48,7 +60,10 @@ export const WarnModal = ({
                     />
                 </Pressable>
 
-                <View style={styles.modalContent}>
+                {/* Важно: Оборачиваем контент в Pressable без onPress, 
+                   чтобы нажатия внутри модалки не "пролетало" сквозь неё на фон.
+                */}
+                <Pressable style={styles.modalContent}>
                     <View
                         style={[
                             styles.iconCircle,
@@ -65,7 +80,13 @@ export const WarnModal = ({
                     <Text style={styles.title}>
                         {title || (type === "error" ? "Ошибка" : "Внимание")}
                     </Text>
+
                     <Text style={styles.message}>{message}</Text>
+
+                    {/* Слот для TextInput или другого контента */}
+                    {children && (
+                        <View style={styles.childrenContainer}>{children}</View>
+                    )}
 
                     <View style={styles.buttonContainer}>
                         {onConfirm && (
@@ -88,17 +109,25 @@ export const WarnModal = ({
                                     : styles.singleButton,
                                 type === "error" &&
                                     onConfirm &&
-                                    styles.errorConfirmButton, // Красная кнопка, если удаляем
+                                    styles.errorConfirmButton,
+                                confirmDisabled && styles.disabledButton, // Стиль для блокировки
                             ]}
                             onPress={onConfirm || onClose}
                             activeOpacity={0.8}
+                            disabled={confirmDisabled} // Блокируем нажатие
                         >
-                            <Text style={styles.buttonText}>
+                            <Text
+                                style={[
+                                    styles.buttonText,
+                                    confirmDisabled &&
+                                        styles.disabledButtonText, // Текст посветлее
+                                ]}
+                            >
                                 {onConfirm ? confirmText : "Понятно"}
                             </Text>
                         </TouchableOpacity>
                     </View>
-                </View>
+                </Pressable>
             </View>
         </Modal>
     );
@@ -149,7 +178,9 @@ const styles = StyleSheet.create({
         marginBottom: 32,
         paddingHorizontal: 5,
     },
-    
+
+    childrenContainer: { width: "100%", marginBottom: 20 },
+
     // КОНТЕЙНЕР ДЛЯ КНОПОК
     buttonContainer: {
         flexDirection: "row",
@@ -164,7 +195,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         flexDirection: "row",
     },
-    
+
     // КНОПКА ПО УМОЛЧАНИЮ (ОДНА)
     singleButton: {
         backgroundColor: "#7D8AFF",
@@ -206,5 +237,14 @@ const styles = StyleSheet.create({
         color: "#FFF",
         fontSize: 16,
         fontWeight: "700",
+    },
+
+    disabledButton: {
+        backgroundColor: "rgba(125, 138, 255, 0.05)", // Тусклый цвет
+        shadowOpacity: 0,
+        elevation: 0,
+    },
+    disabledButtonText: {
+        color: "rgba(255, 255, 255, 0.1)",
     },
 });

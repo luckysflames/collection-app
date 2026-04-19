@@ -93,7 +93,7 @@ export const InfoBlock = ({
             </TouchableOpacity>
 
             {/* --- НОВЫЙ БЛОК КНОПОК ПОД СТАТУСОМ --- */}
-            {isInCollection && (
+            {/* {isInCollection && ( */}
                 <View style={styles.actionButtonsRow}>
                     <TouchableOpacity
                         style={styles.actionBtn}
@@ -135,7 +135,7 @@ export const InfoBlock = ({
                         </Text>
                     </TouchableOpacity>
                 </View>
-            )}
+            {/* )} */}
 
             {/* Блок с основной информацией */}
             <InfoStats displayData={displayData} />

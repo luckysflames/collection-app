@@ -44,6 +44,12 @@ export default function SettingsScreen({ navigation }) {
                         label="Мои статусы"
                         onPress={() => navigation.navigate("StatusManager")}
                     />
+                    <View style={styles.separator} />
+                    <SettingItem
+                        icon="trash-outline"
+                        label="Сброс данных"
+                        onPress={() => navigation.navigate("DataManagement")}
+                    />
                 </View>
 
                 {/* Секция: Внешний вид */}
@@ -143,6 +149,7 @@ const styles = StyleSheet.create({
         height: 1,
         backgroundColor: "rgba(255,255,255,0.05)",
         marginHorizontal: 16,
+        marginVertical: 5,
     },
     versionFooter: {
         marginTop: 10,

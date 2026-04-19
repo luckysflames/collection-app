@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCollectionStore } from "../../store/useCollectionStore";
-import { STATUS_SELECTION_EXCLUDE } from "../../constants";
+import { FAVORITE_STATUS, STATUS_SELECTION_EXCLUDE } from "../../constants";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
@@ -32,9 +32,10 @@ export default function StatusModal({
     const insets = useSafeAreaInsets();
     const selectableStatuses = [
         { label: "Без статуса", value: null },
-        ...STATUSES.filter((s) => !STATUS_SELECTION_EXCLUDE.includes(s)).map(
-            (s) => ({ label: s, value: s }),
-        ),
+        ...STATUSES.filter(
+            (s) =>
+                ![...STATUS_SELECTION_EXCLUDE, FAVORITE_STATUS].includes(s),
+        ).map((s) => ({ label: s, value: s })),
     ];
 
     // Локальный стейт, чтобы модалка не исчезала раньше времени

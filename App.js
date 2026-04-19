@@ -24,6 +24,7 @@ import MyCustomTabBar from "./components/layout/TabBar/MyCustomTabBar";
 import CollectionDashboard from "./screens/CollectionDashboard";
 import { StatusManagerScreen } from "./screens/StatusManagerScreen";
 import { useCollectionStore } from "./store/useCollectionStore";
+import { DataManagementScreen } from "./screens/DataManagementScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -108,6 +109,11 @@ export default function App() {
                             options={{
                                 gestureEnabled: true, // Позволяем свайп назад
                             }}
+                        />
+                        <Stack.Screen
+                            name="DataManagement"
+                            component={DataManagementScreen}
+                            options={{ gestureEnabled: true }}
                         />
                         <Stack.Screen
                             name="FolderDetail"

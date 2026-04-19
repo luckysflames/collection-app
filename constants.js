@@ -61,7 +61,7 @@ export const SECTIONS = [
 export const FAVORITE_STATUS = "Избранное";
 export const DEFAULT_FALLBACK_STATUS = "В планах";
 export const SYSTEM_STATUSES = ["Всё", "Папки"];
-export const STATUS_SELECTION_EXCLUDE = [...SYSTEM_STATUSES, FAVORITE_STATUS];
+export const STATUS_SELECTION_EXCLUDE = [...SYSTEM_STATUSES];
 export const PROTECTED_STATUSES = [...STATUS_SELECTION_EXCLUDE];
 
 export const DEFAULT_STATUS_BY_SECTION = {
@@ -116,4 +116,38 @@ export const DEFAULT_STATUSES = {
         "Брошено",
         "Отложено",
     ],
+};
+
+export const INITIAL_FORM_STATE = {
+    type: "movie",
+    title: "",
+    extraTitles: [""],
+    year: "",
+    genres: "",
+    description: "",
+    status: "Без статуса",
+    image: null,
+    budget: "",
+    movieStatus: "released",
+    countries: "",
+    companies: "",
+    originalTitle: "",
+    englishTitle: "",
+    japaneseTitle: "",
+    animeKind: "tv",
+    rating: "pg_13",
+    airedOn: "",
+    releasedOn: "",
+    episodes: "",
+    episodesAired: "",
+    studios: "",
+    pageCount: "",
+    maturity: "",
+    authors: "",
+    publisher: "",
+    metacritic: "",
+    esrb: "",
+    developers: "",
+    platforms: "",
+    duration: "",
 };

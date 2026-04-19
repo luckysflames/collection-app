@@ -31,6 +31,7 @@ export const useCollectionStore = create(
                 Games: "Всё",
                 Anime: "Всё",
             },
+            deletionPassword: null,
             version: 0,
 
             incVersion: () => set((state) => ({ version: state.version + 1 })),
@@ -59,6 +60,58 @@ export const useCollectionStore = create(
             // --- ACTIONS ---
             setCollectionGoal: (goal) => set({ collectionGoal: goal }),
             setIsCompactMenu: (value) => set({ isCompactMenu: value }),
+
+            // Установка пароля (первичная или принудительная)
+            setDeletionPassword: (newPassword) =>
+                set({ deletionPassword: newPassword }),
+
+            removePassword: () => {
+                set({ deletionPassword: "" });
+            },
+
+            // Смена пароля (с проверкой старого)
+            changePassword: (oldPassword, newPassword) => {
+                const current = get().deletionPassword;
+                if (!current || oldPassword === current) {
+                    set({ deletionPassword: newPassword });
+                    return { success: true };
+                }
+                return { success: false, error: "Неверный старый пароль" };
+            },
+
+            // --- RESET ACTIONS ---
+            clearCollection: () =>
+                set({ myCollection: [], version: get().version + 1 }),
+
+            resetAllStatuses: () =>
+                set((state) => ({
+                    availableStatuses: {},
+                    defaultTabs: {
+                        Movies: "Всё",
+                        Books: "Всё",
+                        Games: "Всё",
+                        Anime: "Всё",
+                    },
+                    version: state.version + 1,
+                })),
+
+            // ЯДЕРНЫЙ ВАРИАНТ (Пароль НЕ сбрасываем)
+            resetFullStore: () => {
+                set((state) => ({
+                    myCollection: [],
+                    isCompactMenu: false,
+                    collectionGoal: 500,
+                    availableStatuses: {},
+                    defaultTabs: {
+                        Movies: "Всё",
+                        Books: "Всё",
+                        Games: "Всё",
+                        Anime: "Всё",
+                    },
+                    // deletionPassword НЕ трогаем, он остается в state
+                    version: 0,
+                }));
+            },
 
             setDefaultTab: (section, status) => {
                 const key = getSectionKey(section);
@@ -293,7 +346,8 @@ export const useCollectionStore = create(
         }),
         {
             name: "user-collection-storage",
-            storage: createJSONStorage(() => AsyncStorage),            onRehydrateStorage: () => (state) => {
+            storage: createJSONStorage(() => AsyncStorage),
+            onRehydrateStorage: () => (state) => {
                 if (!state?.myCollection) return;
 
                 const migrated = state.myCollection.map((item) => {
@@ -307,9 +361,13 @@ export const useCollectionStore = create(
                     return item;
                 });
 
-                if (JSON.stringify(migrated) !== JSON.stringify(state.myCollection)) {
+                if (
+                    JSON.stringify(migrated) !==
+                    JSON.stringify(state.myCollection)
+                ) {
                     state.myCollection = migrated;
                 }
-            },        },
+            },
+        },
     ),
 );

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Keyboard } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
@@ -107,6 +107,7 @@ export const StatusManagerScreen = ({ navigation }) => {
                 isSaving={isSaving}
                 hasChanges={hasChanges}
                 insets={insets}
+                title="Мои статусы"
             />
 
             <KeyboardAwareScrollView
