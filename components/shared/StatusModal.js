@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCollectionStore } from "../../store/useCollectionStore";
+import { STATUS_SELECTION_EXCLUDE } from "../../constants";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
@@ -29,6 +30,12 @@ export default function StatusModal({
     const STATUSES = getStatusesForSection(category); // "Фильмы", "Книги" или "Игры"
 
     const insets = useSafeAreaInsets();
+    const selectableStatuses = [
+        { label: "Без статуса", value: null },
+        ...STATUSES.filter((s) => !STATUS_SELECTION_EXCLUDE.includes(s)).map(
+            (s) => ({ label: s, value: s }),
+        ),
+    ];
 
     // Локальный стейт, чтобы модалка не исчезала раньше времени
     const [shouldRender, setShouldRender] = useState(visible);
@@ -130,11 +137,11 @@ export default function StatusModal({
                     <View style={styles.handle} />
                     <Text style={styles.header}>Статус</Text>
 
-                    {STATUSES.map((s) => (
+                    {selectableStatuses.map((option) => (
                         <TouchableOpacity
-                            key={s}
+                            key={option.label}
                             onPress={() => {
-                                onSelect(s);
+                                onSelect(option.value);
                                 closeModal();
                             }}
                             style={styles.option}
@@ -142,15 +149,17 @@ export default function StatusModal({
                             <Text
                                 style={[
                                     styles.optionText,
-                                    currentStatus === s && {
+                                    currentStatus === option.value && {
                                         color: "#7D8AFF",
                                         fontWeight: "600",
                                     },
                                 ]}
                             >
-                                {s}
+                                {option.label}
                             </Text>
-                            {currentStatus === s && (
+                            {(currentStatus === option.value ||
+                                (currentStatus == null &&
+                                    option.value == null)) && (
                                 <View style={styles.activeDot} />
                             )}
                         </TouchableOpacity>

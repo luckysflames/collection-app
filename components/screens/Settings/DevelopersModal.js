@@ -142,8 +142,13 @@ export const DevelopersModal = ({ visible, onClose }) => {
                                 <Text style={styles.specialDesc}>
                                     Тестировщики, чья единственная цель в жизни
                                     — нажать кнопку в приложении так, чтобы
-                                    умерла чья-то мать. (Michaelills, Vladonikc)
+                                    что-то взорвалось. (Michaelills, Vladonikc)
                                 </Text>
+                                {/* <Text style={styles.specialDesc}>
+                                    Тестировщики, чья единственная цель в жизни
+                                    — нажать кнопку в приложении так, чтобы
+                                    умерла чья-то мать. (Michaelills, Vladonikc)
+                                </Text> */}
                             </View>
                         </View>
 

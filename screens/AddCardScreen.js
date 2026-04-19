@@ -12,7 +12,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 
 // --- ИМПОРТ КОНСТАНТ ---
 // Теперь используем единый источник истины
-import { SECTIONS } from "../constants";
+import { SECTIONS, STATUS_SELECTION_EXCLUDE } from "../constants";
 
 import MovieFields from "../components/screens/AddCard/Fields/MovieFields";
 import AnimeFields from "../components/screens/AddCard/Fields/AnimeFields";
@@ -55,7 +55,9 @@ export default function AddCardScreen({ navigation }) {
         currentSection?.title || currentSection?.label || "Фильмы";
 
     const { statuses } = useMediaCategories(form.type);
-    const filteredStatuses = statuses.filter(s => s !== "Всё" && s !== "Папки");
+    const filteredStatuses = statuses.filter(
+        (s) => !STATUS_SELECTION_EXCLUDE.includes(s),
+    );
 
     return (
         <KeyboardAwareScrollView

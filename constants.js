@@ -58,15 +58,24 @@ export const SECTIONS = [
     { id: "game", label: "Игры" },
 ];
 
-export const DEFAULT_FALLBACK_STATUS = "Избранное";
+export const FAVORITE_STATUS = "Избранное";
+export const DEFAULT_FALLBACK_STATUS = "В планах";
+export const SYSTEM_STATUSES = ["Всё", "Папки"];
+export const STATUS_SELECTION_EXCLUDE = [...SYSTEM_STATUSES, FAVORITE_STATUS];
+export const PROTECTED_STATUSES = [...STATUS_SELECTION_EXCLUDE];
 
-export const SYSTEM_STATUSES = ["Всё", "Папки", DEFAULT_FALLBACK_STATUS];
+export const DEFAULT_STATUS_BY_SECTION = {
+    Movies: "Смотрю",
+    Anime: "Смотрю",
+    Books: "Читаю",
+    Games: "Играю",
+};
 
 export const DEFAULT_STATUSES = {
     Movies: [
         "Всё",
         "Папки",
-        "Избранное",
+        FAVORITE_STATUS,
         "Смотрю",
         "В планах",
         "Просмотрено",
@@ -77,7 +86,7 @@ export const DEFAULT_STATUSES = {
     Books: [
         "Всё",
         "Папки",
-        "Избранное",
+        FAVORITE_STATUS,
         "Читаю",
         "В планах",
         "Прочитано",
@@ -88,7 +97,7 @@ export const DEFAULT_STATUSES = {
     Games: [
         "Всё",
         "Папки",
-        "Избранное",
+        FAVORITE_STATUS,
         "Играю",
         "В планах",
         "Прошёл",
@@ -99,7 +108,7 @@ export const DEFAULT_STATUSES = {
     Anime: [
         "Всё",
         "Папки",
-        "Избранное",
+        FAVORITE_STATUS,
         "Смотрю",
         "В планах",
         "Просмотрено",

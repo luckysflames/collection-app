@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import { StatusItem } from "./StatusItem";
-import { SYSTEM_STATUSES } from "../../../../constants";
+import { PROTECTED_STATUSES } from "../../../../constants";
 
 export const StatusList = ({
     statuses,
@@ -20,7 +20,7 @@ export const StatusList = ({
                     index={index}
                     isFirst={index === 0}
                     isLast={index === statuses.length - 1}
-                    isSystem={SYSTEM_STATUSES.includes(status)}
+                    isSystem={PROTECTED_STATUSES.includes(status)}
                     onDelete={onDelete}
                     onMove={onMove}
                     isSelectedDefault={status === defaultStatus}

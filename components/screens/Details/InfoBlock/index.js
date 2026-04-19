@@ -14,8 +14,19 @@ import {
     MovieQuickData,
 } from "./Sections";
 import { InfoStats } from "./InfoStats";
+import { Folder, Info, Star } from "lucide-react-native";
 
-export const InfoBlock = ({ displayData, status, onStatusPress }) => {
+export const InfoBlock = ({
+    displayData,
+    status,
+    isInCollection,
+    isFavorite,
+    folderLabel,
+    isAnyFolderSelected,
+    onStatusPress,
+    onFolderPress,
+    onToggleFavorite,
+}) => {
     const [modalVisible, setModalVisible] = useState(false);
 
     // Выбираем, что рисовать под блоком основной информации
@@ -56,7 +67,8 @@ export const InfoBlock = ({ displayData, status, onStatusPress }) => {
             <View style={styles.headerRow}>
                 <Text style={styles.title}>{displayData.title}</Text>
                 <TouchableOpacity onPress={() => setModalVisible(true)}>
-                    <Text style={styles.infoIconText}>ⓘ</Text>
+                    {/* <Text style={styles.infoIconText}>ⓘ</Text> */}
+                    <Info color="#7D8AFF" size={25} />
                 </TouchableOpacity>
             </View>
 
@@ -66,12 +78,64 @@ export const InfoBlock = ({ displayData, status, onStatusPress }) => {
             {/* Кнопка статуса */}
             <TouchableOpacity
                 onPress={onStatusPress}
-                style={status ? styles.statusBadge : styles.statusBadgeCollect}
+                style={
+                    status || isInCollection
+                        ? styles.statusBadge
+                        : styles.statusBadgeCollect
+                }
             >
                 <Text style={styles.statusText}>
-                    {status || "Добавить в коллекцию"}
+                    {status ??
+                        (isInCollection
+                            ? "Без статуса"
+                            : "Добавить в коллекцию")}
                 </Text>
             </TouchableOpacity>
+
+            {/* --- НОВЫЙ БЛОК КНОПОК ПОД СТАТУСОМ --- */}
+            {isInCollection && (
+                <View style={styles.actionButtonsRow}>
+                    <TouchableOpacity
+                        style={styles.actionBtn}
+                        onPress={onFolderPress}
+                    >
+                        <Folder
+                            color={isAnyFolderSelected ? "#7D8AFF" : "#8E94A4"}
+                            size={18}
+                        />
+                        <Text
+                            style={[
+                                styles.actionBtnText,
+                                isAnyFolderSelected && { color: "#7D8AFF" },
+                            ]}
+                        >
+                            {folderLabel}
+                        </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[
+                            styles.actionBtn,
+                            isFavorite && styles.actionBtnActive,
+                        ]}
+                        onPress={onToggleFavorite}
+                    >
+                        <Star
+                            size={18}
+                            color={isFavorite ? "#FFD700" : "#8E94A4"}
+                            fill={isFavorite ? "#FFD700" : "transparent"}
+                        />
+                        <Text
+                            style={[
+                                styles.actionBtnText,
+                                isFavorite && { color: "#FFD700" },
+                            ]}
+                        >
+                            {isFavorite ? "В избранном" : "Избранное"}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            )}
 
             {/* Блок с основной информацией */}
             <InfoStats displayData={displayData} />

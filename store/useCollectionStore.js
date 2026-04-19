@@ -5,10 +5,17 @@ import {
     DEFAULT_FALLBACK_STATUS,
     DEFAULT_STATUSES,
     SECTION_MAPPING,
+    FAVORITE_STATUS,
+    DEFAULT_STATUS_BY_SECTION,
 } from "../constants";
 
 // Хелпер для получения ключа
 const getSectionKey = (section) => SECTION_MAPPING[section] || section;
+
+const getDefaultStatusForSection = (section) => {
+    const key = getSectionKey(section);
+    return DEFAULT_STATUS_BY_SECTION[key] || DEFAULT_FALLBACK_STATUS;
+};
 
 export const useCollectionStore = create(
     persist(
@@ -39,7 +46,7 @@ export const useCollectionStore = create(
                         : [...(DEFAULT_STATUSES[key] || [])];
 
                 // ПРИНУДИТЕЛЬНАЯ ПРОВЕРКА (чтобы появились у старых пользователей)
-                const mandatory = ["Всё", "Папки", DEFAULT_FALLBACK_STATUS];
+                const mandatory = ["Всё", "Папки", FAVORITE_STATUS];
                 mandatory.forEach((status) => {
                     if (!baseList.includes(status)) {
                         baseList = [status, ...baseList];
@@ -91,12 +98,8 @@ export const useCollectionStore = create(
             },
 
             removeCustomStatus: (section, statusToDelete) => {
-                const systemStatuses = [
-                    "Всё",
-                    "Папки",
-                    DEFAULT_FALLBACK_STATUS,
-                ];
-                if (systemStatuses.includes(statusToDelete)) return;
+                const protectedStatuses = ["Всё", "Папки", FAVORITE_STATUS];
+                if (protectedStatuses.includes(statusToDelete)) return;
 
                 const key = getSectionKey(section);
                 const currentStatuses = get().getStatusesForSection(section);
@@ -120,7 +123,12 @@ export const useCollectionStore = create(
                         myCollection: state.myCollection.map((item) =>
                             item.appSection === section &&
                             item.status === statusToDelete
-                                ? { ...item, status: DEFAULT_FALLBACK_STATUS }
+                                ? {
+                                      ...item,
+                                      status: getDefaultStatusForSection(
+                                          item.appSection,
+                                      ),
+                                  }
                                 : item,
                         ),
                         version: state.version + 1,
@@ -140,8 +148,12 @@ export const useCollectionStore = create(
                     }
                     const newItem = {
                         ...item,
-                        // Если статус не передан, ставим дефолтный
-                        status: item.status || DEFAULT_FALLBACK_STATUS,
+                        // Если статус явно не задан, ставим дефолтный
+                        status:
+                            item.status === undefined
+                                ? getDefaultStatusForSection(item.appSection)
+                                : item.status,
+                        isFavorite: item.isFavorite || false,
                         parentFolderIds: item.parentFolderIds || [],
                         createdAt: item.createdAt || Date.now(),
                     };
@@ -153,6 +165,15 @@ export const useCollectionStore = create(
                     myCollection: state.myCollection.map((item) =>
                         String(item.id) === String(id)
                             ? { ...item, ...updatedFields }
+                            : item,
+                    ),
+                })),
+
+            setFavorite: (id, value) =>
+                set((state) => ({
+                    myCollection: state.myCollection.map((item) =>
+                        String(item.id) === String(id)
+                            ? { ...item, isFavorite: value }
                             : item,
                     ),
                 })),
@@ -272,7 +293,23 @@ export const useCollectionStore = create(
         }),
         {
             name: "user-collection-storage",
-            storage: createJSONStorage(() => AsyncStorage),
-        },
+            storage: createJSONStorage(() => AsyncStorage),            onRehydrateStorage: () => (state) => {
+                if (!state?.myCollection) return;
+
+                const migrated = state.myCollection.map((item) => {
+                    if (item.status === FAVORITE_STATUS && !item.isFavorite) {
+                        return {
+                            ...item,
+                            status: getDefaultStatusForSection(item.appSection),
+                            isFavorite: true,
+                        };
+                    }
+                    return item;
+                });
+
+                if (JSON.stringify(migrated) !== JSON.stringify(state.myCollection)) {
+                    state.myCollection = migrated;
+                }
+            },        },
     ),
 );

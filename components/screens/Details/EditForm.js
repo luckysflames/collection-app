@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 
 import { useMediaCategories } from "../../../hooks/useMediaCategories";
+import { STATUS_SELECTION_EXCLUDE } from "../../../constants";
 import ImageUploader from "../../shared/ImageUploader";
 import CommonField from "../AddCard/Fields/CommonField";
 import MovieFields from "../AddCard/Fields/MovieFields";
@@ -23,6 +24,10 @@ export const EditForm = ({ form, updateField, type }) => {
     );
 
     // console.log('Current Form Status:', form.status, 'Available Categories:', CATEGORIES);
+
+    const filteredStatuses = statuses.filter(
+        (s) => !STATUS_SELECTION_EXCLUDE.includes(s),
+    );
 
     return (
         <View style={styles.container}>
@@ -76,7 +81,7 @@ export const EditForm = ({ form, updateField, type }) => {
 
             {/* 6. Статус */}
             <StatusPicker
-                categories={statuses}
+                categories={filteredStatuses}
                 currentStatus={form.status}
                 type={type}
                 onSelect={(status) => updateField("status", status)}

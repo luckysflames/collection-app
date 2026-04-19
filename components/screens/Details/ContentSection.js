@@ -1,9 +1,4 @@
-import {
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
-} from "react-native";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 
 import { InfoBlock } from "./InfoBlock/index";
 
@@ -11,13 +6,24 @@ export const ContentSection = ({
     displayData,
     savedItem,
     isInCollection,
+    isFavorite,
+    folderLabel,
+    isAnyFolderSelected,
     onStatusPress,
+    onFolderPress,
+    onToggleFavorite,
     onUpdateNotes,
 }) => (
     <View>
         <InfoBlock
             status={savedItem?.status}
+            isInCollection={isInCollection}
+            isFavorite={isFavorite}
+            folderLabel={folderLabel}
+            isAnyFolderSelected={isAnyFolderSelected}
             onStatusPress={onStatusPress}
+            onFolderPress={onFolderPress}
+            onToggleFavorite={onToggleFavorite}
             displayData={displayData}
         />
 

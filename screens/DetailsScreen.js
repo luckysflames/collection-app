@@ -9,7 +9,7 @@ import {
     Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Check, ChevronLeft, Folder, Pen, X } from "lucide-react-native";
+import { Check, ChevronLeft, Folder, Pen, Star, X } from "lucide-react-native";
 
 // Hooks
 import { useFetchDetails } from "../hooks/useFetchDetails";
@@ -57,9 +57,12 @@ export default function DetailsScreen({ route, navigation }) {
         existingFolders,
         handleAddToFolder,
         handleStatusUpdate,
+        handleToggleFavorite,
         updateCard,
         deleteCard, // Используем имя из стора через хук
     } = useDetailsActions(item, displayData, category);
+
+    const isFavorite = !!savedItem?.isFavorite;
 
     // Форма редактирования
     const [editForm, updateField] = useEditForm(isEditing, {
@@ -139,27 +142,6 @@ export default function DetailsScreen({ route, navigation }) {
             </BaseHeroLayout>
 
             <View style={styles.infoContainer}>
-                {isInCollection && (
-                    <TouchableOpacity
-                        style={styles.addToFolderBtn}
-                        onPress={() => setFolderModalVisible(true)}
-                    >
-                        <Folder
-                            color={isAnyFolderSelected ? "#7D8AFF" : "#8E94A4"}
-                            size={20}
-                        />
-                        <Text
-                            style={[
-                                styles.folderBtnText,
-                                isAnyFolderSelected && { color: "#7D8AFF" },
-                            ]}
-                            numberOfLines={1}
-                        >
-                            {folderLabel}
-                        </Text>
-                    </TouchableOpacity>
-                )}
-
                 {loading && !fullDetails && !savedItem ? (
                     <View style={styles.loaderContainer}>
                         <ActivityIndicator size="large" color="#7D8AFF" />
@@ -176,7 +158,12 @@ export default function DetailsScreen({ route, navigation }) {
                         displayData={displayData}
                         savedItem={savedItem}
                         isInCollection={isInCollection}
+                        isFavorite={isFavorite}
+                        folderLabel={folderLabel}
+                        isAnyFolderSelected={isAnyFolderSelected}
                         onStatusPress={() => setStatusModalVisible(true)}
+                        onFolderPress={() => setFolderModalVisible(true)}
+                        onToggleFavorite={handleToggleFavorite}
                         onUpdateNotes={(text) =>
                             updateCard(item.id, { userNotes: text })
                         }
@@ -235,6 +222,26 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         borderRadius: 10,
         marginBottom: 15,
+    },
+    favoriteBtn: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "rgba(255,255,255,0.05)",
+        alignSelf: "flex-start",
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        borderRadius: 10,
+        marginBottom: 18,
+        gap: 8,
+    },
+    favoriteBtnActive: {
+        backgroundColor: "rgba(255,215,0,0.12)",
+    },
+    favoriteBtnText: {
+        color: "#8E94A4",
+        marginLeft: 4,
+        fontSize: 13,
+        fontWeight: "600",
     },
     folderBtnText: {
         color: "#8E94A4",

@@ -9,7 +9,7 @@ export default function MyCustomTabBar({ state, descriptors, navigation }) {
     const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
     const insets = useSafeAreaInsets();
 
-    const BAR_HEIGHT = isCompactMenu ? 65 : 85;
+    const BAR_HEIGHT = isCompactMenu ? 50 : 85;
     const TOTAL_BAR_HEIGHT =
         BAR_HEIGHT + (insets.bottom > 0 ? insets.bottom : 10);
     const ICON_CONTAINER_SIZE = isCompactMenu ? 45 : 65;

@@ -1,7 +1,10 @@
 import { Alert } from "react-native";
 import { useCollectionStore } from "../store/useCollectionStore";
 import { useEffect, useState } from "react";
-import { DEFAULT_FALLBACK_STATUS } from "../constants";
+import {
+    DEFAULT_FALLBACK_STATUS,
+    DEFAULT_STATUS_BY_SECTION,
+} from "../constants";
 
 export const useAddCardForm = (navigation) => {
     const addToCollection = useCollectionStore(
@@ -59,9 +62,16 @@ export const useAddCardForm = (navigation) => {
 
     // Автоматическая смена статуса при изменении типа
     useEffect(() => {
+        const defaultStatusMap = {
+            movie: "Смотрю",
+            anime: "Смотрю",
+            book: "Читаю",
+            game: "Играю",
+        };
+
         setForm((prev) => ({
             ...prev,
-            status: DEFAULT_FALLBACK_STATUS,
+            status: defaultStatusMap[form.type] || DEFAULT_FALLBACK_STATUS,
         }));
     }, [form.type]);
 

@@ -1,4 +1,12 @@
 import { useCollectionStore } from "../store/useCollectionStore";
+import {
+    DEFAULT_FALLBACK_STATUS,
+    DEFAULT_STATUS_BY_SECTION,
+    SECTION_MAPPING,
+    FAVORITE_STATUS,
+} from "../constants";
+
+const getSectionKey = (section) => SECTION_MAPPING[section] || section;
 
 export const useDetailsActions = (item, displayData, category) => {
     const { myCollection, addToCollection, updateCard, deleteCard } =
@@ -20,6 +28,10 @@ export const useDetailsActions = (item, displayData, category) => {
         return folderSection === activeSection;
     });
 
+    const defaultStatus =
+        DEFAULT_STATUS_BY_SECTION[getSectionKey(currentSection)] ||
+        DEFAULT_FALLBACK_STATUS;
+
     // Логика добавления/удаления из папки (Toggle)
     const handleAddToFolder = (folderId) => {
         if (!isInCollection) {
@@ -27,7 +39,7 @@ export const useDetailsActions = (item, displayData, category) => {
             addToCollection({
                 ...item,
                 ...displayData,
-                status: displayData.status || "В планах",
+                status: displayData.status || defaultStatus,
                 appSection: currentSection,
                 parentFolderIds: [folderId], // Сразу создаем массив
             });
@@ -64,12 +76,30 @@ export const useDetailsActions = (item, displayData, category) => {
         }
     };
 
+    const handleToggleFavorite = () => {
+        if (isInCollection) {
+            updateCard(item.id, {
+                isFavorite: !savedItem?.isFavorite,
+            });
+        } else {
+            addToCollection({
+                ...item,
+                ...displayData,
+                status: displayData.status ?? "Без статуса",
+                isFavorite: true,
+                appSection: currentSection,
+                parentFolderIds: [],
+            });
+        }
+    };
+
     return {
         savedItem,
         isInCollection,
         existingFolders,
         handleAddToFolder,
         handleStatusUpdate,
+        handleToggleFavorite,
         updateCard,
         deleteCard,
     };

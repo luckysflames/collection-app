@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from "react";
 import { View, FlatList, Text, StyleSheet, Dimensions } from "react-native";
 import { FolderOpen } from "lucide-react-native";
+import { FAVORITE_STATUS } from "../../constants";
 
 import { MediaCard } from "../ui/MediaCard";
 
@@ -46,6 +47,17 @@ export const CategoryPage = ({
             // --- ЛОГИКА ДЛЯ РАЗДЕЛА "Папки" ---
             if (category === "Папки") {
                 return isFolder;
+            }
+
+            // --- ЛОГИКА ДЛЯ ИЗБРАННОГО ---
+            if (category === FAVORITE_STATUS) {
+                if (!item.isFavorite) return false;
+
+                if (showFoldersOnly) {
+                    return true;
+                }
+
+                return !isFolder;
             }
 
             // --- ЛОГИКА ДЛЯ СТАТУСНЫХ ВКЛАДОК (Смотрю, В планах и т.д.) ---

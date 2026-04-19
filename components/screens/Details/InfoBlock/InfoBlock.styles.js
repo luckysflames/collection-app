@@ -5,7 +5,7 @@ export const styles = StyleSheet.create({
     headerRow: {
         flexDirection: "row",
         justifyContent: "space-between",
-        alignItems: "flex-start",
+        alignItems: "center",
         marginBottom: 8,
     },
     title: {
@@ -24,6 +24,31 @@ export const styles = StyleSheet.create({
         marginLeft: 10,
     },
     infoIconText: { color: "#7D8AFF", fontSize: 18, fontWeight: "bold" },
+
+    actionButtonsRow: {
+        flexDirection: "row",
+        gap: 10,
+        marginBottom: 20,
+        marginTop: -5, // Чтобы прижать чуть ближе к кнопке статуса
+    },
+    actionBtn: {
+        flex: 1, // Чтобы кнопки делили место поровну
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "rgba(255, 255, 255, 0.05)",
+        paddingVertical: 10,
+        borderRadius: 12,
+        gap: 8,
+    },
+    actionBtnActive: {
+        backgroundColor: "rgba(255, 215, 0, 0.08)",
+    },
+    actionBtnText: {
+        color: "#8E94A4",
+        fontSize: 13,
+        fontWeight: "600",
+    },
 
     quickMeta: {
         flexDirection: "row",

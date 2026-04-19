@@ -168,6 +168,7 @@ export const fetchDetailsById = async (id) => {
                 licenseNameRu
                 russian
                 english
+                japanese
                 name
                 score
                 status
@@ -199,8 +200,8 @@ export const fetchDetailsById = async (id) => {
                 airedOn: data.airedOn?.date,
                 releasedOn: data.releasedOn?.date,
                 rating: data.rating,
-                englishTitle: data.english, // В GraphQL Шикимори это поле может быть в другом месте, если нужно - добавим
-                japaneseTitle: data.name,
+                englishTitle: data.english,
+                japaneseTitle: data.japanese,
                 duration: data.duration ? `по ~${data.duration} мин.` : null,
                 description: cleanHtml(data.description),
                 genres: data.genres?.map((g) => g.russian) || [],

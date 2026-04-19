@@ -3,7 +3,11 @@ import { View, Text, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
-import { SECTIONS, SYSTEM_STATUSES } from "../constants";
+import {
+    SECTIONS,
+    PROTECTED_STATUSES,
+    DEFAULT_STATUS_BY_SECTION,
+} from "../constants";
 import { useCollectionStore } from "../store/useCollectionStore";
 import { useStatusManager } from "../hooks/useStatusManager";
 
@@ -53,7 +57,7 @@ export const StatusManagerScreen = ({ navigation }) => {
     };
 
     const confirmDelete = (status) => {
-        if (SYSTEM_STATUSES.includes(status)) {
+        if (PROTECTED_STATUSES.includes(status)) {
             return setModalConfig({
                 visible: true,
                 title: "Системный статус",
@@ -62,10 +66,13 @@ export const StatusManagerScreen = ({ navigation }) => {
             });
         }
 
+        const fallbackStatus =
+            DEFAULT_STATUS_BY_SECTION[selectedSection] || "В планах";
+
         setModalConfig({
             visible: true,
             title: "Удалить статус?",
-            message: `Карточки будут перенесены в "Избранное".`,
+            message: `Карточки будут перенесены в статус "${fallbackStatus}".`,
             type: "error",
             confirmText: "Удалить",
             onConfirm: () => {

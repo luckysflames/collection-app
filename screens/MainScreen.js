@@ -17,7 +17,7 @@ import { CategoryPage } from "../components/shared/CategoryPage";
 
 import { useCollectionStore } from "../store/useCollectionStore";
 import { useMediaCategories } from "../hooks/useMediaCategories";
-import { SECTIONS } from "../constants";
+import { SECTIONS, FAVORITE_STATUS } from "../constants";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -130,6 +130,14 @@ export default function MainScreen({ route, navigation }) {
 
         if (activeCategory === "Папки") {
             return items.filter((i) => i.isFolder).length;
+        }
+
+        if (activeCategory === FAVORITE_STATUS) {
+            const favoriteItems = items.filter((i) => i.isFavorite);
+            if (showFoldersOnly) {
+                return favoriteItems.length;
+            }
+            return favoriteItems.filter((i) => !i.isFolder).length;
         }
 
         // 3. Логика для статусных вкладок (Смотрю, В планах...)
