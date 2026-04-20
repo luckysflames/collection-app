@@ -21,11 +21,13 @@ export const FolderHeader = memo((props) => {
         folderItems,
         editForm,
         updateField,
+        onRatingUpdate,
         onDeletePress,
         isReordering,
         onToggleReorder,
         onStatusPress,
         onAddPress,
+        onInfoPress,
     } = props;
 
     return (
@@ -74,6 +76,9 @@ export const FolderHeader = memo((props) => {
                             count={folderItems.length}
                             onStatusPress={onStatusPress}
                             onAddPress={onAddPress}
+                            folderItems={folderItems}
+                            onRatingUpdate={onRatingUpdate}
+                            onInfoPress={onInfoPress}
                         />
                     )}
                 </View>

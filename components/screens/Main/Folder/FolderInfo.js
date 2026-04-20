@@ -1,9 +1,29 @@
 import React from "react";
-import { ChevronDown } from "lucide-react-native";
+import { ChevronDown, Zap } from "lucide-react-native";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { SECTION_LABELS_RU, SECTION_MAPPING, SECTIONS } from "../../../../constants";
+import { UserRating } from "../../../shared/UserRating";
+import { AverageRatingBlock } from "./AverageRatingBlock";
 
-export const FolderInfo = ({ folder, count, onStatusPress, onAddPress }) => {
+export const FolderInfo = ({
+    folder,
+    count,
+    onStatusPress,
+    onAddPress,
+    folderItems,
+    onRatingUpdate,
+    onInfoPress,
+}) => {
+    const getPlural = (number, titles) => {
+        const cases = [2, 0, 1, 1, 1, 2];
+        return titles[
+            number % 100 > 4 && number % 100 < 20
+                ? 2
+                : cases[number % 10 < 5 ? number % 10 : 5]
+        ];
+    };
+
+    const cardsLabel = getPlural(count, ["карточка", "карточки", "карточек"]);
+
     return (
         <View style={styles.container}>
             {/* Название и описание */}
@@ -27,11 +47,11 @@ export const FolderInfo = ({ folder, count, onStatusPress, onAddPress }) => {
                     <ChevronDown
                         color="#fff"
                         size={16}
-                        style={{ alignSelf: "flex-end" }}
+                        style={{ marginLeft: 6 }}
                     />
                 </TouchableOpacity>
 
-                {/* Новая кнопка добавления рядом или под статусом */}
+                {/* Кнопка добавления карточек */}
                 <TouchableOpacity
                     onPress={onAddPress}
                     style={styles.addCardsBtn}
@@ -40,11 +60,22 @@ export const FolderInfo = ({ folder, count, onStatusPress, onAddPress }) => {
                 </TouchableOpacity>
             </View>
 
+            {/* ПОЛНОЦЕННЫЙ РЕЙТИНГ */}
+            <View style={styles.ratingSection}>
+                <UserRating
+                    score={folder.userScore || 0}
+                    onSetScore={onRatingUpdate} // Теперь это рабочая функция обновления
+                    onInfoPress={onInfoPress}
+                />
+            </View>
+
+            {/* ВЫНЕСЕННЫЙ БЛОК СРЕДНЕГО РЕЙТИНГА */}
+            <AverageRatingBlock items={folderItems} onApply={onRatingUpdate} />
+
             {/* Мета-бейдж */}
             <View style={styles.metaBadge}>
                 <Text style={styles.metaText}>
-                    {count} карточек •{" "}
-                    {SECTION_LABELS_RU[folder.appSection] || "Общее"}
+                    • {count} {cardsLabel} •
                 </Text>
             </View>
         </View>
@@ -71,43 +102,83 @@ const styles = StyleSheet.create({
         marginTop: 8,
         lineHeight: 20,
     },
-    controlsRow: {
-        width: "100%", // Убеждаемся, что ряд занимает всю ширину
+    ratingSection: {
+        width: "100%",
+        // У UserRating внутри уже есть marginTop: 25,
+        // так что здесь дополнительные отступы могут не понадобиться
+    },
+
+    avgContainer: {
         flexDirection: "row",
-        alignItems: "stretch", // Растягиваем кнопки по высоте ряда
+        alignItems: "center",
+        marginTop: 12,
+        backgroundColor: "rgba(255, 255, 255, 0.05)",
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+    },
+    avgLabel: {
+        color: "#8E94A4",
+        fontSize: 12,
+    },
+    avgBadge: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "rgba(125, 138, 255, 0.15)",
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 6,
+        marginLeft: 4,
+        borderWidth: 1,
+        borderColor: "rgba(125, 138, 255, 0.3)",
+    },
+    avgValue: {
+        color: "#fff",
+        fontWeight: "bold",
+        fontSize: 12,
+        marginLeft: 4,
+    },
+    avgApplyText: {
+        color: "#7D8AFF",
+        fontSize: 10,
+        fontWeight: "700",
+        textTransform: "uppercase",
+        marginLeft: 8,
+    },
+    controlsRow: {
+        width: "100%",
+        flexDirection: "row",
+        alignItems: "stretch",
         gap: 12,
         marginTop: 20,
-        paddingHorizontal: 0, // Внутри контейнера уже есть paddingHorizontal
     },
     folderStatusBtn: {
-        flex: 1, // Занимает ровно 50% (минус половина gap)
+        flex: 1,
         flexDirection: "row",
         borderColor: "#7D8AFF",
         paddingVertical: 12,
         borderRadius: 12,
         borderWidth: 1.5,
-        justifyContent: "center", // Важно для выравнивания текста
+        justifyContent: "center",
         alignItems: "center",
     },
     addCardsBtn: {
-        flex: 1, // Занимает ровно 50% (минус половина gap)
+        flex: 1,
         backgroundColor: "rgba(125, 138, 255, 0.15)",
         paddingVertical: 12,
         borderRadius: 12,
         borderWidth: 1,
         borderColor: "rgba(125, 138, 255, 0.3)",
-        justifyContent: "center", // Важно для выравнивания текста
+        justifyContent: "center",
         alignItems: "center",
     },
     addCardsText: {
         color: "#7D8AFF",
-        textAlign: "center",
         fontWeight: "700",
         fontSize: 14,
     },
     folderStatusText: {
         color: "#fff",
-        textAlign: "center",
         fontWeight: "700",
         fontSize: 14,
     },

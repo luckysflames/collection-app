@@ -1,66 +1,47 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 import { useCollectionStore } from "../store/useCollectionStore";
+
+import { useFolderData } from "../hooks/useFolderData";
 import { useFolderActions } from "../hooks/useFolderActions";
 
 import { CategoryPage } from "../components/shared/CategoryPage";
 import { FolderHeader } from "../components/screens/Main/Folder/FolderHeader";
+import StatusModal from "../components/shared/StatusModal";
 import { AddItemsToFolderModal } from "../components/screens/Main/Folder/AddItemsToFolderModal";
 import DeleteFolderModal from "../components/screens/Main/Folder/DeleteFolderModal";
-import StatusModal from "../components/shared/StatusModal";
+import { WarnModal } from "../components/ui/WarnModal";
 
 export default function FolderDetailScreen({ route, navigation }) {
     const insets = useSafeAreaInsets();
     const { folderId } = route.params;
+    const { addItemsToFolder, updateCard } = useCollectionStore();
 
-    // --- STORE ---
-    const { myCollection, addItemsToFolder, updateFolderOrder, updateCard } =
-        useCollectionStore();
+    // --- LOGIC & DATA (используем ваш хук) ---
+    const { folder, folderItems, availableItems } = useFolderData(folderId);
 
-    // --- STATE ---
+    // --- UI STATE ---
     const [sortType, setSortType] = useState("newest");
     const [isReordering, setIsReordering] = useState(false);
     const [reorderBuffer, setReorderBuffer] = useState([]);
+    const [isInfoModalVisible, setInfoModalVisible] = useState(false);
 
-    // UI Visibility
-    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const [isAddModalVisible, setIsAddModalVisible] = useState(false);
-    const [isStatusModalVisible, setStatusModalVisible] = useState(false);
+    // Группируем видимость модалок для чистоты
+    const [modals, setModals] = useState({
+        delete: false,
+        add: false,
+        status: false,
+    });
 
-    // --- DATA MEMO ---
-    const folder = useMemo(
-        () => myCollection.find((item) => item.id === folderId),
-        [myCollection, folderId],
-    );
-
-    const folderItems = useMemo(
-        () =>
-            myCollection.filter((item) =>
-                item.parentFolderIds?.includes(folderId),
-            ),
-        [myCollection, folderId],
-    );
-
-    const availableItems = useMemo(() => {
-        if (!folder) return [];
-        return myCollection.filter(
-            (item) =>
-                !item.isFolder &&
-                item.appSection === folder.appSection &&
-                !item.parentFolderIds?.includes(folderId),
-        );
-    }, [myCollection, folder, folderId]);
-
-    // --- CUSTOM HOOKS ---
+    // --- ACTIONS HOOK ---
     const {
         isEditing,
         setIsEditing,
         editForm,
         updateField,
         pickImage,
-        handleSave, // Это наш обновленный метод
+        handleSave,
         handleCancel,
         deleteEverything,
         deleteFolderOnly,
@@ -74,29 +55,20 @@ export default function FolderDetailScreen({ route, navigation }) {
     );
 
     // --- HANDLERS ---
-    const onConfirmDeleteAll = () => {
-        deleteEverything();
-        navigation.goBack();
-    };
-
-    const onConfirmDeleteOnlyFolder = () => {
-        deleteFolderOnly();
-        navigation.goBack();
-    };
-
     const handleCardPress = (item) => {
         if (isReordering) {
-            setReorderBuffer((prev) => {
-                if (prev.includes(item.id)) {
-                    return prev.filter((id) => id !== item.id);
-                }
-                return [...prev, item.id];
-            });
+            setReorderBuffer((prev) =>
+                prev.includes(item.id)
+                    ? prev.filter((id) => id !== item.id)
+                    : [...prev, item.id],
+            );
             return;
         }
 
+        if (isEditing) return; // Блокируем переходы при редактировании
+
         if (item.isFolder) {
-            navigation.navigate("FolderDetail", {
+            navigation.push("FolderDetail", {
                 folderId: item.id,
                 title: item.title,
             });
@@ -108,25 +80,22 @@ export default function FolderDetailScreen({ route, navigation }) {
         }
     };
 
-    // Внутри FolderDetailScreen или вашего хука действий
     const handleToggleReorder = () => {
         if (isReordering) {
-            // Мы нажимаем "Применить порядок" (завершаем сортировку)
-            // 1. Сохраняем накопленный reorderBuffer в стор
-            handleSave(true, reorderBuffer);
-
-            // 2. Выключаем режим
-            setIsReordering(false);
+            handleSave(true); // Сохраняем только порядок
         } else {
-            // Мы только входим в режим сортировки
             setIsReordering(true);
         }
     };
 
     const handleStatusUpdate = (newStatus) => {
-        // В сторе папка — это такая же карточка, поэтому используем updateCard
         updateCard(folder.id, { status: newStatus });
-        setStatusModalVisible(false);
+        setModals((p) => ({ ...p, status: false }));
+    };
+
+    const handleRatingUpdate = (newScore) => {
+        // Папка — это объект в myCollection, обновляем его через updateCard
+        updateCard(folder.id, { userScore: newScore });
     };
 
     if (!folder) return null;
@@ -145,7 +114,6 @@ export default function FolderDetailScreen({ route, navigation }) {
                 reorderBuffer={reorderBuffer}
                 sortType={sortType}
                 onCardPress={handleCardPress}
-                reorderBuffer={reorderBuffer}
                 ListHeaderComponent={
                     <FolderHeader
                         folder={folder}
@@ -156,41 +124,65 @@ export default function FolderDetailScreen({ route, navigation }) {
                         isEditing={isEditing}
                         isReordering={isReordering}
                         setIsEditing={setIsEditing}
-                        onSave={handleSave}
+                        onSave={() => handleSave(false)} // Полное сохранение
                         onCancel={handleCancel}
                         onBack={() => navigation.goBack()}
                         pickImage={pickImage}
                         updateField={updateField}
-                        onDeletePress={() => setIsDeleteModalVisible(true)}
+                        onRatingUpdate={handleRatingUpdate}
+                        onInfoPress={() => setInfoModalVisible(true)}
+                        onDeletePress={() =>
+                            setModals((p) => ({ ...p, delete: true }))
+                        }
                         onToggleReorder={handleToggleReorder}
-                        onStatusPress={() => setStatusModalVisible(true)}
-                        onAddPress={() => setIsAddModalVisible(true)}
+                        onStatusPress={() =>
+                            setModals((p) => ({ ...p, status: true }))
+                        }
+                        onAddPress={() =>
+                            setModals((p) => ({ ...p, add: true }))
+                        }
                     />
                 }
             />
 
             {/* MODALS */}
+            <WarnModal
+                visible={isInfoModalVisible}
+                title="О личной оценке"
+                message="Эта оценка видна только Вам. Она помогает структурировать Вашу личную коллекцию и никак не влияет на глобальный рейтинг произведения. Средний балл также высчитывается из Ваших оценок"
+                type="info"
+                onClose={() => setInfoModalVisible(false)}
+            />
+
             <StatusModal
-                visible={isStatusModalVisible}
-                category={folder.appSection} // "Книги", "Игры" или "Фильмы"
+                visible={modals.status}
+                category={folder.appSection}
                 currentStatus={folder.status}
-                onClose={() => setStatusModalVisible(false)}
+                onClose={() => setModals((p) => ({ ...p, status: false }))}
                 onSelect={handleStatusUpdate}
-                // removeCard здесь не нужен, так как удаление папки обычно в редактировании
             />
 
             <AddItemsToFolderModal
-                visible={isAddModalVisible}
+                visible={modals.add}
                 availableItems={availableItems}
-                onClose={() => setIsAddModalVisible(false)}
-                onAdd={(ids) => addItemsToFolder(ids, folderId)}
+                onClose={() => setModals((p) => ({ ...p, add: false }))}
+                onAdd={(ids) => {
+                    addItemsToFolder(ids, folderId);
+                    setModals((p) => ({ ...p, add: false }));
+                }}
             />
 
             <DeleteFolderModal
-                visible={isDeleteModalVisible}
-                onClose={() => setIsDeleteModalVisible(false)}
-                onDeleteAll={onConfirmDeleteAll}
-                onDeleteOnlyFolder={onConfirmDeleteOnlyFolder}
+                visible={modals.delete}
+                onClose={() => setModals((p) => ({ ...p, delete: false }))}
+                onDeleteAll={() => {
+                    deleteEverything();
+                    navigation.goBack();
+                }}
+                onDeleteOnlyFolder={() => {
+                    deleteFolderOnly();
+                    navigation.goBack();
+                }}
             />
         </View>
     );

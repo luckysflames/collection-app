@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { Star } from "lucide-react-native"; // Импортируем звезду для рейтинга
 import { InfoBlock } from "./InfoBlock/index";
-import { UserRating } from "./UserRating";
+import { UserRating } from "../../shared/UserRating";
 
 export const ContentSection = ({
     displayData,

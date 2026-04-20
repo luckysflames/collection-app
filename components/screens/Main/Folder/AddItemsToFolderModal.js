@@ -44,7 +44,9 @@ export const AddItemsToFolderModal = ({
                 <SafeAreaView style={styles.safeArea}>
                     <StatusBar barStyle="light-content" />
 
-                    <View style={[styles.header, {paddingTop: insets.top + 20}]}>
+                    <View
+                        style={[styles.header, { paddingTop: insets.top + 20 }]}
+                    >
                         <TouchableOpacity
                             onPress={onClose}
                             style={styles.headerIcon}

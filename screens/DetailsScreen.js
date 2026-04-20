@@ -179,7 +179,7 @@ export default function DetailsScreen({ route, navigation }) {
             <WarnModal
                 visible={isInfoModalVisible}
                 title="О личной оценке"
-                message="Эта оценка видна только вам. Она помогает структурировать вашу личную коллекцию и никак не влияет на глобальный рейтинг произведения."
+                message="Эта оценка видна только Вам. Она помогает структурировать Вашу личную коллекцию и никак не влияет на глобальный рейтинг произведения."
                 type="info"
                 onClose={() => setInfoModalVisible(false)}
             />

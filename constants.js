@@ -66,13 +66,6 @@ export const SECTIONS = [
     { id: "game", label: "Игры" },
 ];
 
-export const SECTION_LABELS_RU = {
-    movie: "Фильмы",
-    anime: "Аниме",
-    book: "Книги",
-    game: "Игры",
-};
-
 /**
  * --- СТАТУСЫ И ПРАВИЛА ---
  */
