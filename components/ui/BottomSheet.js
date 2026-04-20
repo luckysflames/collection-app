@@ -29,6 +29,13 @@ export const BottomSheet = ({ visible, onClose, children, containerStyle }) => {
         }
     }, [visible]);
 
+    useEffect(() => {
+        if (!visible && shouldRender) {
+            // Если пропс visible стал false, но мы еще отрисованы — запускаем анимацию закрытия
+            handleClose();
+        }
+    }, [visible]);
+
     const handleClose = () => {
         Animated.timing(panY, {
             toValue: SCREEN_HEIGHT,

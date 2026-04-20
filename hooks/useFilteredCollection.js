@@ -8,6 +8,7 @@ export const useFilteredCollection = ({
     sortType,
     showFoldersOnly,
     isInsideFolder,
+    folderOrder,
 }) => {
     return useMemo(() => {
         // --- 1. ФИЛЬТРАЦИЯ ---
@@ -16,7 +17,7 @@ export const useFilteredCollection = ({
             if (item.appSection !== currentSection) return false;
 
             const isFolder = !!item.isFolder;
-            const hasParent = item.parentFolderIds?.length > 0;
+            const hasParent = (item.parentFolderIds || []).length > 0;
 
             if (category === "Всё") {
                 return showFoldersOnly ? isFolder || !hasParent : !isFolder;
@@ -27,14 +28,17 @@ export const useFilteredCollection = ({
                 return showFoldersOnly ? true : !isFolder;
             }
 
-            // Статусные вкладки
             if (item.status !== category) return false;
+
             if (showFoldersOnly) {
                 if (isFolder) return true;
                 if (!hasParent) return true;
+
                 const hasSameStatusParent = item.parentFolderIds.some(
                     (parentId) => {
-                        const parent = data.find((d) => d.id === parentId);
+                        const parent = data.find(
+                            (d) => String(d.id) === String(parentId),
+                        );
                         return parent && parent.status === item.status;
                     },
                 );
@@ -43,48 +47,56 @@ export const useFilteredCollection = ({
             return !isFolder;
         });
 
-        // --- 2. НОВАЯ СОРТИРОВКА (под обновленную модалку) ---
+        // --- 2. СОРТИРОВКА ---
         const sorted = [...filtered].sort((a, b) => {
+            // Принудительный ручной порядок внутри папки
+            if (isInsideFolder) {
+                if (Array.isArray(folderOrder) && folderOrder.length > 0) {
+                    const orderStrings = folderOrder.map(String);
+                    const indexA = orderStrings.indexOf(String(a.id));
+                    const indexB = orderStrings.indexOf(String(b.id));
+
+                    if (indexA !== -1 || indexB !== -1) {
+                        if (indexA === -1) return 1;
+                        if (indexB === -1) return -1;
+                        return indexA - indexB;
+                    }
+                }
+            }
+
+            // Стандартная сортировка (если не папка или нет ручного порядка)
             const dateA = a.createdAt || 0;
             const dateB = b.createdAt || 0;
-            const ratingA = a.rating || 0;
-            const ratingB = b.rating || 0;
+            const ratingA = a.userScore || 0;
+            const ratingB = b.userScore || 0;
             const titleA = a.title?.toLowerCase() || "";
             const titleB = b.title?.toLowerCase() || "";
 
             switch (sortType) {
-                // Дата
-                case "newest":
                 case "date_desc":
                     return dateB - dateA;
-                case "oldest":
                 case "date_asc":
                     return dateA - dateB;
-
-                // Рейтинг
-                case "rating": // дефолтный рейтинг (убывание)
                 case "rating_desc":
                     return ratingB - ratingA;
                 case "rating_asc":
                     return ratingA - ratingB;
-
-                // Алфавит
-                case "alphabetical": // дефолтный алфавит (А-Я)
                 case "alphabet_asc":
                     return titleA.localeCompare(titleB);
                 case "alphabet_desc":
                     return titleB.localeCompare(titleA);
-
                 default:
                     return dateB - dateA;
             }
         });
 
-        // --- 3. СЧЕТЧИКИ ДЛЯ ПАПОК ---
+        // --- 3. СЧЕТЧИКИ (только для отображения папок снаружи) ---
         return sorted.map((item) => {
             if (item.isFolder) {
                 const count = data.filter((i) =>
-                    i.parentFolderIds?.includes(item.id),
+                    i.parentFolderIds?.some(
+                        (id) => String(id) === String(item.id),
+                    ),
                 ).length;
                 return { ...item, _computedCount: count };
             }
@@ -97,5 +109,6 @@ export const useFilteredCollection = ({
         sortType,
         showFoldersOnly,
         isInsideFolder,
+        folderOrder,
     ]);
 };

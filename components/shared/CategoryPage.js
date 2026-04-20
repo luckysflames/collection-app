@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { View, FlatList, StyleSheet, Dimensions, Platform } from "react-native";
 import { MediaCard } from "../ui/MediaCard";
 import { EmptyState } from "./EmptyState"; // Вынесли отдельно
@@ -10,6 +10,7 @@ export const CategoryPage = ({
     category,
     currentSection,
     data,
+    folderOrder,
     isInsideFolder = false,
     ListHeaderComponent,
     sortType = "newest",
@@ -18,15 +19,21 @@ export const CategoryPage = ({
     reorderBuffer,
     showFoldersOnly = false,
 }) => {
-    // Используем наш новый хук
-    const pageData = useFilteredCollection({
+    // 1. Получаем отфильтрованные и базово отсортированные данные из хука
+    const filteredData = useFilteredCollection({
         data,
         category,
         currentSection,
         sortType,
         showFoldersOnly,
         isInsideFolder,
+        folderOrder,
     });
+
+    // 2. В режиме переупорядочивания оставляем порядок как есть (из filteredData)
+    const pageData = useMemo(() => {
+        return filteredData;
+    }, [filteredData]);
 
     const handlePress = useCallback(
         (item) => {
@@ -60,6 +67,7 @@ export const CategoryPage = ({
         <View style={styles.pageWrapper}>
             <FlatList
                 data={pageData}
+                extraData={[pageData, reorderBuffer, folderOrder, isReordering]}
                 keyExtractor={(item) => item.id.toString()}
                 numColumns={2}
                 columnWrapperStyle={styles.row}

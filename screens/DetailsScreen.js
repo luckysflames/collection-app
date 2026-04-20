@@ -27,6 +27,7 @@ import FolderSelectModal from "../components/screens/Details/Modals/FolderSelect
 import { DetailsPoster } from "../components/screens/Details/DetailsPoster";
 import { HeroPoster } from "../components/ui/HeroPoster";
 import { useImagePicker } from "../hooks/useImagePicker";
+import { WarnModal } from "../components/ui/WarnModal";
 
 export default function DetailsScreen({ route, navigation }) {
     const insets = useSafeAreaInsets();
@@ -37,10 +38,12 @@ export default function DetailsScreen({ route, navigation }) {
     const [isStatusModalVisible, setStatusModalVisible] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [isFolderModalVisible, setFolderModalVisible] = useState(false);
+    const [isInfoModalVisible, setInfoModalVisible] = useState(false);
 
     // Данные из API и стора
     const { data: fullDetails, loading } = useFetchDetails(item.id);
     const myCollection = useCollectionStore((state) => state.myCollection);
+    const setUserScore = useCollectionStore((state) => state.setUserScore); // Достаем метод
 
     // Подготовка данных для отображения
     const initialSavedItem = useMemo(
@@ -167,9 +170,19 @@ export default function DetailsScreen({ route, navigation }) {
                         onUpdateNotes={(text) =>
                             updateCard(item.id, { userNotes: text })
                         }
+                        onSetScore={(score) => setUserScore(item.id, score)}
+                        onInfoPress={() => setInfoModalVisible(true)}
                     />
                 )}
             </View>
+
+            <WarnModal
+                visible={isInfoModalVisible}
+                title="О личной оценке"
+                message="Эта оценка видна только вам. Она помогает структурировать вашу личную коллекцию и никак не влияет на глобальный рейтинг произведения."
+                type="info"
+                onClose={() => setInfoModalVisible(false)}
+            />
 
             {/* Модалка выбора папок */}
             <FolderSelectModal

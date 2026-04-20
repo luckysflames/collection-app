@@ -60,11 +60,18 @@ export default function FolderDetailScreen({ route, navigation }) {
         editForm,
         updateField,
         pickImage,
-        handleSave,
+        handleSave, // Это наш обновленный метод
         handleCancel,
         deleteEverything,
         deleteFolderOnly,
-    } = useFolderActions(folder, folderItems);
+    } = useFolderActions(
+        folder,
+        folderItems,
+        isReordering,
+        reorderBuffer,
+        setIsReordering,
+        setReorderBuffer,
+    );
 
     // --- HANDLERS ---
     const onConfirmDeleteAll = () => {
@@ -79,11 +86,12 @@ export default function FolderDetailScreen({ route, navigation }) {
 
     const handleCardPress = (item) => {
         if (isReordering) {
-            setReorderBuffer((prev) =>
-                prev.includes(item.id)
-                    ? prev.filter((id) => id !== item.id)
-                    : [...prev, item.id],
-            );
+            setReorderBuffer((prev) => {
+                if (prev.includes(item.id)) {
+                    return prev.filter((id) => id !== item.id);
+                }
+                return [...prev, item.id];
+            });
             return;
         }
 
@@ -100,14 +108,19 @@ export default function FolderDetailScreen({ route, navigation }) {
         }
     };
 
-    const toggleReordering = () => {
+    // Внутри FolderDetailScreen или вашего хука действий
+    const handleToggleReorder = () => {
         if (isReordering) {
-            if (reorderBuffer.length > 0) {
-                updateFolderOrder(folderId, reorderBuffer);
-            }
-            setReorderBuffer([]);
+            // Мы нажимаем "Применить порядок" (завершаем сортировку)
+            // 1. Сохраняем накопленный reorderBuffer в стор
+            handleSave(true, reorderBuffer);
+
+            // 2. Выключаем режим
+            setIsReordering(false);
+        } else {
+            // Мы только входим в режим сортировки
+            setIsReordering(true);
         }
-        setIsReordering(!isReordering);
     };
 
     const handleStatusUpdate = (newStatus) => {
@@ -132,7 +145,7 @@ export default function FolderDetailScreen({ route, navigation }) {
                 reorderBuffer={reorderBuffer}
                 sortType={sortType}
                 onCardPress={handleCardPress}
-                disablePress={isEditing}
+                reorderBuffer={reorderBuffer}
                 ListHeaderComponent={
                     <FolderHeader
                         folder={folder}
@@ -149,7 +162,7 @@ export default function FolderDetailScreen({ route, navigation }) {
                         pickImage={pickImage}
                         updateField={updateField}
                         onDeletePress={() => setIsDeleteModalVisible(true)}
-                        onToggleReorder={toggleReordering}
+                        onToggleReorder={handleToggleReorder}
                         onStatusPress={() => setStatusModalVisible(true)}
                         onAddPress={() => setIsAddModalVisible(true)}
                     />

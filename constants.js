@@ -1,3 +1,7 @@
+/**
+ * --- ИКОНКИ И НАВИГАЦИЯ ---
+ */
+
 export const TAB_ICONS = {
     Поиск: {
         active: require("./assets/icons/search(active).png"),
@@ -44,8 +48,12 @@ export const SUB_CATEGORIES = [
     },
 ];
 
+/**
+ * --- СЕКЦИИ И МАППИНГ ---
+ */
+
 export const SECTION_MAPPING = {
-    movie: "Movies", // ключи теперь латинские
+    movie: "Movies",
     book: "Books",
     game: "Games",
     anime: "Anime",
@@ -58,8 +66,20 @@ export const SECTIONS = [
     { id: "game", label: "Игры" },
 ];
 
+export const SECTION_LABELS_RU = {
+    movie: "Фильмы",
+    anime: "Аниме",
+    book: "Книги",
+    game: "Игры",
+};
+
+/**
+ * --- СТАТУСЫ И ПРАВИЛА ---
+ */
+
 export const FAVORITE_STATUS = "Избранное";
 export const DEFAULT_FALLBACK_STATUS = "В планах";
+
 export const SYSTEM_STATUSES = ["Всё", "Папки"];
 export const STATUS_SELECTION_EXCLUDE = [...SYSTEM_STATUSES];
 export const PROTECTED_STATUSES = [...STATUS_SELECTION_EXCLUDE];
@@ -118,6 +138,10 @@ export const DEFAULT_STATUSES = {
     ],
 };
 
+/**
+ * --- ФОРМЫ И ДАННЫЕ ---
+ */
+
 export const INITIAL_FORM_STATE = {
     type: "movie",
     title: "",
@@ -150,9 +174,13 @@ export const INITIAL_FORM_STATE = {
     developers: "",
     platforms: "",
     duration: "",
+    userScore: 0,
 };
 
-// Названия для кнопки управления (MainControls)
+/**
+ * --- СОРТИРОВКА ---
+ */
+
 export const SORT_LABELS = {
     newest: "Сначала новые",
     oldest: "Сначала старые",
@@ -162,36 +190,30 @@ export const SORT_LABELS = {
     alphabet_desc: "От Я до А",
 };
 
-// Конфигурация уровней сортировки для SortModal
 export const SORT_TYPES = [
     { id: "date", label: "По дате", icon: "Clock" },
     { id: "rating", label: "По рейтингу", icon: "Star" },
     { id: "alphabet", label: "По алфавиту", icon: "CaseSensitive" },
 ];
 
-// Подкатегории для SortModal
 export const SORT_SUB_OPTIONS = {
     date: [
         { id: "newest", label: "Сначала новые", icon: "ArrowDownWideNarrow" },
         { id: "oldest", label: "Сначала старые", icon: "ArrowUpNarrowWide" },
     ],
     rating: [
-        {
-            id: "rating_desc",
-            label: "Сначала лучшие",
-            icon: "Star",
-        },
-        {
-            id: "rating_asc",
-            label: "Сначала худшие",
-            icon: "StarOff",
-        },
+        { id: "rating_desc", label: "Сначала лучшие", icon: "Star" },
+        { id: "rating_asc", label: "Сначала худшие", icon: "StarOff" },
     ],
     alphabet: [
         { id: "alphabet_asc", label: "От А до Я", icon: "ArrowDownAZ" },
         { id: "alphabet_desc", label: "От Я до А", icon: "ArrowUpAZ" },
     ],
 };
+
+/**
+ * --- ВНЕШНИЕ СЕРВИСЫ ---
+ */
 
 export const API_SERVICES = [
     {

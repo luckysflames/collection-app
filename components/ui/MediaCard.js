@@ -9,7 +9,7 @@ import {
     Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { BookCopy } from "lucide-react-native";
+import { BookCopy, Star } from "lucide-react-native";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
@@ -28,19 +28,18 @@ const MediaCardComponent = ({
 
     return (
         <TouchableOpacity
-            onPress={() => onPress(item)} // Передаем item здесь, чтобы в родителя handlePress был проще
+            onPress={() => onPress(item)}
             activeOpacity={0.8}
             style={styles.cardContainer}
         >
             <View style={styles.card}>
-                {/* Используем кэширование, если возможно, или просто uri */}
                 <Image
                     source={{ uri: item.image }}
                     style={styles.image}
-                    // Для ускорения загрузки мелких превью
                     fadeDuration={150}
                 />
 
+                {/* Порядковый номер (слева сверху) */}
                 {showOrderNumber && (
                     <View style={badgeStyle}>
                         <Text style={styles.orderText}>
@@ -49,9 +48,19 @@ const MediaCardComponent = ({
                     </View>
                 )}
 
+                {/* Рейтинг пользователя (справа сверху) */}
+                {/* Используем отдельный стиль или условие, чтобы не накладывалось на папку */}
+                {item.userScore > 0 && (
+                    <View style={styles.ratingBadge}>
+                        <Star size={12} color="#FFD700" fill="#FFD700" />
+                        <Text style={styles.scoreCount}>{item.userScore}</Text>
+                    </View>
+                )}
+
+                {/* Бейдж папки (справа сверху, если нет рейтинга, или чуть ниже) */}
                 {item.isFolder && (
                     <View style={styles.folderBadge}>
-                        <BookCopy size={14} color="#ffffff" />
+                        <BookCopy size={12} color="#ffffff" />
                         <Text style={styles.folderCount}>{itemCount}</Text>
                     </View>
                 )}
@@ -75,6 +84,7 @@ const MediaCardComponent = ({
 export const MediaCard = memo(MediaCardComponent, (prevProps, nextProps) => {
     return (
         prevProps.item.id === nextProps.item.id &&
+        prevProps.item.userScore === nextProps.item.userScore &&
         prevProps.orderNumber === nextProps.orderNumber &&
         prevProps.showOrderNumber === nextProps.showOrderNumber &&
         prevProps.itemCount === nextProps.itemCount &&
@@ -114,7 +124,7 @@ const styles = StyleSheet.create({
     orderBadge: {
         position: "absolute",
         top: 10,
-        left: 10,
+        right: 10,
         width: 26,
         height: 26,
         borderRadius: 13,
@@ -154,6 +164,21 @@ const styles = StyleSheet.create({
         fontSize: 13,
         lineHeight: 16,
     },
+    ratingBadge: {
+        position: "absolute",
+        top: 10,
+        left: 10,
+        backgroundColor: "rgba(26, 34, 50, 0.9)", // Темный фон для контраста со звездой
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 8,
+        flexDirection: "row",
+        alignItems: "center",
+        columnGap: 4,
+        zIndex: 11,
+        borderWidth: 1,
+        borderColor: "rgba(255, 215, 0, 0.3)", // Золотистая рамка
+    },
     folderBadge: {
         position: "absolute",
         top: 10,
@@ -167,5 +192,6 @@ const styles = StyleSheet.create({
         columnGap: 4,
         zIndex: 11,
     },
+    scoreCount: { color: "#FFD700", fontSize: 11, fontWeight: "bold" },
     folderCount: { color: "#fff", fontSize: 11, fontWeight: "bold" },
 });

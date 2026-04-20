@@ -208,6 +208,7 @@ const styles = StyleSheet.create({
         paddingBottom: 20,
         minHeight: 60,
     },
+    // headerLeft: { flex: 1 },
     title: {
         fontSize: 22,
         fontWeight: "bold",

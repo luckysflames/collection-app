@@ -1,6 +1,7 @@
 import React from "react";
 import { ChevronDown } from "lucide-react-native";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { SECTION_LABELS_RU, SECTION_MAPPING, SECTIONS } from "../../../../constants";
 
 export const FolderInfo = ({ folder, count, onStatusPress, onAddPress }) => {
     return (
@@ -42,7 +43,8 @@ export const FolderInfo = ({ folder, count, onStatusPress, onAddPress }) => {
             {/* Мета-бейдж */}
             <View style={styles.metaBadge}>
                 <Text style={styles.metaText}>
-                    {count} карточек • {folder.appSection || "Общее"}
+                    {count} карточек •{" "}
+                    {SECTION_LABELS_RU[folder.appSection] || "Общее"}
                 </Text>
             </View>
         </View>

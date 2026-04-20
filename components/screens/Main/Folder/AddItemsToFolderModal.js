@@ -11,8 +11,8 @@ import {
     Dimensions,
 } from "react-native";
 import { X, Check } from "lucide-react-native";
-
 import { MediaCard } from "../../../ui/MediaCard";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
@@ -23,6 +23,7 @@ export const AddItemsToFolderModal = ({
     availableItems,
     onAdd,
 }) => {
+    const insets = useSafeAreaInsets();
     const [selectedIds, setSelectedIds] = useState([]);
 
     const toggleSelect = useCallback((id) => {
@@ -33,126 +34,125 @@ export const AddItemsToFolderModal = ({
 
     const handleSave = () => {
         onAdd(selectedIds);
-        setSelectedIds([]); // Сбрасываем выбор после сохранения
-        onClose();
-    };
-
-    const handleCancel = () => {
-        setSelectedIds([]); // Сбрасываем выбор при отмене
+        setSelectedIds([]);
         onClose();
     };
 
     return (
-        <Modal
-            visible={visible}
-            animationType="slide"
-            presentationStyle="fullScreen" // Для iOS лучше смотрится как фуллскрин
-        >
-            <SafeAreaView style={styles.container}>
-                <StatusBar barStyle="light-content" />
+        <Modal visible={visible} animationType="slide" statusBarTranslucent>
+            <View style={styles.container}>
+                <SafeAreaView style={styles.safeArea}>
+                    <StatusBar barStyle="light-content" />
 
-                <View style={styles.header}>
-                    <TouchableOpacity
-                        onPress={handleCancel}
-                        style={styles.closeIcon}
-                    >
-                        <X color="#fff" size={24} />
-                    </TouchableOpacity>
-                    <Text style={styles.title}>Добавить в папку</Text>
-                    <TouchableOpacity
-                        onPress={handleSave}
-                        disabled={selectedIds.length === 0}
-                    >
-                        <Text
-                            style={[
-                                styles.saveBtn,
-                                selectedIds.length === 0 && styles.disabledBtn,
-                            ]}
+                    <View style={[styles.header, {paddingTop: insets.top + 20}]}>
+                        <TouchableOpacity
+                            onPress={onClose}
+                            style={styles.headerIcon}
                         >
-                            Готово
-                        </Text>
-                    </TouchableOpacity>
-                </View>
+                            <X color="#fff" size={24} />
+                        </TouchableOpacity>
 
-                <FlatList
-                    data={availableItems}
-                    numColumns={2}
-                    keyExtractor={(item) => item.id.toString()}
-                    contentContainerStyle={styles.listContent}
-                    renderItem={({ item }) => (
-                        <View style={styles.cardWrapper}>
-                            <MediaCard
-                                item={item}
-                                onPress={() => toggleSelect(item.id)}
-                            />
-                            {/* Оверлей выбора */}
-                            {selectedIds.includes(item.id) && (
-                                <TouchableOpacity
-                                    activeOpacity={0.8}
-                                    style={styles.overlay}
-                                    onPress={() => toggleSelect(item.id)}
-                                >
-                                    <View style={styles.checkCircle}>
-                                        <Check
-                                            color="#fff"
-                                            size={18}
-                                            strokeWidth={4}
-                                        />
-                                    </View>
-                                </TouchableOpacity>
-                            )}
-                        </View>
-                    )}
-                    ListEmptyComponent={
-                        <View style={styles.emptyContainer}>
-                            <Text style={styles.emptyText}>
-                                Все подходящие карточки уже в этой папке
+                        <Text style={styles.title}>Добавить в папку</Text>
+
+                        <TouchableOpacity
+                            onPress={handleSave}
+                            disabled={selectedIds.length === 0}
+                            style={styles.headerIcon}
+                        >
+                            <Text
+                                style={[
+                                    styles.saveBtn,
+                                    selectedIds.length === 0 &&
+                                        styles.disabledBtn,
+                                ]}
+                            >
+                                Готово
                             </Text>
-                        </View>
-                    }
-                />
-            </SafeAreaView>
+                        </TouchableOpacity>
+                    </View>
+
+                    <FlatList
+                        data={availableItems}
+                        numColumns={2}
+                        keyExtractor={(item) => item.id.toString()}
+                        contentContainerStyle={styles.listContent}
+                        columnWrapperStyle={styles.columnWrapper}
+                        renderItem={({ item }) => {
+                            const isSelected = selectedIds.includes(item.id);
+                            return (
+                                <TouchableOpacity
+                                    activeOpacity={0.9}
+                                    onPress={() => toggleSelect(item.id)}
+                                    style={styles.cardWrapper}
+                                >
+                                    {/* pointerEvents="none" иногда блокирует всё. Убираем его. */}
+                                    <View pointerEvents="none">
+                                        <MediaCard item={item} />
+                                    </View>
+
+                                    {isSelected && (
+                                        <View style={styles.overlay}>
+                                            <View style={styles.checkCircle}>
+                                                <Check
+                                                    color="#fff"
+                                                    size={20}
+                                                    strokeWidth={4}
+                                                />
+                                            </View>
+                                        </View>
+                                    )}
+                                </TouchableOpacity>
+                            );
+                        }}
+                    />
+                </SafeAreaView>
+            </View>
         </Modal>
     );
 };
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#050B18" },
+    safeArea: { flex: 1 },
     header: {
         flexDirection: "row",
         justifyContent: "space-between",
-        paddingHorizontal: 20,
-        paddingVertical: 15,
         alignItems: "center",
+        paddingHorizontal: 16,
+        paddingVertical: 12,
         borderBottomWidth: 1,
         borderBottomColor: "rgba(255,255,255,0.05)",
     },
-    closeIcon: { padding: 4 },
+    headerIcon: {
+        minWidth: 50,
+        alignItems: "center",
+    },
     title: { color: "#fff", fontSize: 18, fontWeight: "700" },
     saveBtn: { color: "#7D8AFF", fontSize: 16, fontWeight: "600" },
     disabledBtn: { color: "#4E5564", opacity: 0.6 },
 
     listContent: {
-        paddingHorizontal: 8,
+        paddingHorizontal: 12,
         paddingTop: 20,
         paddingBottom: 40,
     },
+    columnWrapper: {
+        justifyContent: "space-between",
+    },
     cardWrapper: {
-        flex: 0.5,
-        alignItems: "center", // Центрируем карточку и оверлей
-        // marginBottom: 16, // Тот же отступ, что в MediaCard
+        width: cardWidth,
         position: "relative",
+        marginBottom: 16,
     },
     overlay: {
-        position: "absolute",
-        // Вместо растягивания по родителю, задаем размеры карточки:
-        width: cardWidth,
-        height: 280, // Высота из твоего MediaCard
+        // Ключевой момент: оверлей растягивается на весь cardWrapper
+        ...StyleSheet.absoluteFillObject,
         backgroundColor: "rgba(125, 138, 255, 0.4)",
         borderRadius: 20,
         justifyContent: "center",
         alignItems: "center",
         zIndex: 10,
+        marginBottom: 15,
     },
     checkCircle: {
         width: 36,
@@ -161,23 +161,5 @@ const styles = StyleSheet.create({
         backgroundColor: "#7D8AFF",
         justifyContent: "center",
         alignItems: "center",
-        elevation: 5,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-    },
-    emptyContainer: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        marginTop: 100,
-        paddingHorizontal: 40,
-    },
-    emptyText: {
-        color: "#8E94A4",
-        textAlign: "center",
-        fontSize: 15,
-        lineHeight: 22,
     },
 });
