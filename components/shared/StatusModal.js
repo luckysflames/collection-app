@@ -136,10 +136,6 @@ export default function StatusModal({
                         </Text>
                     </TouchableOpacity>
                 )}
-
-                <TouchableOpacity style={styles.doneBtn} onPress={onClose}>
-                    <Text style={styles.doneBtnText}>Готово</Text>
-                </TouchableOpacity>
             </View>
         </BottomSheet>
     );
@@ -149,7 +145,7 @@ const styles = StyleSheet.create({
     sheetContainer: {
         backgroundColor: "#0B1534",
         paddingHorizontal: 20,
-        maxHeight: SCREEN_HEIGHT * 0.8, // Ограничиваем общую высоту модалки
+        maxHeight: SCREEN_HEIGHT * 0.6, // Ограничиваем общую высоту модалки
     },
     header: {
         color: "#fff",
@@ -210,11 +206,9 @@ const styles = StyleSheet.create({
     },
     footer: {
         marginTop: 10,
-        paddingBottom: 5,
     },
     removeBtn: {
         flexDirection: "row",
-        marginBottom: 10,
         alignItems: "center",
         justifyContent: "center",
         padding: 16,
@@ -227,16 +221,5 @@ const styles = StyleSheet.create({
         color: "#FF4B4B",
         fontSize: 15,
         fontWeight: "700",
-    },
-    doneBtn: {
-        alignItems: "center",
-        padding: 16,
-        backgroundColor: "#7D8AFF",
-        borderRadius: 20,
-    },
-    doneBtnText: {
-        color: "#fff",
-        fontSize: 16,
-        fontWeight: "bold",
     },
 });

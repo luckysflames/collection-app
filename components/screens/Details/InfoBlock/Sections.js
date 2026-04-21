@@ -13,7 +13,7 @@ export const AnimeQuickData = ({ data }) => {
                     <View style={styles.dot} />
                 </>
             )}
-            <Text style={styles.metaText}>{formatKind(data.kind)}</Text>
+            <Text style={styles.metaText}>{formatKind(data.animeKind)}</Text>
             <View style={styles.dot} />
             <Text style={styles.metaText}>{formatRating(data.rating)}</Text>
         </View>

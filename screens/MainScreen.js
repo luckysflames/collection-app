@@ -112,6 +112,7 @@ export default function MainScreen({ route, navigation }) {
             <ScreenHeader
                 title={displayTitle}
                 onAddPress={() => setIsFolderModalVisible(true)}
+                onBack={() => navigation.goBack()}
             />
 
             <CategoryChips

@@ -1,8 +1,15 @@
+// InfoStats.js
 import React from "react";
 import { View, Text } from "react-native";
-
 import { styles } from "./InfoBlock.styles";
 import { formatDate } from "./utils";
+import {
+    ANIME_STATUSES,
+    MOVIE_STATUSES,
+    ANIME_RATINGS,
+    ESRB_RATINGS,
+    BOOK_MATURITY_RATINGS,
+} from "../../../../constants";
 
 const StatSubItem = ({ label, value }) => (
     <View style={styles.subItem}>
@@ -14,7 +21,42 @@ const StatSubItem = ({ label, value }) => (
 export const InfoStats = ({ displayData }) => {
     if (!displayData) return null;
 
-    // Универсальная логика для даты/периода
+    // Универсальный помощник для поиска человеческого названия по ID
+    const getLabelById = (id, options) => {
+        if (!id) return "—";
+        const found = options.find((opt) => opt.id === id);
+        return found ? found.label : id; // Если не нашли в списке, вернем сам ID
+    };
+
+    // --- ФОРМАТИРОВАНИЕ ЗНАЧЕНИЙ ---
+
+    const formatDuration = (val, type) => {
+        if (!val || val === "?" || val === "—") return "—";
+        switch (type) {
+            case "movie":
+                return `${val} мин.`;
+            case "anime":
+                return `по ~${val} мин.`;
+            case "game":
+                return `${val} ч.`;
+            default:
+                return val;
+        }
+    };
+
+    const formatBudget = (val) => {
+        if (!val || val === "?" || val === "—") return "—";
+        // Убираем пробелы и запятые (могут быть от toLocaleString)
+        const cleaned = val.toString().replace(/[\s,]/g, "");
+        // Если уже есть знак $, оставляем, если нет — добавляем
+        return cleaned.includes("$") ? cleaned : `$${cleaned}`;
+    };
+
+    const formatPages = (val) => {
+        if (!val || val === "?" || val === "—") return "—";
+        return `${val} стр.`;
+    };
+
     const getPeriod = () => {
         if (displayData.type === "anime") {
             return `${formatDate(displayData.airedOn)} — ${formatDate(displayData.releasedOn) || "..."}`;
@@ -23,19 +65,23 @@ export const InfoStats = ({ displayData }) => {
     };
 
     const getAirStatus = () => {
-        const s =
-            displayData.airingStatus ||
-            displayData.movieStatus ||
-            displayData.status;
-        if (!s) return "—";
-        if (s === "released" || s === "finished") return "Вышло";
-        if (s === "ongoing") return "Онгоинг";
-        return s;
+        if (displayData.type === "anime") {
+            return getLabelById(
+                displayData.animeStatus || displayData.status,
+                ANIME_STATUSES,
+            );
+        }
+        if (displayData.type === "movie") {
+            return getLabelById(
+                displayData.movieStatus || displayData.status,
+                MOVIE_STATUSES,
+            );
+        }
+        return displayData.status || "—";
     };
 
     return (
         <View style={styles.statsGrid}>
-            {/* Верхняя строка: Дата и (Бюджет для фильмов или Страницы для книг) */}
             <View
                 style={{
                     flexDirection: "row",
@@ -52,7 +98,10 @@ export const InfoStats = ({ displayData }) => {
                 />
 
                 {displayData.type === "movie" && (
-                    <StatSubItem label="Бюджет" value={displayData.budget} />
+                    <StatSubItem
+                        label="Бюджет"
+                        value={formatBudget(displayData.budget)}
+                    />
                 )}
                 {displayData.type === "game" && (
                     <StatSubItem
@@ -61,15 +110,16 @@ export const InfoStats = ({ displayData }) => {
                     />
                 )}
                 {displayData.type === "book" && (
-                    <StatSubItem label="Объем" value={displayData.pageCount} />
+                    <StatSubItem
+                        label="Объем"
+                        value={formatPages(displayData.pageCount)}
+                    />
                 )}
             </View>
 
             <View style={styles.statRowSeparator} />
 
-            {/* Нижняя сетка */}
             <View style={styles.statSubGrid}>
-                {/* Эпизоды только для аниме */}
                 {displayData.type === "anime" && (
                     <StatSubItem
                         label="Эпизоды"
@@ -77,7 +127,6 @@ export const InfoStats = ({ displayData }) => {
                     />
                 )}
 
-                {/* Длительность / Время прохождения */}
                 {displayData.type !== "book" && (
                     <StatSubItem
                         label={
@@ -85,16 +134,18 @@ export const InfoStats = ({ displayData }) => {
                                 ? "Время"
                                 : "Длительность"
                         }
-                        value={displayData.duration}
+                        value={formatDuration(
+                            displayData.duration,
+                            displayData.type,
+                        )}
                     />
                 )}
 
-                {/* Статус (упростили логику) */}
                 {displayData.type === "game" ? (
                     <StatSubItem label="ESRB" value={displayData.esrb} />
                 ) : displayData.type === "book" ? (
                     <StatSubItem
-                        label="maturity"
+                        label="Возраст"
                         value={displayData.maturityRating}
                     />
                 ) : (

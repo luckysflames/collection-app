@@ -1,47 +1,34 @@
+// FolderEditForm.js
 import React from "react";
-import {
-    View,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    StyleSheet,
-} from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import CommonField from "../../AddCard/Fields/CommonField";
 import { Check, List, Trash2 } from "lucide-react-native";
-
-const EditInput = ({ label, value, onChange, placeholder, multiline }) => (
-    <View style={styles.inputWrapper}>
-        <Text style={styles.inputLabel}>{label}</Text>
-        <TextInput
-            style={multiline ? styles.descriptionInput : styles.titleInput}
-            value={value}
-            onChangeText={onChange}
-            placeholder={placeholder}
-            placeholderTextColor="#4E5565"
-            selectionColor="#7D8AFF"
-            multiline={multiline}
-        />
-    </View>
-);
 
 export const FolderEditForm = ({
     form,
+    disableReorder,
     updateField,
     onDelete,
     isReordering,
     onToggleReorder,
 }) => (
     <View style={styles.container}>
-        <EditInput
+        {/* Используем CommonField вместо EditInput */}
+        <CommonField
             label="Название"
-            value={form.title}
-            onChange={(v) => updateField("title", v)}
+            placeholder="Введите название папки"
+            form={form}
+            updateField={updateField}
+            fieldName="title"
         />
-        <View style={{ height: 16 }} />
-        <EditInput
+
+        <CommonField
             label="Описание"
-            value={form.description}
-            onChange={(v) => updateField("description", v)}
-            multiline
+            placeholder="О чем эта папка?"
+            form={form}
+            updateField={updateField}
+            fieldName="description"
+            multiline // Теперь это поле будет растягиваться
         />
 
         <TouchableOpacity style={styles.deleteButton} onPress={onDelete}>
@@ -50,8 +37,13 @@ export const FolderEditForm = ({
         </TouchableOpacity>
 
         <TouchableOpacity
-            style={[styles.reorderBtn, isReordering && styles.reorderBtnActive]}
+            style={[
+                styles.reorderBtn,
+                isReordering && styles.reorderBtnActive,
+                disableReorder && { opacity: 0.3 },
+            ]}
             onPress={onToggleReorder}
+            disabled={disableReorder}
         >
             {isReordering ? (
                 <Check size={20} color="#fff" />
@@ -70,32 +62,13 @@ export const FolderEditForm = ({
 );
 
 const styles = StyleSheet.create({
-    container: { width: "100%", paddingHorizontal: 20 },
-    inputWrapper: {
-        backgroundColor: "rgba(255, 255, 255, 0.04)",
-        borderRadius: 12,
-        padding: 12,
-        borderWidth: 1,
-        borderColor: "rgba(255, 255, 255, 0.08)",
-    },
-    inputLabel: {
-        fontSize: 10,
-        color: "#7D8AFF",
-        fontWeight: "700",
-        marginBottom: 4,
-    },
-    titleInput: { fontSize: 18, fontWeight: "700", color: "#fff" },
-    descriptionInput: {
-        fontSize: 14,
-        color: "#D1D5DB",
-        minHeight: 40,
-        textAlignVertical: "top",
-    },
+    container: { width: "100%", paddingHorizontal: 20, paddingTop: 20 },
+    // Старые стили инпутов удалены — они теперь внутри CommonField
     deleteButton: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        marginTop: 24,
+        marginTop: 8, // Немного уменьшил, так как у CommonField есть свой marginBottom
         padding: 12,
         borderRadius: 12,
         backgroundColor: "rgba(255, 79, 79, 0.1)",

@@ -67,7 +67,6 @@ export const InfoBlock = ({
             <View style={styles.headerRow}>
                 <Text style={styles.title}>{displayData.title}</Text>
                 <TouchableOpacity onPress={() => setModalVisible(true)}>
-                    {/* <Text style={styles.infoIconText}>ⓘ</Text> */}
                     <Info color="#7D8AFF" size={25} />
                 </TouchableOpacity>
             </View>

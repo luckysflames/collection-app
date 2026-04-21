@@ -1,37 +1,28 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 
-import { useMediaCategories } from "../../../hooks/useMediaCategories";
-import { STATUS_SELECTION_EXCLUDE } from "../../../constants";
-import ImageUploader from "../../shared/ImageUploader";
+// Компоненты полей
 import CommonField from "../AddCard/Fields/CommonField";
 import MovieFields from "../AddCard/Fields/MovieFields";
 import AnimeFields from "../AddCard/Fields/AnimeFields";
 import BookFields from "../AddCard/Fields/BookFields";
 import GameFields from "../AddCard/Fields/GameFields";
-import StatusPicker from "../../screens/AddCard/StatusPicker";
+
+// Маппинг специфичных секций для удобства
+const FIELD_COMPONENTS = {
+    movie: MovieFields,
+    anime: AnimeFields,
+    book: BookFields,
+    game: GameFields,
+};
 
 export const EditForm = ({ form, updateField, type }) => {
-    // Получаем категории для StatusPicker
-    const { statuses } = useMediaCategories(
-        type === "movie"
-            ? "Фильмы"
-            : type === "anime"
-              ? "Аниме"
-              : type === "game"
-                ? "Игры"
-                : "Книги",
-    );
-
-    // console.log('Current Form Status:', form.status, 'Available Categories:', CATEGORIES);
-
-    const filteredStatuses = statuses.filter(
-        (s) => !STATUS_SELECTION_EXCLUDE.includes(s),
-    );
+    // Выбираем нужный компонент на основе типа
+    const SpecificFields = FIELD_COMPONENTS[type];
 
     return (
         <View style={styles.container}>
-            {/* 2. Название */}
+            {/* Название — общее для всех */}
             <CommonField
                 placeholder="Название"
                 form={form}
@@ -39,8 +30,8 @@ export const EditForm = ({ form, updateField, type }) => {
                 fieldName="title"
             />
 
-            {/* 3. Год (если не аниме, как в AddCardScreen) */}
-            {!(type === "anime") && (
+            {/* Поле года скрыто для аниме, так как там свои даты начала/конца */}
+            {type !== "anime" && (
                 <CommonField
                     placeholder="Дата выхода (полная или год)"
                     form={form}
@@ -49,21 +40,12 @@ export const EditForm = ({ form, updateField, type }) => {
                 />
             )}
 
-            {/* 4. Специфичные поля */}
-            {type === "movie" && (
-                <MovieFields form={form} updateField={updateField} />
-            )}
-            {type === "anime" && (
-                <AnimeFields form={form} updateField={updateField} />
-            )}
-            {type === "book" && (
-                <BookFields form={form} updateField={updateField} />
-            )}
-            {type === "game" && (
-                <GameFields form={form} updateField={updateField} />
+            {/* Отрисовка специфичных полей (Movie, Anime, Book или Game) */}
+            {SpecificFields && (
+                <SpecificFields form={form} updateField={updateField} />
             )}
 
-            {/* 5. Общие поля */}
+            {/* Общие поля в конце */}
             <CommonField
                 placeholder="Жанры (через запятую)"
                 form={form}
@@ -78,26 +60,12 @@ export const EditForm = ({ form, updateField, type }) => {
                 fieldName="description"
                 multiline
             />
-
-            {/* 6. Статус */}
-            <StatusPicker
-                categories={filteredStatuses}
-                currentStatus={form.status}
-                type={type}
-                onSelect={(status) => updateField("status", status)}
-            />
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { gap: 5 },
-    label: {
-        color: "#8E94A4",
-        fontSize: 12,
-        marginTop: 15,
-        marginBottom: 5,
-        textTransform: "uppercase",
-        fontWeight: "700",
+    container: {
+        gap: 12,
     },
 });

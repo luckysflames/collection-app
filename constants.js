@@ -153,17 +153,18 @@ export const INITIAL_FORM_STATE = {
     japaneseTitle: "",
     animeKind: "tv",
     rating: "pg_13",
+    animeStatus: "ongoing",
     airedOn: "",
     releasedOn: "",
     episodes: "",
     episodesAired: "",
     studios: "",
     pageCount: "",
-    maturity: "",
+    maturity: "not_mature",
     authors: "",
     publisher: "",
     metacritic: "",
-    esrb: "",
+    esrb: "e",
     developers: "",
     platforms: "",
     duration: "",
@@ -233,4 +234,63 @@ export const API_SERVICES = [
         url: "https://books.google.com",
         icon: "book-outline",
     },
+];
+
+/**
+ * --- ОГРАНИЧЕННЫЕ ЗНАЧЕНИЯ ПОЛЕЙ ---
+ */
+
+// Рейтинги аниме (из Shikimori)
+export const ANIME_RATINGS = [
+    { id: "g", label: "G" },
+    { id: "pg", label: "PG" },
+    { id: "pg_13", label: "PG-13" },
+    { id: "r", label: "R" },
+    { id: "r_plus", label: "R+" },
+    { id: "rx", label: "Rx" },
+];
+
+// Типы аниме (kind)
+export const ANIME_KINDS = [
+    { id: "tv", label: "ТВ" },
+    { id: "movie", label: "Фильм" },
+    { id: "ova", label: "OVA" },
+    { id: "ona", label: "ONA" },
+    { id: "special", label: "Спешл" },
+    { id: "music", label: "Клип" },
+];
+
+// Статусы аниме
+export const ANIME_STATUSES = [
+    { id: "ongoing", label: "Онгоинг" },
+    { id: "released", label: "Вышло" },
+    { id: "anounced", label: "Анонсировано" },
+];
+
+// Статусы фильмов
+export const MOVIE_STATUSES = [
+    { id: "rumored", label: "Слухи" },
+    { id: "planned", label: "Планируется" },
+    { id: "in_production", label: "В производстве" },
+    { id: "post_production", label: "Пост-продакшн" },
+    { id: "released", label: "Вышло" },
+    { id: "canceled", label: "Отменено" },
+];
+
+// Рейтинги ESRB для игр
+export const ESRB_RATINGS = [
+    { id: "ec", label: "EC (Early Childhood)" },
+    { id: "e", label: "E (Everyone)" },
+    { id: "e10", label: "E10+ (Everyone 10+)" },
+    { id: "t", label: "T (Teen)" },
+    { id: "m", label: "M (Mature 17+)" },
+    { id: "ao", label: "AO (Adults Only 18+)" },
+    { id: "rp", label: "RP (Rating Pending)" },
+];
+
+// Возрастные рейтинги для книг
+export const BOOK_MATURITY_RATINGS = [
+    { id: "not_mature", label: "Для всех" },
+    { id: "teen", label: "Для подростков (13+)" },
+    { id: "mature", label: "Взрослые (18+)" },
 ];

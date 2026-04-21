@@ -3,6 +3,8 @@ import { View } from "react-native";
 
 import { formStyles } from "../styles/formStyles";
 import CommonField from "./CommonField";
+import SelectField from "./SelectField";
+import { BOOK_MATURITY_RATINGS } from "../../../../constants";
 
 export default function BookFields({ form, updateField }) {
     return (
@@ -28,12 +30,13 @@ export default function BookFields({ form, updateField }) {
                 </View>
 
                 <View style={{ flex: 1 }}>
-                    <CommonField
+                    <SelectField
                         label="Возраст"
-                        placeholder="18+"
+                        placeholder="Выберите рейтинг"
                         form={form}
                         updateField={updateField}
                         fieldName="maturity"
+                        options={BOOK_MATURITY_RATINGS}
                     />
                 </View>
             </View>

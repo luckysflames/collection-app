@@ -65,6 +65,7 @@ export const FolderHeader = memo((props) => {
                     {isEditing ? (
                         <FolderEditForm
                             form={editForm}
+                            disableReorder={folderItems.length < 2}
                             updateField={updateField}
                             onDelete={onDeletePress}
                             isReordering={isReordering}

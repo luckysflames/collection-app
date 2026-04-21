@@ -3,6 +3,8 @@ import { View } from "react-native";
 
 import { formStyles } from "../styles/formStyles";
 import CommonField from "./CommonField";
+import SelectField from "./SelectField";
+import { ESRB_RATINGS } from "../../../../constants";
 
 export default function GameFields({ form, updateField }) {
     return (
@@ -20,12 +22,13 @@ export default function GameFields({ form, updateField }) {
                 </View>
 
                 <View style={{ flex: 1 }}>
-                    <CommonField
+                    <SelectField
                         label="ESRB рейтинг"
-                        placeholder="E10+"
+                        placeholder="Выберите рейтинг"
                         form={form}
                         updateField={updateField}
                         fieldName="esrb"
+                        options={ESRB_RATINGS}
                     />
                 </View>
             </View>

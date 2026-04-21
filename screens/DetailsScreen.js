@@ -5,11 +5,8 @@ import {
     Text,
     StyleSheet,
     ActivityIndicator,
-    TouchableOpacity,
-    Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Check, ChevronLeft, Folder, Pen, Star, X } from "lucide-react-native";
 
 // Hooks
 import { useFetchDetails } from "../hooks/useFetchDetails";
@@ -19,33 +16,30 @@ import { useDetailsActions } from "../hooks/useDetailsActions";
 import { useCollectionStore } from "../store/useCollectionStore";
 
 // Components
-import { BaseHeroLayout } from "../components/ui/BaseHeroLayout";
-import StatusModal from "../components/shared/StatusModal";
 import { ContentSection } from "../components/screens/Details/ContentSection";
 import { EditSection } from "../components/screens/Details/EditSection";
-import FolderSelectModal from "../components/screens/Details/Modals/FolderSelectModal";
-import { DetailsPoster } from "../components/screens/Details/DetailsPoster";
-import { HeroPoster } from "../components/ui/HeroPoster";
 import { useImagePicker } from "../hooks/useImagePicker";
-import { WarnModal } from "../components/ui/WarnModal";
+import { HeaderSection } from "../components/screens/Details/HeaderSection";
+import { DetailsModals } from "../components/screens/Details/Modals/DetailsModals";
+import { prepareDataForSave } from "../utils/prepareDetailsData";
 
 export default function DetailsScreen({ route, navigation }) {
     const insets = useSafeAreaInsets();
     const { item, category } = route.params;
     const { pickImage } = useImagePicker();
 
-    // Состояния модалок и режима редактирования
-    const [isStatusModalVisible, setStatusModalVisible] = useState(false);
+    // 1. Единое состояние для всех модалок
+    const [modals, setModals] = useState({
+        status: false,
+        folder: false,
+        info: false,
+    });
     const [isEditing, setIsEditing] = useState(false);
-    const [isFolderModalVisible, setFolderModalVisible] = useState(false);
-    const [isInfoModalVisible, setInfoModalVisible] = useState(false);
 
-    // Данные из API и стора
     const { data: fullDetails, loading } = useFetchDetails(item.id);
     const myCollection = useCollectionStore((state) => state.myCollection);
-    const setUserScore = useCollectionStore((state) => state.setUserScore); // Достаем метод
+    const setUserScore = useCollectionStore((state) => state.setUserScore);
 
-    // Подготовка данных для отображения
     const initialSavedItem = useMemo(
         () => myCollection.find((fav) => String(fav.id) === String(item.id)),
         [myCollection, item.id],
@@ -53,7 +47,6 @@ export default function DetailsScreen({ route, navigation }) {
 
     const displayData = useDetailsData(item, fullDetails, initialSavedItem);
 
-    // Действия (удаление, обновление, папки)
     const {
         savedItem,
         isInCollection,
@@ -62,23 +55,17 @@ export default function DetailsScreen({ route, navigation }) {
         handleStatusUpdate,
         handleToggleFavorite,
         updateCard,
-        deleteCard, // Используем имя из стора через хук
+        deleteCard,
     } = useDetailsActions(item, displayData, category);
 
     const isFavorite = !!savedItem?.isFavorite;
 
-    // Форма редактирования
     const [editForm, updateField] = useEditForm(isEditing, {
         ...displayData,
         status: displayData.status || savedItem?.status || "",
     });
 
-    const handleSave = (finalData) => {
-        updateCard(item.id, finalData);
-        setIsEditing(false);
-    };
-
-    // Логика отображения папок
+    // Вспомогательные переменные для верстки
     const parentFolders = useMemo(() => {
         const ids = savedItem?.parentFolderIds || [];
         return myCollection.filter((f) => ids.includes(f.id));
@@ -90,59 +77,38 @@ export default function DetailsScreen({ route, navigation }) {
         return `В папках: ${parentFolders.length}`;
     }, [parentFolders]);
 
-    // Функция-обертка для экрана деталей
-    const handlePickImage = async () => {
-        const uri = await pickImage([240, 340]); // передаем нужные пропорции
-        if (uri) {
-            updateField("image", uri);
-        }
-    };
-
     const isAnyFolderSelected = parentFolders.length > 0;
+    const cardType = item.type || savedItem?.type || category;
+
+    // Обертка для сохранения, которую мы передаем в Header и EditSection
+    const onSaveAction = () => {
+        // Вызываем утилиту для сборки объекта
+        const finalData = prepareDataForSave(editForm, cardType);
+        console.log("FINAL OBJECT TO SAVE:", finalData);
+        updateCard(item.id, finalData);
+        setIsEditing(false);
+    };
 
     return (
         <ScrollView style={styles.container} bounces={false}>
-            <BaseHeroLayout
+            <HeaderSection
+                isEditing={isEditing}
                 image={editForm.image || item.image}
                 insets={insets}
-                leftButton={{
-                    onPress: isEditing
+                onLeftPress={
+                    isEditing
                         ? () => setIsEditing(false)
-                        : () => navigation.goBack(),
-                    icon: isEditing ? (
-                        <X size={24} color="#fff" />
-                    ) : (
-                        <ChevronLeft size={24} color="#fff" />
-                    ),
-                    style: isEditing
-                        ? { backgroundColor: "rgba(255, 79, 79, 0.2)" }
-                        : {},
-                }}
-                // Правая кнопка: отображается, если айтем кастомный
-                rightButton={
-                    item?.isCustom || savedItem?.isCustom
-                        ? {
-                              onPress: isEditing
-                                  ? () => handleSave(editForm)
-                                  : () => setIsEditing(true),
-                              icon: isEditing ? (
-                                  <Check size={24} color="#fff" />
-                              ) : (
-                                  <Pen size={22} color="#fff" />
-                              ),
-                              style: isEditing
-                                  ? { backgroundColor: "#7D8AFF" }
-                                  : {},
-                          }
-                        : null
+                        : () => navigation.goBack()
                 }
-            >
-                <HeroPoster
-                    image={editForm.image || item.image}
-                    isEditing={isEditing}
-                    onPickImage={handlePickImage}
-                />
-            </BaseHeroLayout>
+                onRightPress={
+                    isEditing ? onSaveAction : () => setIsEditing(true)
+                }
+                onPickImage={async () => {
+                    const uri = await pickImage([240, 340]);
+                    if (uri) updateField("image", uri);
+                }}
+                showEditButton={item?.isCustom || savedItem?.isCustom}
+            />
 
             <View style={styles.infoContainer}>
                 {loading && !fullDetails && !savedItem ? (
@@ -153,7 +119,8 @@ export default function DetailsScreen({ route, navigation }) {
                     <EditSection
                         form={editForm}
                         updateField={updateField}
-                        onSave={handleSave}
+                        type={cardType}
+                        onSave={onSaveAction} // Использовать onSaveAction вместо handleSave
                         onCancel={() => setIsEditing(false)}
                     />
                 ) : (
@@ -164,46 +131,52 @@ export default function DetailsScreen({ route, navigation }) {
                         isFavorite={isFavorite}
                         folderLabel={folderLabel}
                         isAnyFolderSelected={isAnyFolderSelected}
-                        onStatusPress={() => setStatusModalVisible(true)}
-                        onFolderPress={() => setFolderModalVisible(true)}
+                        // Исправленные обработчики модалок:
+                        onStatusPress={() =>
+                            setModals((prev) => ({ ...prev, status: true }))
+                        }
+                        onFolderPress={() =>
+                            setModals((prev) => ({ ...prev, folder: true }))
+                        }
+                        onInfoPress={() =>
+                            setModals((prev) => ({ ...prev, info: true }))
+                        }
                         onToggleFavorite={handleToggleFavorite}
                         onUpdateNotes={(text) =>
                             updateCard(item.id, { userNotes: text })
                         }
                         onSetScore={(score) => setUserScore(item.id, score)}
-                        onInfoPress={() => setInfoModalVisible(true)}
                     />
                 )}
             </View>
 
-            <WarnModal
-                visible={isInfoModalVisible}
-                title="О личной оценке"
-                message="Эта оценка видна только Вам. Она помогает структурировать Вашу личную коллекцию и никак не влияет на глобальный рейтинг произведения."
-                type="info"
-                onClose={() => setInfoModalVisible(false)}
-            />
-
-            {/* Модалка выбора папок */}
-            <FolderSelectModal
-                visible={isFolderModalVisible}
-                folders={existingFolders}
-                selectedFolderIds={savedItem?.parentFolderIds || []}
-                onClose={() => setFolderModalVisible(false)}
-                onSelect={handleAddToFolder}
-                onCreateNew={() => setFolderModalVisible(false)}
-            />
-
-            {/* Модалка статуса и удаления */}
-            <StatusModal
-                visible={isStatusModalVisible}
-                category={category || "Фильмы"}
-                onClose={() => setStatusModalVisible(false)}
-                onSelect={handleStatusUpdate}
-                currentStatus={savedItem?.status}
-                removeCard={() => {
-                    deleteCard(item.id);
-                    navigation.goBack();
+            <DetailsModals
+                state={{
+                    isStatusVisible: modals.status,
+                    isFolderVisible: modals.folder,
+                    isInfoVisible: modals.info,
+                }}
+                actions={{
+                    closeStatus: () =>
+                        setModals((prev) => ({ ...prev, status: false })),
+                    closeFolder: () =>
+                        setModals((prev) => ({ ...prev, folder: false })),
+                    closeInfo: () =>
+                        setModals((prev) => ({ ...prev, info: false })),
+                }}
+                data={{
+                    category,
+                    existingFolders,
+                    parentFolderIds: savedItem?.parentFolderIds || [],
+                    currentStatus: savedItem?.status,
+                }}
+                handlers={{
+                    handleAddToFolder,
+                    handleStatusUpdate,
+                    handleDelete: () => {
+                        deleteCard(item.id);
+                        navigation.goBack();
+                    },
                 }}
             />
         </ScrollView>
@@ -225,41 +198,5 @@ const styles = StyleSheet.create({
     loaderContainer: {
         paddingVertical: 50,
         alignItems: "center",
-    },
-    addToFolderBtn: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "rgba(255, 255, 255, 0.05)",
-        alignSelf: "flex-start",
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 10,
-        marginBottom: 15,
-    },
-    favoriteBtn: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "rgba(255,255,255,0.05)",
-        alignSelf: "flex-start",
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        borderRadius: 10,
-        marginBottom: 18,
-        gap: 8,
-    },
-    favoriteBtnActive: {
-        backgroundColor: "rgba(255,215,0,0.12)",
-    },
-    favoriteBtnText: {
-        color: "#8E94A4",
-        marginLeft: 4,
-        fontSize: 13,
-        fontWeight: "600",
-    },
-    folderBtnText: {
-        color: "#8E94A4",
-        marginLeft: 8,
-        fontSize: 13,
-        fontWeight: "600",
     },
 });

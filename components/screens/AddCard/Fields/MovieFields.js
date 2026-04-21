@@ -3,6 +3,8 @@ import { View } from "react-native";
 
 import { formStyles } from "../styles/formStyles";
 import CommonField from "./CommonField";
+import SelectField from "./SelectField";
+import { MOVIE_STATUSES } from "../../../../constants";
 
 export default function MovieFields({ form, updateField }) {
     return (
@@ -18,7 +20,7 @@ export default function MovieFields({ form, updateField }) {
             <View style={formStyles.rowInputs}>
                 <View style={{ flex: 1 }}>
                     <CommonField
-                        label="Бюджет"
+                        label="Бюджет ($)"
                         placeholder="150000"
                         form={form}
                         updateField={updateField}
@@ -35,6 +37,19 @@ export default function MovieFields({ form, updateField }) {
                         updateField={updateField}
                         fieldName="duration"
                         keyboardType="numeric"
+                    />
+                </View>
+            </View>
+
+            <View style={formStyles.rowInputs}>
+                <View style={{ flex: 1 }}>
+                    <SelectField
+                        label="Статус"
+                        placeholder="Выберите статус"
+                        form={form}
+                        updateField={updateField}
+                        fieldName="movieStatus"
+                        options={MOVIE_STATUSES}
                     />
                 </View>
             </View>

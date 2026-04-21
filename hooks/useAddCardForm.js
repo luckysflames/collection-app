@@ -38,6 +38,14 @@ export const useAddCardForm = (navigation) => {
                   .filter(Boolean)
             : [];
 
+    // Извлекаем только числовое значение, убираем любые единицы (мин., стр., ч., $)
+    const extractNumeric = (value) => {
+        if (!value) return "";
+        // Извлекаем только цифры и точку
+        const match = String(value).match(/[\d.]+/);
+        return match ? match[0] : "";
+    };
+
     const updateField = (name, value) => {
         setForm((prev) => ({ ...prev, [name]: value }));
     };
@@ -46,8 +54,7 @@ export const useAddCardForm = (navigation) => {
         if (!form.title.trim()) {
             setErrorModal({
                 visible: true,
-                message:
-                    "Пожалуйста, введите название. Мы не можем добавить совсем пустую карточку в вашу коллекцию.",
+                message: "Пожалуйста, введите название.",
             });
             return;
         }
@@ -74,11 +81,11 @@ export const useAddCardForm = (navigation) => {
             case "movie":
                 extendedData = {
                     year: form.year,
-                    budget: `$${form.budget || "?"}`,
+                    budget: extractNumeric(form.budget),
                     movieStatus: form.movieStatus,
                     countries: split(form.countries),
                     companies: split(form.companies),
-                    duration: `${form.duration || "?"} мин.`,
+                    duration: extractNumeric(form.duration),
                     originalTitle: form.originalTitle,
                 };
                 break;
@@ -90,17 +97,17 @@ export const useAddCardForm = (navigation) => {
                     rating: form.rating,
                     airedOn: form.airedOn,
                     releasedOn: form.releasedOn,
-                    episodes: form.episodes,
-                    episodesAired: form.episodesAired,
+                    episodes: extractNumeric(form.episodes),
+                    episodesAired: extractNumeric(form.episodesAired),
                     studios: split(form.studios),
-                    duration: `по ~${form.duration || "?"} мин.`,
+                    duration: extractNumeric(form.duration),
                     animeStatus: form.animeStatus,
                 };
                 break;
             case "book":
                 extendedData = {
                     year: form.year,
-                    pageCount: `${form.pageCount} стр.`,
+                    pageCount: extractNumeric(form.pageCount),
                     maturityRating: form.maturity,
                     authors: split(form.authors),
                     publisher: form.publisher,
@@ -109,19 +116,20 @@ export const useAddCardForm = (navigation) => {
             case "game":
                 extendedData = {
                     year: form.year,
-                    metacritic: form.metacritic,
+                    metacritic: extractNumeric(form.metacritic),
                     esrb: form.esrb,
                     developers: split(form.developers),
                     platforms: split(form.platforms),
-                    duration: `${form.duration} ч.`,
+                    duration: extractNumeric(form.duration),
                 };
                 break;
         }
 
         const finalCard = { ...baseCard, ...extendedData };
         addToCollection(finalCard);
-        setForm(INITIAL_FORM_STATE);
 
+        // Сброс и навигация
+        setForm(INITIAL_FORM_STATE);
         navigation.navigate("Коллекция", { screen: "Дашборд" });
     };
 

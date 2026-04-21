@@ -2,6 +2,12 @@ import { useMemo } from "react";
 
 export const useDetailsData = (item, fullDetails, savedItem) => {
     const type = useMemo(() => {
+        // Проверяем явно сохраненное поле type (приоритет)
+        if (savedItem?.type) return savedItem.type;
+        if (item?.type) return item.type;
+        if (fullDetails?.type) return fullDetails.type;
+
+        // Затем проверяем boolean флаги (от API)
         if (savedItem?.isAnime || item?.isAnime || fullDetails?.isAnime)
             return "anime";
         if (savedItem?.isGame || item?.isGame || fullDetails?.isGame)
@@ -9,7 +15,7 @@ export const useDetailsData = (item, fullDetails, savedItem) => {
         if (savedItem?.isBook || item?.isBook || fullDetails?.isBook)
             return "book";
         return "movie";
-    }, [item, fullDetails]);
+    }, [item, fullDetails, savedItem]);
 
     return useMemo(() => {
         const common = {
@@ -37,7 +43,11 @@ export const useDetailsData = (item, fullDetails, savedItem) => {
             case "anime":
                 return {
                     ...common,
-                    kind: savedItem?.kind || fullDetails?.kind || item?.kind,
+                    animeKind:
+                        savedItem?.kind ||
+                        savedItem?.animeKind ||
+                        fullDetails?.kind ||
+                        item?.kind,
                     episodes:
                         savedItem?.episodes || fullDetails?.episodes || "?",
                     episodesAired:
@@ -49,10 +59,10 @@ export const useDetailsData = (item, fullDetails, savedItem) => {
                         savedItem?.releasedOn || fullDetails?.releasedOn,
                     studios: savedItem?.studios || fullDetails?.studios || [],
                     rating: savedItem?.rating || fullDetails?.rating,
-                    airingStatus:
-                        savedItem?.airingStatus ||
+                    animeStatus:
                         savedItem?.animeStatus ||
-                        fullDetails?.animeStatus,
+                        fullDetails?.animeStatus ||
+                        savedItem?.airingStatus,
                     englishTitle:
                         savedItem?.englishTitle || fullDetails?.englishTitle,
                     japaneseTitle:
