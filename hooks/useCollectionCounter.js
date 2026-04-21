@@ -6,8 +6,50 @@ export const useCollectionCounter = (
     currentSection,
     activeCategory,
     showFoldersOnly,
+    searchQuery, // Принимаем новый пропс
 ) => {
     return useMemo(() => {
+        // --- 1. ФИЛЬТРАЦИЯ ПО ПОИСКУ (ЕСЛИ ОН ЕСТЬ) ---
+        if (searchQuery && searchQuery.trim().length > 0) {
+            const query = searchQuery.toLowerCase();
+
+            return myCollection.filter((item) => {
+                // Базовая проверка раздела
+                if (item.appSection !== currentSection) return false;
+
+                // Проверка на совпадение названия
+                const matchesText =
+                    item.title?.toLowerCase().includes(query) ||
+                    item.originalTitle?.toLowerCase().includes(query);
+
+                if (!matchesText) return false;
+
+                // Учитываем текущую вкладку (категорию), чтобы цифра
+                // соответствовала тому, что пользователь видит на экране
+                if (activeCategory === "Папки") {
+                    return item.isFolder;
+                }
+                if (activeCategory === FAVORITE_STATUS) {
+                    const isFav = item.isFavorite;
+                    return showFoldersOnly ? isFav : isFav && !item.isFolder;
+                }
+                if (activeCategory !== "Всё") {
+                    // Для вкладок "Смотрю", "Запланировано" и т.д.
+                    return item.status === activeCategory;
+                }
+
+                // Для вкладки "Всё" фильтруем папки согласно режиму showFoldersOnly
+                if (activeCategory === "Всё") {
+                    return showFoldersOnly
+                        ? item.isFolder || !item.parentFolderIds?.length
+                        : !item.isFolder;
+                }
+
+                return true;
+            }).length;
+        }
+
+        // --- 2. СТАНДАРТНАЯ ЛОГИКА (БЕЗ ПОИСКА) ---
         const items = myCollection.filter(
             (item) => item.appSection === currentSection,
         );
@@ -48,5 +90,13 @@ export const useCollectionCounter = (
         }
 
         return statusItems.filter((i) => !i.isFolder).length;
-    }, [myCollection, currentSection, activeCategory, showFoldersOnly]);
+
+        // Не забудь добавить searchQuery в массив зависимостей!
+    }, [
+        myCollection,
+        currentSection,
+        activeCategory,
+        showFoldersOnly,
+        searchQuery,
+    ]);
 };

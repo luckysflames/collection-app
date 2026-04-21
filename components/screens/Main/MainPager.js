@@ -8,6 +8,7 @@ export const MainPager = forwardRef(
     (
         {
             CATEGORIES,
+            searchQuery,
             currentSection,
             myCollection,
             navigation,
@@ -39,6 +40,7 @@ export const MainPager = forwardRef(
                     <View style={{ width: SCREEN_WIDTH }}>
                         <CategoryPage
                             category={item}
+                            searchQuery={searchQuery}
                             currentSection={currentSection}
                             data={myCollection}
                             navigation={navigation}

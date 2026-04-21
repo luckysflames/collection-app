@@ -8,6 +8,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export const CategoryPage = ({
     category,
+    searchQuery,
     currentSection,
     data,
     folderOrder,
@@ -28,6 +29,7 @@ export const CategoryPage = ({
         showFoldersOnly,
         isInsideFolder,
         folderOrder,
+        searchQuery,
     });
 
     // 2. В режиме переупорядочивания оставляем порядок как есть (из filteredData)

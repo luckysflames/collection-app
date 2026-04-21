@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
     StyleSheet,
 } from "react-native";
+import { FAVORITE_STATUS, SYSTEM_STATUSES } from "../../../../constants";
 
 export const CreateFolderModal = ({
     isVisible,
@@ -15,6 +16,10 @@ export const CreateFolderModal = ({
     activeCategory,
 }) => {
     const [name, setName] = useState("");
+
+    const filteredCategory = SYSTEM_STATUSES.includes(activeCategory)
+        ? FAVORITE_STATUS
+        : activeCategory;
 
     const handleCreate = () => {
         if (name.trim()) {
@@ -27,6 +32,7 @@ export const CreateFolderModal = ({
         <Modal
             animationType="fade"
             transparent
+            statusBarTranslucent
             visible={isVisible}
             onRequestClose={onClose}
         >
@@ -34,7 +40,7 @@ export const CreateFolderModal = ({
                 <View style={styles.modalContent}>
                     <Text style={styles.modalTitle}>Новая папка</Text>
                     <Text style={styles.modalSubtitle}>
-                        Будет создана в "{activeCategory}"
+                        Будет создана в "{filteredCategory}"
                     </Text>
                     <TextInput
                         style={styles.input}

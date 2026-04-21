@@ -9,10 +9,47 @@ export const useFilteredCollection = ({
     showFoldersOnly,
     isInsideFolder,
     folderOrder,
+    searchQuery,
 }) => {
     return useMemo(() => {
         // --- 1. ФИЛЬТРАЦИЯ ---
         let filtered = data.filter((item) => {
+            // 0. ФИЛЬТР ПОИСКА (приоритет)
+            if (searchQuery && searchQuery.trim().length > 0) {
+                const query = searchQuery.toLowerCase();
+                const matchesTitle = item.title?.toLowerCase().includes(query);
+                const matchesOriginal = item.originalTitle
+                    ?.toLowerCase()
+                    .includes(query);
+
+                // 1. Сначала базовая проверка: тот ли это глобальный раздел (Anime/Movie/Game)
+                if (item.appSection !== currentSection) return false;
+
+                // 2. Если мы внутри папки, ищем только в ней
+                if (isInsideFolder) {
+                    // Здесь проверка на вхождение в папку (через folderOrder или parentFolderIds)
+                    // Но обычно если есть searchQuery, мы хотим найти элемент везде в этом разделе.
+                    // Если хочешь ограничить поиск только текущей вкладкой/категорией:
+                }
+
+                // 3. ПРОВЕРКА КАТЕГОРИИ (Чтобы не вылетало из "Смотрю", "Папки" и т.д.)
+                if (category === "Папки") {
+                    if (!item.isFolder) return false;
+                } else if (category === FAVORITE_STATUS) {
+                    if (!item.isFavorite) return false;
+                } else if (category !== "Всё") {
+                    // Если это конкретный статус (Смотрю, Брошено и т.д.)
+                    if (item.status !== category) return false;
+                }
+
+                // 4. Если это папка, и мы НЕ во вкладке "Папки" или "Всё" (с модом папок),
+                // возможно, стоит её скрыть? Зависит от твоей логики.
+                // Сейчас оставим логику "нашел — показывай".
+
+                return matchesTitle || matchesOriginal;
+            }
+
+            // --- 1. ОБЫЧНАЯ ФИЛЬТРАЦИЯ (ваш старый код) ---
             if (isInsideFolder) return true;
             if (item.appSection !== currentSection) return false;
 
@@ -110,5 +147,6 @@ export const useFilteredCollection = ({
         showFoldersOnly,
         isInsideFolder,
         folderOrder,
+        searchQuery,
     ]);
 };

@@ -5,7 +5,13 @@ import React, {
     useMemo,
     useCallback,
 } from "react";
-import { StyleSheet, View, Animated, Dimensions } from "react-native";
+import {
+    StyleSheet,
+    View,
+    Animated,
+    Dimensions,
+    TouchableOpacity,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // UI & Components
@@ -22,7 +28,13 @@ import { SortModal } from "../components/screens/Main/Modals/SortModal";
 import { useCollectionStore } from "../store/useCollectionStore";
 import { useMediaCategories } from "../hooks/useMediaCategories";
 import { useCollectionCounter } from "../hooks/useCollectionCounter";
-import { SECTIONS, DEFAULT_STATUS_BY_SECTION, SECTION_MAPPING } from "../constants";
+import {
+    SECTIONS,
+    DEFAULT_STATUS_BY_SECTION,
+    SECTION_MAPPING,
+    FAVORITE_STATUS,
+} from "../constants";
+import { FolderPlus } from "lucide-react-native";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -30,6 +42,7 @@ export default function MainScreen({ route, navigation }) {
     const insets = useSafeAreaInsets();
     const myCollection = useCollectionStore((state) => state.myCollection);
     const createFolder = useCollectionStore((state) => state.createFolder);
+    const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
 
     const currentSection =
         route.params?.category || route.params?.appSection || "movie";
@@ -41,6 +54,7 @@ export default function MainScreen({ route, navigation }) {
     const [isSortVisible, setIsSortVisible] = useState(false);
     const [isFolderModalVisible, setIsFolderModalVisible] = useState(false);
     const [showFoldersOnly, setShowFoldersOnly] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
 
     // --- Refs & Animation ---
     const chipsRef = useRef(null);
@@ -56,6 +70,7 @@ export default function MainScreen({ route, navigation }) {
         currentSection,
         activeCategory,
         showFoldersOnly,
+        searchQuery,
     );
 
     // --- Side Effects ---
@@ -111,6 +126,8 @@ export default function MainScreen({ route, navigation }) {
         <View style={[styles.mainContainer, { paddingTop: insets.top - 40 }]}>
             <ScreenHeader
                 title={displayTitle}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
                 onAddPress={() => setIsFolderModalVisible(true)}
                 onBack={() => navigation.goBack()}
             />
@@ -133,6 +150,7 @@ export default function MainScreen({ route, navigation }) {
 
             <MainPager
                 ref={pagerRef}
+                searchQuery={searchQuery}
                 listKey={`list-${currentSection}`}
                 CATEGORIES={CATEGORIES}
                 currentSection={currentSection}
@@ -147,6 +165,16 @@ export default function MainScreen({ route, navigation }) {
                     { useNativeDriver: false },
                 )}
             />
+
+            <TouchableOpacity
+                onPress={() => setIsFolderModalVisible(true)}
+                style={[
+                    styles.folderCreateBtn,
+                    { bottom: isCompactMenu ? 80 : 120 },
+                ]}
+            >
+                <FolderPlus size={28} color="#7D8AFF" />
+            </TouchableOpacity>
 
             <SortModal
                 isVisible={isSortVisible}
@@ -164,7 +192,7 @@ export default function MainScreen({ route, navigation }) {
                         activeCategory === "Всё" || activeCategory === "Папки"
                             ? DEFAULT_STATUS_BY_SECTION[
                                   SECTION_MAPPING[currentSection]
-                              ] || "Смотрю"
+                              ] || FAVORITE_STATUS
                             : activeCategory;
 
                     createFolder(name, currentSection, folderStatus, []);
@@ -177,4 +205,14 @@ export default function MainScreen({ route, navigation }) {
 
 const styles = StyleSheet.create({
     mainContainer: { flex: 1, backgroundColor: "#050B18" },
+    folderCreateBtn: {
+        position: "absolute",
+        alignItems: "center",
+        justifyContent: "center",
+        height: 60,
+        width: 60,
+        right: 20,
+        borderRadius: "50%",
+        backgroundColor: "#0B1534",
+    },
 });
