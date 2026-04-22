@@ -3,7 +3,16 @@ import { DangerItem } from "./DangerItem";
 import { useCollectionStore } from "../../../../store/useCollectionStore";
 
 export const DangerZone = ({ openConfirmModal }) => {
-    const store = useCollectionStore(); // Инициализируем здесь
+    const clearCollection = useCollectionStore(
+        (state) => state.clearCollection,
+    );
+    const resetAllStatuses = useCollectionStore(
+        (state) => state.resetAllStatuses,
+    );
+    const resetFullStore = useCollectionStore((state) => state.resetFullStore);
+    const deletionPassword = useCollectionStore(
+        (state) => state.deletionPassword,
+    );
 
     return (
         <View>
@@ -13,9 +22,10 @@ export const DangerZone = ({ openConfirmModal }) => {
                 <DangerItem
                     title="Очистить коллекцию"
                     subtitle="Удалит все карточки и папки"
+                    disabled={!deletionPassword}
                     onPress={() =>
                         openConfirmModal(
-                            store.clearCollection,
+                            clearCollection,
                             "Очистка коллекции",
                         )
                     }
@@ -23,9 +33,10 @@ export const DangerZone = ({ openConfirmModal }) => {
                 <DangerItem
                     title="Сброс статусов"
                     subtitle="Вернёт статусы к значениям по умолчанию"
+                    disabled={!deletionPassword}
                     onPress={() =>
                         openConfirmModal(
-                            store.resetAllStatuses,
+                            resetAllStatuses,
                             "Сброс категорий",
                         )
                     }
@@ -33,9 +44,10 @@ export const DangerZone = ({ openConfirmModal }) => {
                 <DangerItem
                     title="Очистить вообще всё"
                     subtitle="Полная очистка всех данных приложения"
+                    disabled={!deletionPassword}
                     isLast
                     onPress={() =>
-                        openConfirmModal(store.resetFullStore, "Полный сброс")
+                        openConfirmModal(resetFullStore, "Полный сброс")
                     }
                 />
             </View>

@@ -1,6 +1,6 @@
 import React from "react";
 import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
-import { ListFilter, Folder } from "lucide-react-native";
+import { ListFilter, Folder, Dices } from "lucide-react-native";
 import { SORT_LABELS } from "../../../constants";
 
 export const MainControls = ({
@@ -9,6 +9,7 @@ export const MainControls = ({
     onSortPress,
     showFoldersOnly,
     onToggleFolderMode,
+    onRandomPress,
 }) => (
     <View style={styles.staticControlsRow}>
         <View style={styles.countBadge}>
@@ -18,7 +19,15 @@ export const MainControls = ({
         </View>
         <View style={styles.buttonGroup}>
             <TouchableOpacity
-                style={[styles.folderBtn, showFoldersOnly && styles.activeBtn]}
+                style={styles.actionBtn}
+                onPress={onRandomPress}
+                activeOpacity={0.7}
+            >
+                <Dices size={18} color="#7D8AFF" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={[styles.actionBtn, showFoldersOnly && styles.activeBtn]}
                 onPress={onToggleFolderMode}
                 activeOpacity={0.7}
             >
@@ -54,7 +63,7 @@ const styles = StyleSheet.create({
         gap: 8,
         alignItems: "center",
     },
-    folderBtn: {
+    actionBtn: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",

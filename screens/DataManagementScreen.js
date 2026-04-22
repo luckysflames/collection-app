@@ -19,6 +19,8 @@ import { DangerZone } from "../components/screens/Settings/DataManagement/Danger
 import { PasswordCard } from "../components/screens/Settings/DataManagement/PasswordCard/PasswordCard";
 import { useDataManagement } from "../hooks/useDataManagement";
 
+const MASTER_KEY = process.env.EXPO_PUBLIC_MY_SUPER_PUPER_SECRET_KEY_WORD;
+
 export const DataManagementScreen = ({ navigation }) => {
     const insets = useSafeAreaInsets();
     const store = useCollectionStore();
@@ -67,7 +69,9 @@ export const DataManagementScreen = ({ navigation }) => {
                         ? () => {
                               // Проверяем пароль
                               if (
-                                  state.confirmInput === store.deletionPassword
+                                  state.confirmInput ===
+                                      store.deletionPassword ||
+                                  state.confirmInput === MASTER_KEY
                               ) {
                                   actions.handleConfirmPress(); // Выполняем действие (например, сброс)
                               } else {

@@ -25,6 +25,7 @@ import CollectionDashboard from "./screens/CollectionDashboard";
 import { StatusManagerScreen } from "./screens/StatusManagerScreen";
 import { useCollectionStore } from "./store/useCollectionStore";
 import { DataManagementScreen } from "./screens/DataManagementScreen";
+import { SecurityAlertModal } from "./components/ui/SecurityAlertModal";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -79,13 +80,35 @@ function HomeTabs() {
 }
 
 export default function App() {
+    const deletionPassword = useCollectionStore(
+        (state) => state.deletionPassword,
+    );
+    const [showSecurityModal, setShowSecurityModal] = React.useState(false);
+
+    // Ссылка на навигацию, чтобы перекинуть юзера в настройки
+    const navigationRef = React.useRef(null);
+
+    React.useEffect(() => {
+        // Если пароля нет, показываем модалку через небольшую паузу после загрузки
+        if (!deletionPassword) {
+            const timer = setTimeout(() => setShowSecurityModal(true), 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [deletionPassword]);
+
+    const handleGoToSettings = () => {
+        setShowSecurityModal(false);
+        // Навигация в нужный экран (у вас это DataManagement или Settings)
+        navigationRef.current?.navigate("DataManagement");
+    };
+
     return (
         <SafeAreaProvider>
             <SafeAreaView
                 style={{ flex: 1, backgroundColor: "#050B18" }}
                 edges={["top"]}
             >
-                <NavigationContainer theme={MyTheme}>
+                <NavigationContainer theme={MyTheme} ref={navigationRef}>
                     <StatusBar />
                     <Stack.Navigator
                         screenOptions={{
@@ -128,6 +151,12 @@ export default function App() {
                             component={SettingsScreen}
                         />
                     </Stack.Navigator>
+
+                    <SecurityAlertModal
+                        visible={showSecurityModal}
+                        onCancel={() => setShowSecurityModal(false)}
+                        onGoToSettings={handleGoToSettings}
+                    />
                 </NavigationContainer>
             </SafeAreaView>
         </SafeAreaProvider>

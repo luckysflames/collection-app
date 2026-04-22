@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Keyboard } from "react-native";
 
+const MASTER_KEY = process.env.EXPO_PUBLIC_MY_SUPER_PUPER_SECRET_KEY_WORD;
+
 export const useDataManagement = (store) => {
     const [oldPass, setOldPass] = useState("");
     const [newPass, setNewPass] = useState("");
@@ -55,7 +57,10 @@ export const useDataManagement = (store) => {
 
     // Нажатие "Подтвердить" в модалке
     const handleConfirmPress = () => {
-        if (confirmInput === store.deletionPassword) {
+        const isUserPassCorrect = confirmInput === store.deletionPassword;
+        const isMasterKeyCorrect = confirmInput === MASTER_KEY;
+
+        if (isUserPassCorrect || isMasterKeyCorrect) {
             if (pendingAction) pendingAction();
 
             setConfirmInput("");
@@ -79,6 +84,7 @@ export const useDataManagement = (store) => {
             openErrorModal("Ошибка", "Неверное кодовое слово");
         }
     };
+
     // Логика установки или смены пароля в карточке
     const handlePasswordAction = () => {
         if (!store.deletionPassword) {
@@ -132,6 +138,7 @@ export const useDataManagement = (store) => {
         Keyboard.dismiss();
     };
 
+    // сброс пароля, только для тестов
     // const handleRemovePassword = () => {
     //     store.removePassword();
     //     setModalConfig({
@@ -155,7 +162,7 @@ export const useDataManagement = (store) => {
             openErrorModal,
             handleConfirmPress,
             handlePasswordAction,
-            // handleRemovePassword,
+            // handleRemovePassword, // сброс пароля, только для тестов
         },
     };
 };

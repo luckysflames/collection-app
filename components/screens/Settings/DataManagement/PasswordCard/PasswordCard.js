@@ -32,7 +32,8 @@ export const PasswordCard = ({
                 <Text style={styles.description}>
                     Используется для подтверждения операций, связанных с
                     удалением данных. Рекомендуется записать его в надежном
-                    месте.
+                    месте.{"\n\n"}- Минимум 4 символа{"\n"}- Интересная завязка
+                    {"\n"}- Неожиданная концовка
                 </Text>
 
                 {!hasPassword || isChanging ? (
@@ -62,7 +63,8 @@ export const PasswordCard = ({
                                 color="#7D8AFF"
                             />
                         </TouchableOpacity>
-
+                        
+                        {/* Кнопка для сброса пароля, только для тестов */}
                         {/* <TouchableOpacity
                             activeOpacity={0.7}
                             style={[
