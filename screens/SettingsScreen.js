@@ -2,6 +2,15 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Linking } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Constants from "expo-constants";
+import {
+    List,
+    Trash2,
+    LayoutGrid,
+    Bug,
+    Users,
+    CloudDownload,
+    Vibrate,
+} from "lucide-react-native";
 
 import { getBugReportTemplate } from "../utils/bugReportHelper";
 import { useCollectionStore } from "../store/useCollectionStore";
@@ -15,6 +24,8 @@ export default function SettingsScreen({ navigation }) {
     const setIsCompactMenu = useCollectionStore(
         (state) => state.setIsCompactMenu,
     );
+    const isVibration = useCollectionStore((state) => state.isVibration)
+    const setIsVibration = useCollectionStore((state) => state.setIsVibration)
 
     const [isDevModalVisible, setDevModalVisible] = useState(false);
     const [isApiModalVisible, setApiModalVisible] = useState(false);
@@ -36,32 +47,25 @@ export default function SettingsScreen({ navigation }) {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 100 }}
             >
-                {/* Секция: Контент (Добавим новую секцию) */}
                 <Text style={styles.sectionTitle}>Контент</Text>
                 <View style={styles.card}>
                     <SettingItem
-                        icon="list-outline"
+                        icon={List}
                         label="Мои статусы"
                         onPress={() => navigation.navigate("StatusManager")}
                     />
                     <View style={styles.separator} />
                     <SettingItem
-                        icon="trash-outline"
+                        icon={Trash2}
                         label="Сброс данных"
                         onPress={() => navigation.navigate("DataManagement")}
                     />
                 </View>
 
-                {/* Секция: Внешний вид */}
                 <Text style={styles.sectionTitle}>Внешний вид</Text>
                 <View style={styles.card}>
-                    {/* <SettingItem
-                        icon="color-palette-outline"
-                        label="Тема приложения"
-                    />
-                    <View style={styles.separator} /> */}
                     <SettingItem
-                        icon="grid-outline"
+                        icon={LayoutGrid}
                         label="Компактное меню"
                         type="switch"
                         value={isCompactMenu}
@@ -69,29 +73,38 @@ export default function SettingsScreen({ navigation }) {
                     />
                 </View>
 
-                {/* Секция: Поддержка */}
                 <Text style={styles.sectionTitle}>Поддержка и связь</Text>
                 <View style={styles.card}>
                     <SettingItem
-                        icon="bug-outline"
+                        icon={Bug}
                         label="Сообщить об ошибке"
                         onPress={handleReportBug}
                     />
                     <View style={styles.separator} />
                     <SettingItem
-                        icon="people-outline"
+                        icon={Users}
                         label="О разработчиках"
                         onPress={() => setDevModalVisible(true)}
                     />
                 </View>
 
-                {/* Секция: Информация */}
                 <Text style={styles.sectionTitle}>Данные</Text>
                 <View style={styles.card}>
                     <SettingItem
-                        icon="cloud-download-outline"
+                        icon={CloudDownload}
                         label="Используемые API"
                         onPress={() => setApiModalVisible(true)}
+                    />
+                </View>
+
+                <Text style={styles.sectionTitle}>Дополнительно</Text>
+                <View style={styles.card}>
+                    <SettingItem
+                        icon={Vibrate}
+                        label="Вибрация"
+                        type="switch"
+                        value={isVibration}
+                        onValueChange={setIsVibration}
                     />
                 </View>
 

@@ -11,8 +11,11 @@ import {
     Animated,
     Dimensions,
     TouchableOpacity,
+    Platform,
+    Vibration,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as Haptics from "expo-haptics";
 
 // UI & Components
 import { CategoryChips } from "../components/ui/CategoryChips";
@@ -43,6 +46,7 @@ export default function MainScreen({ route, navigation }) {
     const myCollection = useCollectionStore((state) => state.myCollection);
     const createFolder = useCollectionStore((state) => state.createFolder);
     const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
+    const updateCard = useCollectionStore((state) => state.updateCard);
 
     const currentSection =
         route.params?.category || route.params?.appSection || "movie";
@@ -106,6 +110,21 @@ export default function MainScreen({ route, navigation }) {
         [navigation, currentSection],
     );
 
+    const handleCardLongPress = useCallback(
+        async (item) => {
+            if (Platform.OS === "android") {
+                // [пауза до начала, время вибрации 1, пауза 1, время вибрации 2, ...]
+                Vibration.vibrate([0, 30, 1, 30]);
+            } else {
+                // На iOS Haptics работает идеально, оставляем его
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            }
+
+            updateCard(item.id, { isPinned: !item.isPinned });
+        },
+        [updateCard],
+    );
+
     const handleChipPress = (cat, index) => {
         setActiveCategory(cat);
         pagerRef.current?.scrollToIndex({ index, animated: true });
@@ -159,6 +178,7 @@ export default function MainScreen({ route, navigation }) {
                 sortType={sortType}
                 showFoldersOnly={showFoldersOnly}
                 handleCardPress={handleCardPress}
+                onCardLongPress={handleCardLongPress}
                 onMomentumScrollEnd={handleMomentumScrollEnd}
                 onScroll={Animated.event(
                     [{ nativeEvent: { contentOffset: { x: scrollX } } }],

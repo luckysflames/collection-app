@@ -15,6 +15,7 @@ export const MainPager = forwardRef(
             sortType,
             showFoldersOnly,
             handleCardPress,
+            onCardLongPress,
             onScroll,
             onMomentumScrollEnd,
             listKey,
@@ -46,6 +47,7 @@ export const MainPager = forwardRef(
                             navigation={navigation}
                             sortType={sortType}
                             onCardPress={handleCardPress}
+                            onCardLongPress={onCardLongPress}
                             showFoldersOnly={showFoldersOnly}
                         />
                     </View>

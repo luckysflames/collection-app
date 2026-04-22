@@ -16,6 +16,7 @@ export const CategoryPage = ({
     ListHeaderComponent,
     sortType = "newest",
     onCardPress,
+    onCardLongPress,
     isReordering,
     reorderBuffer,
     showFoldersOnly = false,
@@ -57,19 +58,20 @@ export const CategoryPage = ({
                     item={item}
                     itemCount={item.isFolder ? item._computedCount : 0}
                     onPress={handlePress}
+                    onLongPress={onCardLongPress}
                     showOrderNumber={isReordering}
                     orderNumber={currentOrder}
                 />
             );
         },
-        [handlePress, isReordering, reorderBuffer],
+        [handlePress, onCardLongPress, isReordering, reorderBuffer],
     );
 
     return (
         <View style={styles.pageWrapper}>
             <FlatList
                 data={pageData}
-                extraData={[pageData, reorderBuffer, folderOrder, isReordering]}
+                extraData={[data, pageData, reorderBuffer, folderOrder, isReordering]}
                 keyExtractor={(item) => item.id.toString()}
                 numColumns={2}
                 columnWrapperStyle={styles.row}

@@ -1,9 +1,10 @@
 import React from "react";
 import { TouchableOpacity, View, Text, Switch, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+// Импортируем только нужную иконку для стрелочки
+import { ChevronRight } from "lucide-react-native";
 
 export const SettingItem = ({
-    icon,
+    icon: IconComponent, // Теперь принимаем иконку как компонент
     label,
     value,
     onValueChange,
@@ -17,7 +18,8 @@ export const SettingItem = ({
     >
         <View style={styles.settingLeft}>
             <View style={styles.iconWrapper}>
-                <Ionicons name={icon} size={22} color="#7D8AFF" />
+                {/* Рендерим переданную иконку */}
+                {IconComponent && <IconComponent size={20} color="#7D8AFF" />}
             </View>
             <Text style={styles.settingLabel}>{label}</Text>
         </View>
@@ -30,7 +32,7 @@ export const SettingItem = ({
                 thumbColor="#fff"
             />
         ) : (
-            <Ionicons name="chevron-forward" size={20} color="#8E94A4" />
+            <ChevronRight size={20} color="#8E94A4" />
         )}
     </TouchableOpacity>
 );

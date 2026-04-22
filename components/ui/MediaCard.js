@@ -9,7 +9,7 @@ import {
     Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { BookCopy, Star } from "lucide-react-native";
+import { BookCopy, Pin, Star } from "lucide-react-native";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
@@ -19,6 +19,7 @@ const MediaCardComponent = ({
     item,
     itemCount,
     onPress,
+    onLongPress,
     showOrderNumber,
     orderNumber,
 }) => {
@@ -29,6 +30,8 @@ const MediaCardComponent = ({
     return (
         <TouchableOpacity
             onPress={() => onPress(item)}
+            onLongPress={() => onLongPress?.(item)}
+            delayLongPress={350}
             activeOpacity={0.8}
             style={styles.cardContainer}
         >
@@ -45,6 +48,13 @@ const MediaCardComponent = ({
                         <Text style={styles.orderText}>
                             {orderNumber || ""}
                         </Text>
+                    </View>
+                )}
+
+                {/* Иконка закрепа сверху по центру */}
+                {item.isPinned && (
+                    <View style={styles.pinBadge}>
+                        <Pin size={14} color="#fff" fill="#7D8AFF" />
                     </View>
                 )}
 
@@ -84,6 +94,7 @@ const MediaCardComponent = ({
 export const MediaCard = memo(MediaCardComponent, (prevProps, nextProps) => {
     return (
         prevProps.item.id === nextProps.item.id &&
+        prevProps.item.isPinned === nextProps.item.isPinned &&
         prevProps.item.userScore === nextProps.item.userScore &&
         prevProps.orderNumber === nextProps.orderNumber &&
         prevProps.showOrderNumber === nextProps.showOrderNumber &&
@@ -163,6 +174,17 @@ const styles = StyleSheet.create({
         fontWeight: "600",
         fontSize: 13,
         lineHeight: 16,
+    },
+    pinBadge: {
+        position: "absolute",
+        top: 10,
+        alignSelf: "center", // Центрирование по горизонтали
+        backgroundColor: "rgba(26, 34, 50, 0.8)",
+        padding: 4,
+        borderRadius: 10,
+        zIndex: 20,
+        borderWidth: 1,
+        borderColor: "#7D8AFF",
     },
     ratingBadge: {
         position: "absolute",

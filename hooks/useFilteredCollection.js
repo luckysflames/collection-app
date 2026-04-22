@@ -86,6 +86,10 @@ export const useFilteredCollection = ({
 
         // --- 2. СОРТИРОВКА ---
         const sorted = [...filtered].sort((a, b) => {
+            if (!isInsideFolder) {
+                if (a.isPinned && !b.isPinned) return -1;
+                if (!a.isPinned && b.isPinned) return 1;
+            }
             // Принудительный ручной порядок внутри папки
             if (isInsideFolder) {
                 if (Array.isArray(folderOrder) && folderOrder.length > 0) {

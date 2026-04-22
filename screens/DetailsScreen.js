@@ -5,6 +5,8 @@ import {
     Text,
     StyleSheet,
     ActivityIndicator,
+    Platform,
+    Vibration,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -39,6 +41,7 @@ export default function DetailsScreen({ route, navigation }) {
     const { data: fullDetails, loading } = useFetchDetails(item.id);
     const myCollection = useCollectionStore((state) => state.myCollection);
     const setUserScore = useCollectionStore((state) => state.setUserScore);
+    const isVibration = useCollectionStore((state) => state.isVibration);
 
     const initialSavedItem = useMemo(
         () => myCollection.find((fav) => String(fav.id) === String(item.id)),
@@ -87,6 +90,28 @@ export default function DetailsScreen({ route, navigation }) {
         console.log("FINAL OBJECT TO SAVE:", finalData);
         updateCard(item.id, finalData);
         setIsEditing(false);
+    };
+
+    const handleScoreWithHaptics = (score) => {
+        // 1. Сохраняем оценку в стор
+        setUserScore(item.id, score);
+
+        if (isVibration && score !== 0) {
+            // 2. Логика вибрации
+            if (Platform.OS === "android") {
+                // Создаем паттерн: [пауза, удар, пауза, удар...]
+                const pattern = [0, 1];
+                for (let i = 0; i < score; i++) {
+                    pattern.push(30); // Длительность вибрации
+                    pattern.push(100); // Пауза перед следующим ударом
+                }
+                Vibration.vibrate(pattern);
+            } else {
+                // На iOS для оценок хорошо подходит Success или Medium
+                // Но если хочешь именно по количеству звезд:
+                Vibration.vibrate(10);
+            }
+        }
     };
 
     return (
@@ -145,7 +170,7 @@ export default function DetailsScreen({ route, navigation }) {
                         onUpdateNotes={(text) =>
                             updateCard(item.id, { userNotes: text })
                         }
-                        onSetScore={(score) => setUserScore(item.id, score)}
+                        onSetScore={handleScoreWithHaptics}
                     />
                 )}
             </View>
