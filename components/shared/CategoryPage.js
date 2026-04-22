@@ -61,6 +61,7 @@ export const CategoryPage = ({
                     onLongPress={onCardLongPress}
                     showOrderNumber={isReordering}
                     orderNumber={currentOrder}
+                    isInsideFolder={isInsideFolder}
                 />
             );
         },

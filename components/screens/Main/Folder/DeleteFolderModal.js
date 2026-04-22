@@ -5,6 +5,7 @@ import { BottomSheet } from "../../../ui/BottomSheet";
 
 export default function DeleteFolderModal({
     visible,
+    isEmpty,
     onClose,
     onDeleteAll,
     onDeleteOnlyFolder,
@@ -20,59 +21,101 @@ export default function DeleteFolderModal({
             </View>
 
             <Text style={styles.header}>Удаление папки</Text>
-            <Text style={styles.subHeader}>
-                В папке есть элементы. Выберите способ удаления:
-            </Text>
 
-            {/* Вариант 1: Удалить только папку */}
-            <TouchableOpacity
-                style={styles.optionBtn}
-                onPress={() => {
-                    onDeleteOnlyFolder();
-                    onClose();
-                }}
-            >
-                <View
-                    style={[
-                        styles.iconBg,
-                        { backgroundColor: "rgba(125, 138, 255, 0.1)" },
-                    ]}
-                >
-                    <FolderX color="#7D8AFF" size={22} />
-                </View>
-                <View style={styles.optionTextContainer}>
-                    <Text style={styles.optionTitle}>Удалить только папку</Text>
-                    <Text style={styles.optionDesc}>
-                        Элементы переместятся в общую библиотеку
+            {isEmpty ? (
+                <View>
+                    <Text style={styles.subHeader}>
+                        Вы уверены, что хотите удалить папку?
                     </Text>
+                    <TouchableOpacity
+                        style={styles.optionBtn}
+                        onPress={() => {
+                            onDeleteOnlyFolder();
+                            onClose();
+                        }}
+                    >
+                        <View
+                            style={[
+                                styles.iconBg,
+                                { backgroundColor: "rgba(255, 75, 75, 0.1)" },
+                            ]}
+                        >
+                            <Trash2 color="#FF4B4B" size={22} />
+                        </View>
+                        <View style={styles.optionTextContainer}>
+                            <Text style={styles.optionTitle}>
+                                Да, я уверен, удаляйте
+                            </Text>
+                            <Text style={styles.optionDesc}>
+                                Долой пустые папки
+                            </Text>
+                        </View>
+                    </TouchableOpacity>
                 </View>
-            </TouchableOpacity>
+            ) : (
+                <View>
+                    <Text style={styles.subHeader}>
+                        В папке есть элементы. Выберите способ удаления:
+                    </Text>
 
-            {/* Вариант 2: Удалить всё */}
-            <TouchableOpacity
-                style={[styles.optionBtn, styles.optionBtnDestructive]}
-                onPress={() => {
-                    onDeleteAll();
-                    onClose();
-                }}
-            >
-                <View
-                    style={[
-                        styles.iconBg,
-                        { backgroundColor: "rgba(255, 75, 75, 0.1)" },
-                    ]}
-                >
-                    <Trash2 color="#FF4B4B" size={22} />
+                    {/* Вариант 1: Удалить только папку */}
+                    <TouchableOpacity
+                        style={styles.optionBtn}
+                        onPress={() => {
+                            onDeleteOnlyFolder();
+                            onClose();
+                        }}
+                    >
+                        <View
+                            style={[
+                                styles.iconBg,
+                                { backgroundColor: "rgba(125, 138, 255, 0.1)" },
+                            ]}
+                        >
+                            <FolderX color="#7D8AFF" size={22} />
+                        </View>
+                        <View style={styles.optionTextContainer}>
+                            <Text style={styles.optionTitle}>
+                                Удалить только папку
+                            </Text>
+                            <Text style={styles.optionDesc}>
+                                Элементы переместятся в общую библиотеку
+                            </Text>
+                        </View>
+                    </TouchableOpacity>
+
+                    {/* Вариант 2: Удалить всё */}
+                    <TouchableOpacity
+                        style={[styles.optionBtn, styles.optionBtnDestructive]}
+                        onPress={() => {
+                            onDeleteAll();
+                            onClose();
+                        }}
+                    >
+                        <View
+                            style={[
+                                styles.iconBg,
+                                { backgroundColor: "rgba(255, 75, 75, 0.1)" },
+                            ]}
+                        >
+                            <Trash2 color="#FF4B4B" size={22} />
+                        </View>
+                        <View style={styles.optionTextContainer}>
+                            <Text
+                                style={[
+                                    styles.optionTitle,
+                                    { color: "#FF4B4B" },
+                                ]}
+                            >
+                                Удалить всё
+                            </Text>
+                            <Text style={styles.optionDesc}>
+                                Папка и всё её содержимое будут стерты
+                            </Text>
+                        </View>
+                    </TouchableOpacity>
                 </View>
-                <View style={styles.optionTextContainer}>
-                    <Text style={[styles.optionTitle, { color: "#FF4B4B" }]}>
-                        Удалить всё
-                    </Text>
-                    <Text style={styles.optionDesc}>
-                        Папка и всё её содержимое будут стерты
-                    </Text>
-                </View>
-            </TouchableOpacity>
+            )}
         </BottomSheet>
     );
 }

@@ -47,6 +47,7 @@ export default function MainScreen({ route, navigation }) {
     const createFolder = useCollectionStore((state) => state.createFolder);
     const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
     const updateCard = useCollectionStore((state) => state.updateCard);
+    const setFavorite = useCollectionStore((state) => state.setFavorite);
 
     const currentSection =
         route.params?.category || route.params?.appSection || "movie";
@@ -210,9 +211,10 @@ export default function MainScreen({ route, navigation }) {
                 onCreate={(name) => {
                     const folderStatus =
                         activeCategory === "Всё" || activeCategory === "Папки"
-                            ? DEFAULT_STATUS_BY_SECTION[
+                            ? FAVORITE_STATUS ||
+                              DEFAULT_STATUS_BY_SECTION[
                                   SECTION_MAPPING[currentSection]
-                              ] || FAVORITE_STATUS
+                              ]
                             : activeCategory;
 
                     createFolder(name, currentSection, folderStatus, []);

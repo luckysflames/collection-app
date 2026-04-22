@@ -10,6 +10,7 @@ import { HeroPoster } from "../../../ui/HeroPoster";
 export const FolderHeader = memo((props) => {
     const {
         insets,
+        toggleFavorite,
         displayImage,
         isEditing,
         setIsEditing,
@@ -75,6 +76,7 @@ export const FolderHeader = memo((props) => {
                         <FolderInfo
                             folder={folder}
                             count={folderItems.length}
+                            toggleFavorite={toggleFavorite}
                             onStatusPress={onStatusPress}
                             onAddPress={onAddPress}
                             folderItems={folderItems}

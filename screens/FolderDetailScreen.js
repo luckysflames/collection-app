@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Platform, Vibration } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCollectionStore } from "../store/useCollectionStore";
 
@@ -16,7 +16,13 @@ import { WarnModal } from "../components/ui/WarnModal";
 export default function FolderDetailScreen({ route, navigation }) {
     const insets = useSafeAreaInsets();
     const { folderId } = route.params;
-    const { addItemsToFolder, updateCard } = useCollectionStore();
+    const addItemsToFolder = useCollectionStore(
+        (state) => state.addItemsToFolder,
+    );
+    const updateCard = useCollectionStore((state) => state.updateCard);
+    const setUserScore = useCollectionStore((state) => state.setUserScore);
+    const setFavorite = useCollectionStore((state) => state.setFavorite);
+    const isVibration = useCollectionStore((state) => state.isVibration);
 
     // --- LOGIC & DATA (используем ваш хук) ---
     const { folder, folderItems, availableItems } = useFolderData(folderId);
@@ -94,8 +100,25 @@ export default function FolderDetailScreen({ route, navigation }) {
     };
 
     const handleRatingUpdate = (newScore) => {
-        // Папка — это объект в myCollection, обновляем его через updateCard
-        updateCard(folder.id, { userScore: newScore });
+        // 1. Сохраняем оценку в стор
+        setUserScore(folder.id, newScore);
+
+        if (isVibration && newScore !== 0) {
+            // 2. Логика вибрации
+            if (Platform.OS === "android") {
+                // Создаем паттерн: [пауза, удар, пауза, удар...]
+                const pattern = [0, 1];
+                for (let i = 0; i < newScore; i++) {
+                    pattern.push(30); // Длительность вибрации
+                    pattern.push(100); // Пауза перед следующим ударом
+                }
+                Vibration.vibrate(pattern);
+            } else {
+                // На iOS для оценок хорошо подходит Success или Medium
+                // Но если хочешь именно по количеству звезд:
+                Vibration.vibrate(10);
+            }
+        }
     };
 
     if (!folder) return null;
@@ -121,6 +144,9 @@ export default function FolderDetailScreen({ route, navigation }) {
                         editForm={editForm}
                         displayImage={isEditing ? editForm.image : folder.image}
                         insets={insets}
+                        toggleFavorite={() =>
+                            setFavorite(folder.id, !folder.isFavorite)
+                        }
                         isEditing={isEditing}
                         isReordering={isReordering}
                         setIsEditing={setIsEditing}
@@ -174,6 +200,7 @@ export default function FolderDetailScreen({ route, navigation }) {
 
             <DeleteFolderModal
                 visible={modals.delete}
+                isEmpty={folderItems.length === 0}
                 onClose={() => setModals((p) => ({ ...p, delete: false }))}
                 onDeleteAll={() => {
                     deleteEverything();

@@ -22,6 +22,7 @@ const MediaCardComponent = ({
     onLongPress,
     showOrderNumber,
     orderNumber,
+    isInsideFolder,
 }) => {
     const badgeStyle = orderNumber
         ? [styles.orderBadge, styles.orderBadgeActive]
@@ -52,7 +53,7 @@ const MediaCardComponent = ({
                 )}
 
                 {/* Иконка закрепа сверху по центру */}
-                {item.isPinned && (
+                {item.isPinned && !isInsideFolder && (
                     <View style={styles.pinBadge}>
                         <Pin size={14} color="#fff" fill="#7D8AFF" />
                     </View>

@@ -242,12 +242,15 @@ export const useCollectionStore = create(
             createFolder: (folderName, section, status, selectedItemIds) =>
                 set((state) => {
                     const folderId = `folder_${Date.now()}`;
+                    const shouldBeFavorite = status === FAVORITE_STATUS;
+
                     const newFolder = {
                         id: folderId,
                         title: folderName,
                         isFolder: true,
                         appSection: section,
-                        status: status,
+                        status: shouldBeFavorite ? null : status,
+                        isFavorite: shouldBeFavorite,
                         createdAt: Date.now(),
                         itemsOrder: selectedItemIds,
                         userScore: 0,

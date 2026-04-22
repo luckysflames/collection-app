@@ -14,7 +14,7 @@ import {
     MovieQuickData,
 } from "./Sections";
 import { InfoStats } from "./InfoStats";
-import { Folder, Info, Star } from "lucide-react-native";
+import { Bookmark, Folder, Info, Star } from "lucide-react-native";
 
 export const InfoBlock = ({
     displayData,
@@ -119,7 +119,7 @@ export const InfoBlock = ({
                         ]}
                         onPress={onToggleFavorite}
                     >
-                        <Star
+                        <Bookmark
                             size={18}
                             color={isFavorite ? "#FFD700" : "#8E94A4"}
                             fill={isFavorite ? "#FFD700" : "transparent"}

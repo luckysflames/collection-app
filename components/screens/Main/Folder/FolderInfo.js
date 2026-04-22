@@ -1,5 +1,5 @@
 import React from "react";
-import { ChevronDown, Zap } from "lucide-react-native";
+import { Bookmark, ChevronDown, Zap } from "lucide-react-native";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { UserRating } from "../../../shared/UserRating";
 import { AverageRatingBlock } from "./AverageRatingBlock";
@@ -7,6 +7,7 @@ import { AverageRatingBlock } from "./AverageRatingBlock";
 export const FolderInfo = ({
     folder,
     count,
+    toggleFavorite,
     onStatusPress,
     onAddPress,
     folderItems,
@@ -42,7 +43,7 @@ export const FolderInfo = ({
                     style={styles.folderStatusBtn}
                 >
                     <Text style={styles.folderStatusText}>
-                        {folder.status || "Нет статуса"}
+                        {folder.status || "Без статуса"}
                     </Text>
                     <ChevronDown
                         color="#fff"
@@ -51,13 +52,30 @@ export const FolderInfo = ({
                     />
                 </TouchableOpacity>
 
-                {/* Кнопка добавления карточек */}
-                <TouchableOpacity
-                    onPress={onAddPress}
-                    style={styles.addCardsBtn}
-                >
-                    <Text style={styles.addCardsText}>+ Карточки</Text>
-                </TouchableOpacity>
+                <View style={styles.underControlsRow}>
+                    {/* Кнопка добавления карточек */}
+                    <TouchableOpacity
+                        onPress={onAddPress}
+                        style={styles.addCardsBtn}
+                    >
+                        <Text style={styles.addCardsText}>+ Карточки</Text>
+                    </TouchableOpacity>
+
+                    {/* Кнопка избранного */}
+                    <TouchableOpacity
+                        onPress={toggleFavorite}
+                        style={[
+                            styles.favoriteBtn,
+                            folder.isFavorite && styles.favoriteBtnActive,
+                        ]}
+                    >
+                        <Bookmark
+                            size={22}
+                            color={folder.isFavorite ? "#FFD700" : "#8E94A4"}
+                            fill={folder.isFavorite ? "#FFD700" : "transparent"}
+                        />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             {/* ПОЛНОЦЕННЫЙ РЕЙТИНГ */}
@@ -147,10 +165,13 @@ const styles = StyleSheet.create({
     },
     controlsRow: {
         width: "100%",
-        flexDirection: "row",
         alignItems: "stretch",
         gap: 12,
         marginTop: 20,
+    },
+    underControlsRow: {
+        flexDirection: "row",
+        gap: 12,
     },
     folderStatusBtn: {
         flex: 1,
@@ -161,6 +182,11 @@ const styles = StyleSheet.create({
         borderWidth: 1.5,
         justifyContent: "center",
         alignItems: "center",
+    },
+    folderStatusText: {
+        color: "#fff",
+        fontWeight: "700",
+        fontSize: 14,
     },
     addCardsBtn: {
         flex: 1,
@@ -177,10 +203,17 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         fontSize: 14,
     },
-    folderStatusText: {
-        color: "#fff",
-        fontWeight: "700",
-        fontSize: 14,
+    favoriteBtn: {
+        aspectRatio: 1 / 1,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "rgba(255, 255, 255, 0.05)",
+        paddingVertical: 10,
+        borderRadius: 12,
+        gap: 8,
+    },
+    favoriteBtnActive: {
+        backgroundColor: "rgba(255, 215, 0, 0.08)",
     },
     metaBadge: {
         marginVertical: 20,
