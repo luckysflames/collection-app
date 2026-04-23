@@ -6,97 +6,123 @@ export const useCollectionCounter = (
     currentSection,
     activeCategory,
     showFoldersOnly,
-    searchQuery, // Принимаем новый пропс
+    searchQuery,
+    activeFilters = {}, // Не забываем фильтры
 ) => {
     return useMemo(() => {
-        // --- 1. ФИЛЬТРАЦИЯ ПО ПОИСКУ (ЕСЛИ ОН ЕСТЬ) ---
-        if (searchQuery && searchQuery.trim().length > 0) {
-            const query = searchQuery.toLowerCase();
+        // 1. Создаем функцию-предикат, которая проверяет, подходит ли один айтем под ВСЕ условия
+        const filterFn = (item) => {
+            // --- Базовая проверка раздела ---
+            if (item.appSection !== currentSection) return false;
 
-            return myCollection.filter((item) => {
-                // Базовая проверка раздела
-                if (item.appSection !== currentSection) return false;
-
-                // Проверка на совпадение названия
+            // --- 0. Поиск ---
+            if (searchQuery && searchQuery.trim().length > 0) {
+                const query = searchQuery.toLowerCase();
                 const matchesText =
                     item.title?.toLowerCase().includes(query) ||
                     item.originalTitle?.toLowerCase().includes(query);
-
                 if (!matchesText) return false;
+            }
 
-                // Учитываем текущую вкладку (категорию), чтобы цифра
-                // соответствовала тому, что пользователь видит на экране
-                if (activeCategory === "Папки") {
-                    return item.isFolder;
+            // --- 1. Активные фильтры (Жанры, года и т.д.) ---
+            // Папки обычно не фильтруются по метаданным, так же как в useFilteredCollection
+            if (!item.isFolder && Object.keys(activeFilters).length > 0) {
+                for (const [filterKey, filterValue] of Object.entries(
+                    activeFilters,
+                )) {
+                    // Select фильтр
+                    if (typeof filterValue === "string") {
+                        const itemValue = item[filterKey];
+                        if (itemValue === undefined || itemValue === null) {
+                            return false;
+                        }
+
+                        // Для динамических полей (genres, studios и т.д.) проверяем вхождение
+                        const isDynamicField = ['genres', 'studios', 'developers', 'platforms', 'authors', 'companies', 'countries'].includes(filterKey);
+                        if (isDynamicField) {
+                            // Если значение - строка, разделяем по запятым
+                            let values = [];
+                            if (typeof itemValue === 'string') {
+                                values = itemValue.split(',').map(v => v.trim());
+                            } else if (Array.isArray(itemValue)) {
+                                values = itemValue;
+                            }
+                            // Проверяем, содержит ли массив значение
+                            if (!values.includes(filterValue)) {
+                                return false;
+                            }
+                        } else {
+                            // Для статических полей строгое равенство
+                            if (itemValue !== filterValue) {
+                                return false;
+                            }
+                        }
+                    }
+                    // Range фильтр
+                    if (Array.isArray(filterValue)) {
+                        const [min, max] = filterValue;
+                        const val = item[filterKey];
+                        if (
+                            val === undefined ||
+                            val === null ||
+                            val < min ||
+                            val > max
+                        )
+                            return false;
+                    }
                 }
-                if (activeCategory === FAVORITE_STATUS) {
-                    const isFav = item.isFavorite;
-                    return showFoldersOnly ? isFav : isFav && !item.isFolder;
-                }
-                if (activeCategory !== "Всё") {
-                    // Для вкладок "Смотрю", "Запланировано" и т.д.
-                    return item.status === activeCategory;
-                }
+            }
 
-                // Для вкладки "Всё" фильтруем папки согласно режиму showFoldersOnly
-                if (activeCategory === "Всё") {
-                    return showFoldersOnly
-                        ? item.isFolder || !item.parentFolderIds?.length
-                        : !item.isFolder;
-                }
+            // --- 2. Категории (Вкладки) и режим Папок ---
+            const isFolder = !!item.isFolder;
+            const hasParent = (item.parentFolderIds || []).length > 0;
 
-                return true;
-            }).length;
-        }
+            // Вкладка "Папки"
+            if (activeCategory === "Папки") return isFolder;
 
-        // --- 2. СТАНДАРТНАЯ ЛОГИКА (БЕЗ ПОИСКА) ---
-        const items = myCollection.filter(
-            (item) => item.appSection === currentSection,
-        );
+            // Вкладка "Избранное"
+            if (activeCategory === FAVORITE_STATUS) {
+                if (!item.isFavorite) return false;
+                // В избранном либо всё (если мод папок), либо только айтемы
+                return showFoldersOnly ? true : !isFolder;
+            }
 
-        if (activeCategory === "Всё") {
-            return items.filter((i) =>
-                showFoldersOnly
-                    ? i.isFolder || !i.parentFolderIds?.length
-                    : !i.isFolder,
-            ).length;
-        }
+            // Вкладка "Всё"
+            if (activeCategory === "Всё") {
+                return showFoldersOnly ? isFolder || !hasParent : !isFolder;
+            }
 
-        if (activeCategory === "Папки") {
-            return items.filter((i) => i.isFolder).length;
-        }
+            // Конкретные статусы (Смотрю, Брошено и т.д.)
+            if (item.status !== activeCategory) return false;
 
-        if (activeCategory === FAVORITE_STATUS) {
-            const favorites = items.filter((i) => i.isFavorite);
-            return showFoldersOnly
-                ? favorites.length
-                : favorites.filter((i) => !i.isFolder).length;
-        }
+            // Логика для статусов при включенном режиме папок (скрываем вложенные)
+            if (showFoldersOnly) {
+                if (isFolder) return true;
+                if (!hasParent) return true;
 
-        const statusItems = items.filter((i) => i.status === activeCategory);
-        if (showFoldersOnly) {
-            return statusItems.filter((item) => {
-                if (item.isFolder) return true;
-                const hasSameStatusParent = item.parentFolderIds?.some(
+                const hasSameStatusParent = item.parentFolderIds.some(
                     (parentId) => {
                         const parent = myCollection.find(
-                            (d) => d.id === parentId,
+                            (d) => String(d.id) === String(parentId),
                         );
-                        return parent && parent.status === activeCategory;
+                        return parent && parent.status === item.status;
                     },
                 );
                 return !hasSameStatusParent;
-            }).length;
-        }
+            }
 
-        return statusItems.filter((i) => !i.isFolder).length;
+            // Обычный режим для статусов — только элементы
+            return !isFolder;
+        };
 
-        // Не забудь добавить searchQuery в массив зависимостей!
+        // 2. Применяем единый фильтр ко всей коллекции
+        return myCollection.filter(filterFn).length;
     }, [
         myCollection,
         currentSection,
         activeCategory,
         showFoldersOnly,
         searchQuery,
+        activeFilters, // КРИТИЧНО: добавили в зависимости
     ]);
 };

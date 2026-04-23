@@ -106,7 +106,6 @@ const styles = StyleSheet.create({
         textAlignVertical: "center",
     },
     searchBarContainer: {
-        flex: 1,
         flexDirection: "row",
         alignItems: "center",
         backgroundColor: "rgba(255,255,255,0.05)",

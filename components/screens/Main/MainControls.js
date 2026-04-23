@@ -1,15 +1,15 @@
 import React from "react";
 import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
-import { ListFilter, Folder, Dices } from "lucide-react-native";
-import { SORT_LABELS } from "../../../constants";
+import { ListFilter, Folder, Dices, Sliders } from "lucide-react-native";
 
 export const MainControls = ({
-    sortType,
     count,
     onSortPress,
+    onFilterPress,
     showFoldersOnly,
     onToggleFolderMode,
     onRandomPress,
+    hasActiveFilters = false,
 }) => (
     <View style={styles.staticControlsRow}>
         <View style={styles.countBadge}>
@@ -27,24 +27,44 @@ export const MainControls = ({
             </TouchableOpacity>
 
             <TouchableOpacity
-                style={[styles.actionBtn, showFoldersOnly && styles.activeBtn]}
+                style={[
+                    styles.actionBtn,
+                    showFoldersOnly && styles.activeBtn,
+                    hasActiveFilters && styles.disabledBtn,
+                ]}
+                disabled={hasActiveFilters}
                 onPress={onToggleFolderMode}
                 activeOpacity={0.7}
             >
                 <Folder
                     size={18}
-                    color={showFoldersOnly ? "#fff" : "#7D8AFF"}
+                    color={
+                        showFoldersOnly
+                            ? "#fff"
+                            : hasActiveFilters
+                              ? "#2d2a4b"
+                              : "#7D8AFF"
+                    }
                 />
             </TouchableOpacity>
+
             <TouchableOpacity
-                style={styles.sortBtn}
+                style={[styles.actionBtn, hasActiveFilters && styles.activeBtn]}
+                onPress={onFilterPress}
+                activeOpacity={0.7}
+            >
+                <Sliders
+                    size={18}
+                    color={hasActiveFilters ? "#fff" : "#7D8AFF"}
+                />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={styles.actionBtn}
                 onPress={onSortPress}
                 activeOpacity={0.7}
             >
                 <ListFilter size={18} color="#7D8AFF" />
-                <Text style={styles.sortBtnText}>
-                    {SORT_LABELS[sortType] || "Сортировка"}
-                </Text>
             </TouchableOpacity>
         </View>
     </View>
@@ -80,21 +100,9 @@ const styles = StyleSheet.create({
         backgroundColor: "#7D8AFF",
         borderColor: "#7D8AFF",
     },
-    sortBtn: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "rgba(125, 138, 255, 0.1)",
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: "rgba(125, 138, 255, 0.2)",
-    },
-    sortBtnText: {
-        color: "#7D8AFF",
-        fontSize: 13,
-        fontWeight: "600",
-        marginLeft: 6,
+    disabledBtn: {
+        backgroundColor: "rgba(22, 26, 39, 0.5)",
+        borderColor: "rgba(62, 66, 79, 0.5)",
     },
     countBadge: {
         backgroundColor: "rgba(255, 255, 255, 0.05)",

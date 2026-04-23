@@ -294,3 +294,131 @@ export const BOOK_MATURITY_RATINGS = [
     { id: "teen", label: "Для подростков (13+)" },
     { id: "mature", label: "Взрослые (18+)" },
 ];
+
+/**
+ * --- ФИЛЬТРЫ (зависят от типа раздела) ---
+ */
+
+export const FILTER_CONFIG = {
+    movie: [
+        {
+            id: "movieStatus",
+            label: "Статус",
+            type: "select",
+            options: MOVIE_STATUSES,
+        },
+        {
+            id: "year",
+            label: "Год выпуска",
+            type: "range",
+            min: 1900,
+            max: new Date().getFullYear() + 5,
+        },
+        {
+            id: "budget",
+            label: "Бюджет ($)",
+            type: "range",
+            min: 0,
+            max: 1000000000,
+        },
+        {
+            id: "duration",
+            label: "Длительность (мин)",
+            type: "range",
+            min: 0,
+            max: 600,
+        },
+    ],
+    anime: [
+        {
+            id: "animeKind",
+            label: "Тип",
+            type: "select",
+            options: ANIME_KINDS,
+        },
+        {
+            id: "animeStatus",
+            label: "Статус",
+            type: "select",
+            options: ANIME_STATUSES,
+        },
+        {
+            id: "rating",
+            label: "Возрастной рейтинг",
+            type: "select",
+            options: ANIME_RATINGS,
+        },
+        {
+            id: "year",
+            label: "Год выпуска",
+            type: "range",
+            min: 1917,
+            max: new Date().getFullYear() + 5,
+        },
+        {
+            id: "episodes",
+            label: "Эпизодов",
+            type: "range",
+            min: 1,
+            max: 200,
+        },
+        {
+            id: "duration",
+            label: "Длител. эпизода (мин)",
+            type: "range",
+            min: 1,
+            max: 120,
+        },
+    ],
+    book: [
+        {
+            id: "maturity",
+            label: "Возрастной рейтинг",
+            type: "select",
+            options: BOOK_MATURITY_RATINGS,
+        },
+        {
+            id: "year",
+            label: "Год выпуска",
+            type: "range",
+            min: 1450,
+            max: new Date().getFullYear() + 5,
+        },
+        {
+            id: "pageCount",
+            label: "Объём (стр)",
+            type: "range",
+            min: 0,
+            max: 5000,
+        },
+    ],
+    game: [
+        {
+            id: "esrb",
+            label: "ESRB рейтинг",
+            type: "select",
+            options: ESRB_RATINGS,
+        },
+        {
+            id: "year",
+            label: "Год выпуска",
+            type: "range",
+            min: 1970,
+            max: new Date().getFullYear() + 5,
+        },
+        {
+            id: "metacritic",
+            label: "Metacritic",
+            type: "range",
+            min: 0,
+            max: 100,
+        },
+        {
+            id: "duration",
+            label: "Время прохождения (ч)",
+            type: "range",
+            min: 0,
+            max: 500,
+        },
+    ],
+};

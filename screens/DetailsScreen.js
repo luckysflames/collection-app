@@ -99,10 +99,10 @@ export default function DetailsScreen({ route, navigation }) {
             // 2. Логика вибрации
             if (Platform.OS === "android") {
                 // Создаем паттерн: [пауза, удар, пауза, удар...]
-                const pattern = [0, 1];
+                const pattern = [0, 0];
                 for (let i = 0; i < score; i++) {
-                    pattern.push(30); // Длительность вибрации
-                    pattern.push(100); // Пауза перед следующим ударом
+                    pattern.push(30); // Пауза перед следующим ударом
+                    pattern.push(100); // Длительность вибрации
                 }
                 Vibration.vibrate(pattern);
             } else {

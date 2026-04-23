@@ -12,6 +12,7 @@ import { MainPager } from "../components/screens/Main/MainPager";
 // Modals
 import { CreateFolderModal } from "../components/screens/Main/Modals/CreateFolderModal";
 import { SortModal } from "../components/screens/Main/Modals/SortModal";
+import { FilterModal } from "../components/screens/Main/Modals/FilterModal/FilterModal";
 
 // Logic & Hooks
 import { useCollectionStore } from "../store/useCollectionStore";
@@ -44,9 +45,11 @@ export default function MainScreen({ route, navigation }) {
     const [sortType, setSortType] = useState("newest");
     const [searchQuery, setSearchQuery] = useState("");
     const [showFoldersOnly, setShowFoldersOnly] = useState(false);
+    const [activeFilters, setActiveFilters] = useState({});
 
     // Modals Visibility
     const [isSortVisible, setIsSortVisible] = useState(false);
+    const [isFilterVisible, setIsFilterVisible] = useState(false);
     const [isFolderModalVisible, setIsFolderModalVisible] = useState(false);
 
     // --- Custom Hooks (Isolated Logic) ---
@@ -68,7 +71,12 @@ export default function MainScreen({ route, navigation }) {
 
     // 2. Interaction Actions (Press, Long Press, Random)
     const { handleCardPress, handleCardLongPress, handleRandomCard } =
-        useMainActions(currentSection, activeCategory, navigation);
+        useMainActions(
+            currentSection,
+            activeCategory,
+            navigation,
+            activeFilters,
+        );
 
     // 3. Counter Logic
     const currentItemsCount = useCollectionCounter(
@@ -77,11 +85,13 @@ export default function MainScreen({ route, navigation }) {
         activeCategory,
         showFoldersOnly,
         searchQuery,
+        activeFilters,
     );
 
     // --- UI Helpers ---
     const displayTitle =
         SECTIONS.find((s) => s.id === currentSection)?.label || "Коллекция";
+    const hasActiveFilters = Object.keys(activeFilters).length > 0;
 
     return (
         <View style={[styles.mainContainer, { paddingTop: insets.top - 40 }]}>
@@ -102,12 +112,13 @@ export default function MainScreen({ route, navigation }) {
             />
 
             <MainControls
-                sortType={sortType}
                 count={currentItemsCount}
                 onSortPress={() => setIsSortVisible(true)}
+                onFilterPress={() => setIsFilterVisible(true)}
                 showFoldersOnly={showFoldersOnly}
                 onToggleFolderMode={() => setShowFoldersOnly(!showFoldersOnly)}
                 onRandomPress={handleRandomCard}
+                hasActiveFilters={hasActiveFilters}
             />
 
             <MainPager
@@ -120,6 +131,7 @@ export default function MainScreen({ route, navigation }) {
                 navigation={navigation}
                 sortType={sortType}
                 showFoldersOnly={showFoldersOnly}
+                activeFilters={activeFilters}
                 handleCardPress={handleCardPress}
                 onCardLongPress={handleCardLongPress}
                 onMomentumScrollEnd={handleMomentumScrollEnd}
@@ -141,6 +153,14 @@ export default function MainScreen({ route, navigation }) {
                 onClose={() => setIsSortVisible(false)}
                 currentSort={sortType}
                 onSelectSort={setSortType}
+            />
+
+            <FilterModal
+                isVisible={isFilterVisible}
+                onClose={() => setIsFilterVisible(false)}
+                currentSection={currentSection}
+                activeFilters={activeFilters}
+                onApplyFilters={setActiveFilters}
             />
 
             <CreateFolderModal

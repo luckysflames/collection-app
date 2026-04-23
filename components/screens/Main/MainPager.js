@@ -14,6 +14,7 @@ export const MainPager = forwardRef(
             navigation,
             sortType,
             showFoldersOnly,
+            activeFilters,
             handleCardPress,
             onCardLongPress,
             onScroll,
@@ -46,6 +47,7 @@ export const MainPager = forwardRef(
                             data={myCollection}
                             navigation={navigation}
                             sortType={sortType}
+                            activeFilters={activeFilters}
                             onCardPress={handleCardPress}
                             onCardLongPress={onCardLongPress}
                             showFoldersOnly={showFoldersOnly}

@@ -2,10 +2,17 @@ import { useCallback, useRef } from "react";
 import { useCollectionStore } from "../store/useCollectionStore";
 import { Platform, Vibration } from "react-native";
 import * as Haptics from "expo-haptics";
+import { FAVORITE_STATUS } from "../constants";
 
-export const useMainActions = (currentSection, activeCategory, navigation) => {
+export const useMainActions = (
+    currentSection,
+    activeCategory,
+    navigation,
+    activeFilters = {}, // Добавляем фильтры в аргументы
+) => {
     const myCollection = useCollectionStore((state) => state.myCollection);
     const updateCard = useCollectionStore((state) => state.updateCard);
+    const lastRandomId = useRef(null);
 
     const handleCardPress = useCallback(
         (item) => {
@@ -35,57 +42,79 @@ export const useMainActions = (currentSection, activeCategory, navigation) => {
         [updateCard],
     );
 
-    // 1. Добавь ref в начале компонента
-    const lastRandomId = useRef(null);
-
     const handleRandomCard = useCallback(() => {
-        // Фильтруем коллекцию
+        // --- 1. Функция проверки фильтров (та же, что в счетчике) ---
+        const matchesFilters = (item) => {
+            if (Object.keys(activeFilters).length === 0) return true;
+
+            for (const [filterKey, filterValue] of Object.entries(
+                activeFilters,
+            )) {
+                if (typeof filterValue === "string") {
+                    if (item[filterKey] !== filterValue) return false;
+                }
+                if (Array.isArray(filterValue)) {
+                    const [min, max] = filterValue;
+                    const val = item[filterKey];
+                    if (
+                        val === undefined ||
+                        val === null ||
+                        val < min ||
+                        val > max
+                    )
+                        return false;
+                }
+            }
+            return true;
+        };
+
+        // --- 2. Фильтруем доступные элементы ---
         const availableItems = myCollection.filter((item) => {
-            // Базовые фильтры
+            // Базовые исключения: папки никогда не участвуют в рандоме, только текущий раздел
             if (item.isFolder || item.appSection !== currentSection)
                 return false;
 
-            // Фильтр по категориям
-            let matchesCategory = false;
-            if (activeCategory === "Всё") {
-                matchesCategory = true;
-            } else if (activeCategory === "Избранное") {
-                matchesCategory =
-                    item.status === "Избранное" || item.isFavorite;
+            // Применяем активные фильтры (жанры, рейтинг и т.д.)
+            if (!matchesFilters(item)) return false;
+
+            // Фильтр по текущей вкладке (Категории)
+            let matchesTab = false;
+            if (activeCategory === "Всё" || activeCategory === "Папки") {
+                matchesTab = true; // Из "Папок" рандомим все айтемы раздела
+            } else if (activeCategory === FAVORITE_STATUS) {
+                matchesTab = item.isFavorite;
             } else {
-                matchesCategory = item.status === activeCategory;
+                matchesTab = item.status === activeCategory;
             }
 
-            // КРИТИЧЕСКИЙ МОМЕНТ: Исключаем прошлую карточку
-            // Но только если в списке больше одного элемента, иначе мы застрянем
-            const isLastOne = item.id === lastRandomId.current;
-
-            return matchesCategory && !isLastOne;
+            return matchesTab;
         });
 
-        // Если после фильтрации "прошлого ID" пусто (например, в категории всего 1 карточка),
-        // берем список БЕЗ исключения последнего ID, чтобы функция всё равно сработала
-        const finalItems =
-            availableItems.length > 0
-                ? availableItems
-                : myCollection.filter(
-                      (item) =>
-                          !item.isFolder && item.appSection === currentSection,
-                  );
+        if (availableItems.length === 0) return;
 
-        if (finalItems.length === 0) return;
+        // --- 3. Исключаем прошлый ID (чтобы не выпадало дважды одно и то же) ---
+        const finalPool =
+            availableItems.length > 1
+                ? availableItems.filter((i) => i.id !== lastRandomId.current)
+                : availableItems;
 
         const randomItem =
-            finalItems[Math.floor(Math.random() * finalItems.length)];
+            finalPool[Math.floor(Math.random() * finalPool.length)];
 
-        // 2. Сохраняем ID текущей карточки как "прошлый" для следующего раза
+        // Сохраняем ID для следующего исключения
         lastRandomId.current = randomItem.id;
 
         navigation.navigate("Details", {
             item: randomItem,
             category: currentSection,
         });
-    }, [myCollection, currentSection, activeCategory, navigation]);
+    }, [
+        myCollection,
+        currentSection,
+        activeCategory,
+        navigation,
+        activeFilters,
+    ]);
 
     return { handleCardPress, handleCardLongPress, handleRandomCard };
 };

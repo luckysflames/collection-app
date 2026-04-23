@@ -15,6 +15,7 @@ export const CategoryPage = ({
     isInsideFolder = false,
     ListHeaderComponent,
     sortType = "newest",
+    activeFilters = {},
     onCardPress,
     onCardLongPress,
     isReordering,
@@ -31,6 +32,7 @@ export const CategoryPage = ({
         isInsideFolder,
         folderOrder,
         searchQuery,
+        activeFilters,
     });
 
     // 2. В режиме переупорядочивания оставляем порядок как есть (из filteredData)
