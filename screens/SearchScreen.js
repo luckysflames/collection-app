@@ -11,14 +11,15 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import { ChevronLeft } from "lucide-react-native";
 
 import { useMediaSearch } from "../hooks/useMediaSearch";
 import { MediaCard } from "../components/ui/MediaCard";
 import { SearchHeader } from "../components/screens/Search/SearchHeader";
 import { SearchSkeleton } from "../components/ui/Skeleton/SearchSkeleton";
 import { CategorySelector } from "../components/screens/Search/CategorySelector";
-import { NoResultsFooter } from "../components/screens/Search/NoResultsFooter";
-import { ChevronLeft } from "lucide-react-native";
+import { NoResultsFooter } from "../components/screens/Search/EmptyStateWindows/NoResultsFooter";
+import { SearchEmptyState } from "../components/screens/Search/EmptyStateWindows/SearchEmptyState";
 
 export default function SearchScreen({ navigation }) {
     const insets = useSafeAreaInsets();
@@ -129,8 +130,16 @@ export default function SearchScreen({ navigation }) {
                             />
                         )
                     }
-                    ListEmptyComponent={() =>
-                        !loading && (
+                    ListEmptyComponent={() => {
+                        if (loading) return null; // Если идет загрузка, ничего не показываем (работает Skeleton)
+
+                        // Если поисковая строка пуста (пользователь еще не начал искать)
+                        if (query.trim().length === 0) {
+                            return <SearchEmptyState />;
+                        }
+
+                        // Если запрос был сделан, но результатов 0
+                        return (
                             <NoResultsFooter
                                 onPress={() =>
                                     navigation.navigate("AddCard", {
@@ -138,8 +147,8 @@ export default function SearchScreen({ navigation }) {
                                     })
                                 }
                             />
-                        )
-                    }
+                        );
+                    }}
                 />
             )}
         </View>

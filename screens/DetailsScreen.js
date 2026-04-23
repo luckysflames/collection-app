@@ -87,7 +87,6 @@ export default function DetailsScreen({ route, navigation }) {
     const onSaveAction = () => {
         // Вызываем утилиту для сборки объекта
         const finalData = prepareDataForSave(editForm, cardType);
-        console.log("FINAL OBJECT TO SAVE:", finalData);
         updateCard(item.id, finalData);
         setIsEditing(false);
     };
