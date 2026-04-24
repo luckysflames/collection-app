@@ -142,7 +142,11 @@ export default function MainScreen({ route, navigation }) {
                 onPress={() => setIsFolderModalVisible(true)}
                 style={[
                     styles.folderCreateBtn,
-                    { bottom: isCompactMenu ? 80 : 120 },
+                    {
+                        bottom: isCompactMenu
+                            ? insets.bottom + 80
+                            : insets.bottom + 110,
+                    },
                 ]}
             >
                 <FolderPlus size={28} color="#7D8AFF" />
@@ -196,12 +200,7 @@ const styles = StyleSheet.create({
         height: 60,
         width: 60,
         right: 20,
-        borderRadius: 30, // В React Native для круга лучше число, '50%' не всегда корректно на Android
+        borderRadius: 30,
         backgroundColor: "#0B1534",
-        elevation: 5, // Немного тени для Android
-        shadowColor: "#000", // Тень для iOS
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
     },
 });

@@ -24,6 +24,8 @@ import { useImagePicker } from "../hooks/useImagePicker";
 import { HeaderSection } from "../components/screens/Details/HeaderSection";
 import { DetailsModals } from "../components/screens/Details/Modals/DetailsModals";
 import { prepareDataForSave } from "../utils/prepareDetailsData";
+import { FAVORITE_STATUS } from "../constants";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 export default function DetailsScreen({ route, navigation }) {
     const insets = useSafeAreaInsets();
@@ -35,11 +37,13 @@ export default function DetailsScreen({ route, navigation }) {
         status: false,
         folder: false,
         info: false,
+        createFolder: false,
     });
     const [isEditing, setIsEditing] = useState(false);
 
     const { data: fullDetails, loading } = useFetchDetails(item.id);
     const myCollection = useCollectionStore((state) => state.myCollection);
+    const createFolder = useCollectionStore((state) => state.createFolder);
     const setUserScore = useCollectionStore((state) => state.setUserScore);
     const isVibration = useCollectionStore((state) => state.isVibration);
 
@@ -114,7 +118,13 @@ export default function DetailsScreen({ route, navigation }) {
     };
 
     return (
-        <ScrollView style={styles.container} bounces={false}>
+        <KeyboardAwareScrollView
+            style={styles.container}
+            bounces={false}
+            extraScrollHeight={200}
+            enableOnAndroid={true}
+            keyboardShouldPersistTaps="handled"
+        >
             <HeaderSection
                 isEditing={isEditing}
                 image={editForm.image || item.image}
@@ -179,6 +189,7 @@ export default function DetailsScreen({ route, navigation }) {
                     isStatusVisible: modals.status,
                     isFolderVisible: modals.folder,
                     isInfoVisible: modals.info,
+                    isCreateFolderVisible: modals.createFolder,
                 }}
                 actions={{
                     closeStatus: () =>
@@ -187,6 +198,14 @@ export default function DetailsScreen({ route, navigation }) {
                         setModals((prev) => ({ ...prev, folder: false })),
                     closeInfo: () =>
                         setModals((prev) => ({ ...prev, info: false })),
+                    openCreateFolder: () =>
+                        setModals((prev) => ({
+                            ...prev,
+                            folder: false,
+                            createFolder: true,
+                        })),
+                    closeCreateFolder: () =>
+                        setModals((prev) => ({ ...prev, createFolder: false })),
                 }}
                 data={{
                     category,
@@ -197,13 +216,17 @@ export default function DetailsScreen({ route, navigation }) {
                 handlers={{
                     handleAddToFolder,
                     handleStatusUpdate,
+                    handleCreateFolder: (name) => {
+                        createFolder(name, category, FAVORITE_STATUS, []);
+                        setModals((prev) => ({ ...prev, createFolder: false }));
+                    },
                     handleDelete: () => {
                         deleteCard(item.id);
                         navigation.goBack();
                     },
                 }}
             />
-        </ScrollView>
+        </KeyboardAwareScrollView>
     );
 }
 

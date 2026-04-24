@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
         fontWeight: "700",
     },
     listContainer: {
-        maxHeight: SCREEN_HEIGHT * 0.45, // Чуть ограничил высоту списка
+        maxHeight: SCREEN_HEIGHT * 0.45,
     },
     listContent: {
         paddingBottom: 10,
@@ -216,6 +216,7 @@ const styles = StyleSheet.create({
     },
     doneBtn: {
         marginTop: 15,
+        marginBottom: -40,
         alignItems: "center",
         padding: 16,
         backgroundColor: "#7D8AFF",

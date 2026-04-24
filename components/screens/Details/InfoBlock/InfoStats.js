@@ -1,7 +1,5 @@
-// InfoStats.js
 import React from "react";
-import { View, Text } from "react-native";
-import { styles } from "./InfoBlock.styles";
+import { View, Text, StyleSheet } from "react-native";
 import { formatDate } from "./utils";
 import {
     ANIME_STATUSES,
@@ -155,3 +153,32 @@ export const InfoStats = ({ displayData }) => {
         </View>
     );
 };
+
+const styles = StyleSheet.create({
+    subItem: { flex: 1 },
+    statLabel: {
+        color: "#8E94A4",
+        fontSize: 11,
+        marginBottom: 4,
+        textTransform: "uppercase",
+    },
+    statValue: { color: "#fff", fontSize: 14, fontWeight: "600" },
+    statsGrid: {
+        backgroundColor: "rgba(255,255,255,0.03)",
+        borderRadius: 15,
+        padding: 15,
+        marginBottom: 15,
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.05)",
+    },
+    statSubGrid: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        marginTop: 12,
+    },
+    statRowSeparator: {
+        height: 1,
+        backgroundColor: "rgba(255,255,255,0.05)",
+        marginVertical: 4,
+    },
+});

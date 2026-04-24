@@ -5,10 +5,14 @@ import {
     TouchableOpacity,
     StyleSheet,
     Modal,
-    ScrollView,
     FlatList,
+    Dimensions,
+    Pressable,
 } from "react-native";
+import { BlurView } from "expo-blur";
 import { ChevronDown } from "lucide-react-native";
+
+const { width } = Dimensions.get("window");
 
 export default function SelectField({
     label,
@@ -16,14 +20,11 @@ export default function SelectField({
     form,
     updateField,
     fieldName,
-    options = [], // Array of { id, label }
-    ...props
+    options = [],
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const value = form[fieldName];
 
-    // Найти текущий label по value
-    // Преобразуем значение в строку для сравнения
     const currentLabel =
         options.find((opt) => String(opt.id) === String(value))?.label ||
         placeholder;
@@ -50,10 +51,7 @@ export default function SelectField({
                 activeOpacity={0.7}
             >
                 <Text
-                    style={[
-                        styles.inputText,
-                        !value && styles.placeholderText,
-                    ]}
+                    style={[styles.inputText, !value && styles.placeholderText]}
                 >
                     {currentLabel}
                 </Text>
@@ -68,12 +66,20 @@ export default function SelectField({
                 transparent
                 animationType="fade"
                 onRequestClose={() => setIsOpen(false)}
+                statusBarTranslucent
             >
-                <TouchableOpacity
-                    style={styles.overlay}
-                    activeOpacity={1}
-                    onPress={() => setIsOpen(false)}
-                >
+                <View style={styles.overlay}>
+                    <Pressable
+                        style={StyleSheet.absoluteFill}
+                        onPress={() => setIsOpen(false)}
+                    >
+                        <BlurView
+                            intensity={20}
+                            tint="dark"
+                            style={StyleSheet.absoluteFill}
+                        />
+                    </Pressable>
+
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>
                             {label || placeholder}
@@ -81,10 +87,10 @@ export default function SelectField({
 
                         <FlatList
                             data={options}
-                            keyExtractor={(item) => item.id}
-                            scrollEnabled={options.length > 6}
-                            showsVerticalScrollIndicator={true}
+                            keyExtractor={(item) => String(item.id)}
+                            showsVerticalScrollIndicator={false}
                             style={styles.optionsList}
+                            contentContainerStyle={{ paddingBottom: 10 }}
                             renderItem={({ item }) => (
                                 <TouchableOpacity
                                     style={[
@@ -93,6 +99,7 @@ export default function SelectField({
                                             styles.selectedOption,
                                     ]}
                                     onPress={() => handleSelect(item.id)}
+                                    activeOpacity={0.7}
                                 >
                                     <Text
                                         style={[
@@ -110,11 +117,12 @@ export default function SelectField({
                         <TouchableOpacity
                             style={styles.closeButton}
                             onPress={() => setIsOpen(false)}
+                            activeOpacity={0.8}
                         >
-                            <Text style={styles.closeButtonText}>Закрыть</Text>
+                            <Text style={styles.closeButtonText}>Готово</Text>
                         </TouchableOpacity>
                     </View>
-                </TouchableOpacity>
+                </View>
             </Modal>
         </View>
     );
@@ -131,7 +139,7 @@ const styles = StyleSheet.create({
         marginBottom: 6,
         marginLeft: 4,
         textTransform: "uppercase",
-        letterSpacing: 0.5,
+        letterSpacing: 1,
     },
     labelInactive: {
         color: "#4E5566",
@@ -139,11 +147,10 @@ const styles = StyleSheet.create({
     },
     labelActive: {
         color: "#7D8AFF",
-        opacity: 1,
     },
     input: {
         backgroundColor: "rgba(255, 255, 255, 0.05)",
-        borderRadius: 12,
+        borderRadius: 14,
         paddingHorizontal: 16,
         paddingVertical: 14,
         borderWidth: 1,
@@ -159,6 +166,7 @@ const styles = StyleSheet.create({
     inputText: {
         color: "#fff",
         fontSize: 16,
+        fontWeight: "500",
         flex: 1,
     },
     placeholderText: {
@@ -166,65 +174,73 @@ const styles = StyleSheet.create({
     },
     overlay: {
         flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.7)",
         justifyContent: "center",
         alignItems: "center",
+        backgroundColor: "rgba(0, 0, 0, 0.75)",
     },
     modalContent: {
-        backgroundColor: "#1a1f2e",
-        borderRadius: 16,
-        width: "85%",
-        maxHeight: "70%",
-        paddingTop: 20,
+        width: width * 0.85,
+        maxHeight: "75%",
+        backgroundColor: "#0B1534",
+        borderRadius: 32,
+        padding: 24,
         borderWidth: 1,
         borderColor: "rgba(125, 138, 255, 0.2)",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 20 },
+        shadowOpacity: 0.6,
+        shadowRadius: 30,
+        elevation: 25,
     },
     modalTitle: {
-        color: "#fff",
-        fontSize: 16,
+        color: "#FFF",
+        fontSize: 20,
         fontWeight: "700",
-        marginBottom: 12,
-        paddingHorizontal: 20,
-        textTransform: "uppercase",
+        marginBottom: 20,
+        textAlign: "center",
         letterSpacing: 0.5,
     },
     optionsList: {
-        paddingHorizontal: 12,
-        maxHeight: "80%",
+        width: "100%",
+        marginBottom: 20,
     },
     option: {
-        paddingVertical: 12,
-        paddingHorizontal: 12,
-        marginBottom: 4,
-        borderRadius: 10,
+        paddingVertical: 14,
+        paddingHorizontal: 16,
+        marginBottom: 8,
+        borderRadius: 14,
         backgroundColor: "rgba(255, 255, 255, 0.03)",
+        borderWidth: 1,
+        borderColor: "transparent",
     },
     selectedOption: {
-        backgroundColor: "rgba(125, 138, 255, 0.15)",
-        borderWidth: 1,
-        borderColor: "#7D8AFF",
+        backgroundColor: "rgba(125, 138, 255, 0.1)",
+        borderColor: "rgba(125, 138, 255, 0.3)",
     },
     optionText: {
         color: "#8E94A4",
-        fontSize: 14,
+        fontSize: 16,
+        fontWeight: "500",
     },
     selectedOptionText: {
         color: "#7D8AFF",
-        fontWeight: "600",
+        fontWeight: "700",
     },
     closeButton: {
-        backgroundColor: "rgba(125, 138, 255, 0.1)",
-        marginHorizontal: 12,
-        marginVertical: 12,
-        paddingVertical: 12,
-        borderRadius: 10,
+        backgroundColor: "#7D8AFF",
+        width: "100%",
+        height: 58,
+        borderRadius: 18,
+        justifyContent: "center",
         alignItems: "center",
-        borderWidth: 1,
-        borderColor: "rgba(125, 138, 255, 0.2)",
+        shadowColor: "#7D8AFF",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
     },
     closeButtonText: {
-        color: "#7D8AFF",
-        fontSize: 14,
-        fontWeight: "600",
+        color: "#FFF",
+        fontSize: 16,
+        fontWeight: "700",
     },
 });

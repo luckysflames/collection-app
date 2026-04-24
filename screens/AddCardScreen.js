@@ -25,6 +25,7 @@ import StatusPicker from "../components/screens/AddCard/StatusPicker";
 import { useAddCardForm } from "../hooks/useAddCardForm";
 import { useMediaCategories } from "../hooks/useMediaCategories";
 import { WarnModal } from "../components/ui/WarnModal";
+import { useCollectionStore } from "../store/useCollectionStore";
 
 const CollapsibleHeader = ({ title, isOpen, onPress }) => (
     <TouchableOpacity
@@ -43,6 +44,7 @@ const CollapsibleHeader = ({ title, isOpen, onPress }) => (
 
 export default function AddCardScreen({ navigation }) {
     const insets = useSafeAreaInsets();
+    const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
     const [isOptionalVisible, setIsOptionalVisible] = useState(false);
 
     const { form, updateField, handleSave, errorModal, closeError } =
@@ -162,7 +164,17 @@ export default function AddCardScreen({ navigation }) {
                 )}
             </View>
 
-            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+            <TouchableOpacity
+                style={[
+                    styles.saveButton,
+                    {
+                        marginBottom: isCompactMenu
+                            ? insets.bottom + 90
+                            : insets.bottom + 120,
+                    },
+                ]}
+                onPress={handleSave}
+            >
                 <Text style={styles.saveButtonText}>Создать карточку</Text>
             </TouchableOpacity>
 
@@ -216,12 +228,6 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         alignItems: "center",
         marginTop: 10,
-        marginBottom: 120,
-        shadowColor: "#7D8AFF",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 5,
     },
     saveButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
 });

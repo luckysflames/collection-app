@@ -24,8 +24,8 @@ export default function SettingsScreen({ navigation }) {
     const setIsCompactMenu = useCollectionStore(
         (state) => state.setIsCompactMenu,
     );
-    const isVibration = useCollectionStore((state) => state.isVibration)
-    const setIsVibration = useCollectionStore((state) => state.setIsVibration)
+    const isVibration = useCollectionStore((state) => state.isVibration);
+    const setIsVibration = useCollectionStore((state) => state.setIsVibration);
 
     const [isDevModalVisible, setDevModalVisible] = useState(false);
     const [isApiModalVisible, setApiModalVisible] = useState(false);
@@ -109,7 +109,16 @@ export default function SettingsScreen({ navigation }) {
                 </View>
 
                 {/* Версия приложения */}
-                <View style={styles.versionFooter}>
+                <View
+                    style={[
+                        styles.versionFooter,
+                        {
+                            marginBottom: isCompactMenu
+                                ? insets.bottom + 10
+                                : insets.bottom + 20,
+                        },
+                    ]}
+                >
                     <Text style={styles.versionText}>Geekly v{version}</Text>
                     <Text style={styles.buildText}>
                         Сделано с ❤️ для коллекционеров

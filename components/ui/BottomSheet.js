@@ -76,6 +76,7 @@ export const BottomSheet = ({ visible, onClose, children, containerStyle }) => {
             animationType="none"
             statusBarTranslucent
             onRequestClose={handleClose}
+            navigationBarTranslucent
         >
             <View style={styles.overlayContainer}>
                 {/* Overlay Background */}
@@ -104,8 +105,7 @@ export const BottomSheet = ({ visible, onClose, children, containerStyle }) => {
                         containerStyle,
                         {
                             transform: [{ translateY: panY }],
-                            paddingBottom:
-                                insets.bottom > 0 ? insets.bottom + 20 : 40,
+                            paddingBottom: Math.max(insets.bottom, 20) + 10,
                         },
                     ]}
                     {...panResponder.panHandlers}
@@ -114,6 +114,9 @@ export const BottomSheet = ({ visible, onClose, children, containerStyle }) => {
                     {children}
                 </Animated.View>
             </View>
+            <View
+                style={{ height: insets.bottom, backgroundColor: "#0B1534" }}
+            />
         </Modal>
     );
 };

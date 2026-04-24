@@ -158,7 +158,8 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         paddingTop: 20,
         gap: 12,
-        backgroundColor: "#0B1534", // Чтобы перекрывать скролл
+        backgroundColor: "#0B1534",
+        marginBottom: -100,
     },
     clearBtn: {
         flex: 1,

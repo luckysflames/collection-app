@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Platform, Vibration } from "react-native";
+import { View, StyleSheet, Platform, Vibration, KeyboardAvoidingView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCollectionStore } from "../store/useCollectionStore";
 
@@ -124,7 +124,12 @@ export default function FolderDetailScreen({ route, navigation }) {
     if (!folder) return null;
 
     return (
-        <View style={styles.container}>
+        <KeyboardAvoidingView
+            style={styles.container}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            // Это важно: смещение, чтобы не перекрыть инпуты
+            keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+        >
             <CategoryPage
                 data={folderItems}
                 folderOrder={folder.itemsOrder}
@@ -211,7 +216,7 @@ export default function FolderDetailScreen({ route, navigation }) {
                     navigation.goBack();
                 }}
             />
-        </View>
+        </KeyboardAvoidingView>
     );
 }
 

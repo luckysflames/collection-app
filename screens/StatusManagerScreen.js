@@ -100,7 +100,14 @@ export const StatusManagerScreen = ({ navigation }) => {
     };
 
     return (
-        <View style={styles.container}>
+        <View
+            style={[
+                styles.container,
+                {
+                    marginBottom: insets.bottom,
+                },
+            ]}
+        >
             <StatusManagerHeader
                 onBack={() => navigation.goBack()}
                 onSave={handleSave}

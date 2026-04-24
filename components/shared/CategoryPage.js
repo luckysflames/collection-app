@@ -3,6 +3,8 @@ import { View, FlatList, StyleSheet, Dimensions, Platform } from "react-native";
 import { MediaCard } from "../ui/MediaCard";
 import { EmptyState } from "./EmptyState"; // Вынесли отдельно
 import { useFilteredCollection } from "../../hooks/useFilteredCollection";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useCollectionStore } from "../../store/useCollectionStore";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -22,6 +24,9 @@ export const CategoryPage = ({
     reorderBuffer,
     showFoldersOnly = false,
 }) => {
+    const insets = useSafeAreaInsets();
+    const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
+
     // 1. Получаем отфильтрованные и базово отсортированные данные из хука
     const filteredData = useFilteredCollection({
         data,
@@ -71,10 +76,25 @@ export const CategoryPage = ({
     );
 
     return (
-        <View style={styles.pageWrapper}>
+        <View
+            style={[
+                styles.pageWrapper,
+                {
+                    marginBottom: isCompactMenu
+                        ? insets.bottom
+                        : insets.bottom + 30,
+                },
+            ]}
+        >
             <FlatList
                 data={pageData}
-                extraData={[data, pageData, reorderBuffer, folderOrder, isReordering]}
+                extraData={[
+                    data,
+                    pageData,
+                    reorderBuffer,
+                    folderOrder,
+                    isReordering,
+                ]}
                 keyExtractor={(item) => item.id.toString()}
                 numColumns={2}
                 columnWrapperStyle={styles.row}

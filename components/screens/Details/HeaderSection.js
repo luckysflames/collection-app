@@ -18,24 +18,20 @@ export const HeaderSection = ({
         leftButton={{
             onPress: onLeftPress,
             icon: isEditing ? (
-                <X size={24} color="#fff" />
+                <X size={24} color="#FF6B6B" />
             ) : (
                 <ChevronLeft size={24} color="#fff" />
             ),
-            style: isEditing
-                ? { backgroundColor: "rgba(255, 79, 79, 0.8)" }
-                : {},
         }}
         rightButton={
             showEditButton
                 ? {
                       onPress: onRightPress,
                       icon: isEditing ? (
-                          <Check size={24} color="#fff" />
+                          <Check size={24} color="#7D8AFF" />
                       ) : (
                           <Pen size={22} color="#fff" />
                       ),
-                      style: isEditing ? { backgroundColor: "#7D8AFF" } : {},
                   }
                 : null
         }

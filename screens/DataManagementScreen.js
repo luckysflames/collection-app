@@ -28,7 +28,14 @@ export const DataManagementScreen = ({ navigation }) => {
     const { state, actions } = useDataManagement(store);
 
     return (
-        <View style={styles.container}>
+        <View
+            style={[
+                styles.container,
+                {
+                    marginBottom: insets.bottom,
+                },
+            ]}
+        >
             <StatusManagerHeader
                 onBack={() => navigation.goBack()}
                 title="Сброс данных"

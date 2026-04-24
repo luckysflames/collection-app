@@ -38,20 +38,18 @@ export const FolderHeader = memo((props) => {
             leftButton={{
                 onPress: isEditing ? onCancel : onBack,
                 icon: isEditing ? (
-                    <X size={24} color="#fff" />
+                    <X size={24} color="#FF6B6B" />
                 ) : (
                     <ChevronLeft size={24} color="#fff" />
                 ),
-                style: isEditing ? styles.cancelButton : {},
             }}
             rightButton={{
                 onPress: () => (isEditing ? onSave() : setIsEditing(true)),
                 icon: isEditing ? (
-                    <Check size={24} color="#fff" />
+                    <Check size={24} color="#7D8AFF" />
                 ) : (
                     <Pen size={22} color="#fff" />
                 ),
-                style: isEditing ? styles.saveButton : {},
             }}
         >
             {/* Обертка для всего внутреннего контента */}

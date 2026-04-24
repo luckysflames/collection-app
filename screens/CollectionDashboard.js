@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
     View,
     Text,
@@ -30,23 +30,6 @@ export default function CollectionDashboard({ navigation }) {
             (item) => item.appSection === categoryName && !item.isFolder,
         ).length;
     };
-
-    useEffect(() => {
-        // Подписываемся на событие нажатия на таб родительского навигатора
-        const unsubscribe = navigation
-            .getParent()
-            ?.addListener("tabPress", (e) => {
-                const isFocused = navigation.isFocused();
-
-                if (isFocused) {
-                    // Если мы уже тут, и пользователь нажал на иконку "Коллекция"
-                    // выполняем popToTop именно в этом стеке
-                    navigation.popToTop();
-                }
-            });
-
-        return unsubscribe;
-    }, [navigation]);
 
     return (
         <View style={[styles.container, { paddingTop: insets.top - 20 }]}>

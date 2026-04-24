@@ -25,7 +25,11 @@ import { FilterSelectPage } from "./FilterSelectPage";
 import { FilterRangePage } from "./FilterRangePage";
 
 // Импорт хелперов (предположим, ты вынес их)
-import { renderFilterValue, getPresetsForFilter, generateDynamicFilters } from "./helpers";
+import {
+    renderFilterValue,
+    getPresetsForFilter,
+    generateDynamicFilters,
+} from "./helpers";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -49,7 +53,10 @@ export const FilterModal = ({
     // Генерация фильтров
     const filters = useMemo(() => {
         const staticFilters = FILTER_CONFIG[currentSection] || [];
-        const dynamicFilters = generateDynamicFilters(myCollection, currentSection);
+        const dynamicFilters = generateDynamicFilters(
+            myCollection,
+            currentSection,
+        );
         return [...staticFilters, ...dynamicFilters];
     }, [currentSection, myCollection]);
 
@@ -133,8 +140,6 @@ export const FilterModal = ({
                 <Animated.View
                     style={{
                         alignItems: "center",
-                        // position: "absolute",
-                        // left: 24,
                         opacity: mainTitleOpacity,
                     }}
                 >
@@ -216,6 +221,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 0,
         borderTopLeftRadius: 32,
         borderTopRightRadius: 32,
+        marginBottom: -40,
     },
     header: {
         height: 60,
@@ -234,7 +240,6 @@ const styles = StyleSheet.create({
         marginLeft: 4,
     },
     backBtn: {
-        // height: 60,
         flexDirection: "row",
         alignItems: "center",
         top: -30,

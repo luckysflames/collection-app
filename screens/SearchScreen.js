@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
     View,
     StyleSheet,
@@ -21,7 +21,7 @@ import { CategorySelector } from "../components/screens/Search/CategorySelector"
 import { NoResultsFooter } from "../components/screens/Search/EmptyStateWindows/NoResultsFooter";
 import { SearchEmptyState } from "../components/screens/Search/EmptyStateWindows/SearchEmptyState";
 
-export default function SearchScreen({ navigation }) {
+export default function SearchScreen({ navigation, route }) {
     const insets = useSafeAreaInsets();
     const [isCategorySelected, setIsCategorySelected] = useState(false);
 
@@ -72,6 +72,15 @@ export default function SearchScreen({ navigation }) {
             return () => subscription.remove();
         }, [isCategorySelected, handleReset]),
     );
+
+    // Слушаем сигнал сброса из TabBar
+    useEffect(() => {
+        if (route.params?.reset) {
+            handleReset();
+            // Опционально: очищаем параметр, чтобы не срабатывало повторно при других действиях
+            navigation.setParams({ reset: undefined });
+        }
+    }, [route.params?.reset, handleReset]);
 
     if (!isCategorySelected) {
         return (

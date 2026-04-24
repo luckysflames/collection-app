@@ -4,12 +4,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TabMenuItem } from "./TabMenuItem";
 import { useCollectionStore } from "../../../store/useCollectionStore";
 import { TAB_ICONS } from "../../../constants";
+import { CommonActions, StackActions } from "@react-navigation/native";
 
 export default function MyCustomTabBar({ state, descriptors, navigation }) {
     const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
     const insets = useSafeAreaInsets();
 
-    const BAR_HEIGHT = isCompactMenu ? 50 : 85;
+    const BAR_HEIGHT = isCompactMenu ? 55 : 85;
     const TOTAL_BAR_HEIGHT =
         BAR_HEIGHT + (insets.bottom > 0 ? insets.bottom : 10);
     const ICON_CONTAINER_SIZE = isCompactMenu ? 45 : 65;
@@ -26,6 +27,8 @@ export default function MyCustomTabBar({ state, descriptors, navigation }) {
                     const isFocused = state.index === index;
 
                     const onPress = () => {
+                        const isFocused = state.index === index;
+
                         const event = navigation.emit({
                             type: "tabPress",
                             target: route.key,
@@ -34,15 +37,22 @@ export default function MyCustomTabBar({ state, descriptors, navigation }) {
 
                         if (event.defaultPrevented) return;
 
-                        if (route.name === "Коллекция") {
-                            navigation.navigate("Коллекция", {
-                                screen: "Дашборд",
-                            });
-                            return;
-                        }
-
                         if (!isFocused) {
                             navigation.navigate(route.name);
+                        } else {
+                            if (route.name === "Коллекция") {
+                                // Мы просто явно переходим на самый первый экран этого стека.
+                                // React Navigation поймет, что экран "Дашборд" уже в стеке,
+                                // и сделает возврат к нему автоматически.
+                                navigation.navigate("Коллекция", {
+                                    screen: "Дашборд",
+                                });
+                            }
+
+                            if (route.name === "Поиск") {
+                                // Отправляем параметр 'reset', который мы поймаем внутри SearchScreen
+                                navigation.setParams({ reset: Date.now() });
+                            }
                         }
                     };
 

@@ -1,4 +1,3 @@
-// FolderEditForm.js
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import CommonField from "../../AddCard/Fields/CommonField";
@@ -13,7 +12,6 @@ export const FolderEditForm = ({
     onToggleReorder,
 }) => (
     <View style={styles.container}>
-        {/* Используем CommonField вместо EditInput */}
         <CommonField
             label="Название"
             placeholder="Введите название папки"
@@ -28,7 +26,7 @@ export const FolderEditForm = ({
             form={form}
             updateField={updateField}
             fieldName="description"
-            multiline // Теперь это поле будет растягиваться
+            multiline
         />
 
         <TouchableOpacity style={styles.deleteButton} onPress={onDelete}>

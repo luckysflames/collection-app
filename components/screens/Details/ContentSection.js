@@ -1,4 +1,4 @@
-import React, { useState } from "react"; // Добавили useState
+import React, { useState } from "react";
 import {
     StyleSheet,
     Text,
@@ -6,8 +6,8 @@ import {
     View,
     TouchableOpacity,
 } from "react-native";
-import { Star } from "lucide-react-native"; // Импортируем звезду для рейтинга
-import { InfoBlock } from "./InfoBlock/index";
+import { Star } from "lucide-react-native";
+import { InfoBlock } from "./InfoBlock/InfoBlock";
 import { UserRating } from "../../shared/UserRating";
 
 export const ContentSection = ({

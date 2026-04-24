@@ -1,7 +1,6 @@
-import { Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 import { LabelValue } from "./LabelValue";
-import { styles } from "./InfoBlock.styles";
 import { formatKind, formatRating } from "./utils";
 
 export const AnimeQuickData = ({ data }) => {
@@ -74,3 +73,20 @@ export const BookExtra = ({ data }) => (
         <LabelValue label="Издатель" value={data.publisher} />
     </>
 );
+
+const styles = StyleSheet.create({
+    quickMeta: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 15,
+    },
+    scoreText: { color: "#FFD700", fontSize: 14, fontWeight: "bold" },
+    dot: {
+        width: 3,
+        height: 3,
+        borderRadius: 2,
+        backgroundColor: "#444",
+        marginHorizontal: 8,
+    },
+    metaText: { color: "#8E94A4", fontSize: 14, fontWeight: "500" },
+});
