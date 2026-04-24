@@ -14,41 +14,22 @@ import { ChevronDown, ChevronUp } from "lucide-react-native";
 
 import { SUB_CATEGORIES } from "../constants";
 import { useCollectionStore } from "../store/useCollectionStore";
+import AnalyticsPanel from "../components/screens/Main/Analytics/AnalyticsPanel";
+import CollectionProgress from "../components/screens/Main/CollectionProgress";
 
 const { width } = Dimensions.get("window");
 
 export default function CollectionDashboard({ navigation }) {
     const insets = useSafeAreaInsets();
     const myCollection = useCollectionStore((state) => state.myCollection);
-    const collectionGoal = useCollectionStore((state) => state.collectionGoal);
-    const setCollectionGoal = useCollectionStore(
-        (state) => state.setCollectionGoal,
-    );
 
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-    const goalOptions = [100, 250, 500, 1000];
-
-    const toggleMenu = () => {
-        // Плавная анимация появления кнопок
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setIsMenuOpen(!isMenuOpen);
-    };
-
-    const selectGoal = (val) => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setCollectionGoal(val);
-        setIsMenuOpen(false);
-    };
+    const totalItems = myCollection.filter((item) => !item.isFolder).length;
 
     const getCount = (categoryName) => {
         return myCollection.filter(
             (item) => item.appSection === categoryName && !item.isFolder,
         ).length;
     };
-
-    const totalItems = myCollection.filter((item) => !item.isFolder).length;
-    const progressPercent = Math.min((totalItems / collectionGoal) * 100, 100);
 
     useEffect(() => {
         // Подписываемся на событие нажатия на таб родительского навигатора
@@ -110,72 +91,11 @@ export default function CollectionDashboard({ navigation }) {
                     ))}
                 </View>
 
-                {/* Интерактивный баннер статистики */}
-                <View style={styles.statsBanner}>
-                    <TouchableOpacity
-                        style={styles.statsHeader}
-                        onPress={toggleMenu}
-                        activeOpacity={0.7}
-                    >
-                        <Text style={styles.statsTitle}>
-                            Общий прогресс (цель — {collectionGoal})
-                        </Text>
-                        {isMenuOpen ? (
-                            <ChevronUp color="#7D8AFF" size={20} />
-                        ) : (
-                            <ChevronDown color="#7D8AFF" size={20} />
-                        )}
-                    </TouchableOpacity>
+                {/* Компонент прогресса */}
+                <CollectionProgress totalItems={totalItems} />
 
-                    {isMenuOpen && (
-                        <View style={styles.goalPicker}>
-                            <Text style={styles.pickerLabel}>
-                                Выберите новую цель:
-                            </Text>
-                            <View style={styles.optionsRow}>
-                                {goalOptions.map((opt) => (
-                                    <TouchableOpacity
-                                        key={opt}
-                                        style={[
-                                            styles.optionBadge,
-                                            collectionGoal === opt &&
-                                                styles.activeOptionBadge,
-                                        ]}
-                                        onPress={() => selectGoal(opt)}
-                                    >
-                                        <Text
-                                            style={[
-                                                styles.optionText,
-                                                collectionGoal === opt &&
-                                                    styles.activeOptionText,
-                                            ]}
-                                        >
-                                            {opt}
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        </View>
-                    )}
-
-                    <View style={styles.progressBar}>
-                        <View
-                            style={[
-                                styles.progressFill,
-                                { width: `${progressPercent}%` },
-                            ]}
-                        />
-                    </View>
-
-                    <View style={styles.statsFooter}>
-                        <Text style={styles.statsSubtitle}>
-                            Всего собрано: {totalItems}
-                        </Text>
-                        <Text style={styles.statsPercent}>
-                            {Math.round(progressPercent)}%
-                        </Text>
-                    </View>
-                </View>
+                {/* Компонент аналитики */}
+                <AnalyticsPanel collection={myCollection} />
             </ScrollView>
         </View>
     );

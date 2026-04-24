@@ -8,6 +8,7 @@ import {
     Dimensions,
 } from "react-native";
 import { Sliders, ChevronRight } from "lucide-react-native";
+import { getFilterIcon } from "./helpers";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -51,12 +52,11 @@ export const FilterMainPage = ({
                                             isActive && styles.iconBoxActive,
                                         ]}
                                     >
-                                        <Sliders
-                                            size={20}
-                                            color={
-                                                isActive ? "#fff" : "#8E94A4"
-                                            }
-                                        />
+                                        {getFilterIcon(
+                                            filter.icon, // Берем имя иконки из обновленного конфига
+                                            20,
+                                            isActive ? "#fff" : "#8E94A4",
+                                        )}
                                     </View>
                                     <View style={styles.filterLabelContainer}>
                                         <Text

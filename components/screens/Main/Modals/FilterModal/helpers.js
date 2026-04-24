@@ -1,3 +1,5 @@
+import * as Icons from "lucide-react-native";
+
 /**
  * Возвращает строковое представление выбранного значения фильтра
  */
@@ -73,26 +75,39 @@ export const generateDynamicFilters = (myCollection, section) => {
         countries: "Страны",
     };
 
+    const dynamicIcons = {
+        genres: "Tag",
+        studios: "Clapperboard",
+        developers: "Code2",
+        platforms: "Cpu",
+        authors: "PenTool",
+        companies: "Building2",
+        countries: "Earth",
+    };
+
     // Фильтруем коллекцию по секции
-    const sectionItems = myCollection.filter(item => item.appSection === section);
+    const sectionItems = myCollection.filter(
+        (item) => item.appSection === section,
+    );
 
     Object.entries(dynamicFields).forEach(([field, label]) => {
         const uniqueValues = new Set();
 
-        sectionItems.forEach(item => {
+        sectionItems.forEach((item) => {
             const value = item[field];
             if (value) {
                 // Если значение - строка, разделяем по запятым
-                if (typeof value === 'string') {
-                    value.split(',').forEach(v => {
+                if (typeof value === "string") {
+                    value.split(",").forEach((v) => {
                         const trimmed = v.trim();
                         if (trimmed) uniqueValues.add(trimmed);
                     });
                 }
                 // Если массив, добавляем каждый элемент
                 else if (Array.isArray(value)) {
-                    value.forEach(v => {
-                        const trimmed = typeof v === 'string' ? v.trim() : String(v).trim();
+                    value.forEach((v) => {
+                        const trimmed =
+                            typeof v === "string" ? v.trim() : String(v).trim();
                         if (trimmed) uniqueValues.add(trimmed);
                     });
                 }
@@ -101,20 +116,29 @@ export const generateDynamicFilters = (myCollection, section) => {
 
         // Если есть уникальные значения, создаем фильтр
         if (uniqueValues.size > 0) {
-            const options = Array.from(uniqueValues).sort().map(value => ({
-                id: value,
-                label: value,
-            }));
+            const options = Array.from(uniqueValues)
+                .sort()
+                .map((value) => ({
+                    id: value,
+                    label: value,
+                }));
 
             dynamicFilters.push({
                 id: field,
                 label,
                 type: "select",
                 options,
-                isDynamic: true, // Помечаем как динамический
+                isDynamic: true,
+                icon: dynamicIcons[field] || "ListFilter",
             });
         }
     });
 
     return dynamicFilters;
+};
+
+export const getFilterIcon = (iconName, size, color) => {
+    // Получаем компонент иконки по имени из конфига
+    const IconComponent = Icons[iconName] || Icons.Sliders;
+    return <IconComponent size={size} color={color} />;
 };

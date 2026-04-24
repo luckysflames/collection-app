@@ -28,7 +28,7 @@ export const CategorySelector = ({ onSelect, insets }) => {
             <Text style={styles.headerTitle}>Поиск</Text>
 
             <Text style={styles.subtitle}>
-                Выберите категорию для поиска в базе
+                Выберите категорию для поиска
             </Text>
 
             <View style={styles.grid}>

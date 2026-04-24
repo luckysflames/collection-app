@@ -306,6 +306,7 @@ export const FILTER_CONFIG = {
             label: "Статус",
             type: "select",
             options: MOVIE_STATUSES,
+            icon: "Activity",
         },
         {
             id: "year",
@@ -313,6 +314,7 @@ export const FILTER_CONFIG = {
             type: "range",
             min: 1900,
             max: new Date().getFullYear() + 5,
+            icon: "Calendar",
         },
         {
             id: "budget",
@@ -320,6 +322,7 @@ export const FILTER_CONFIG = {
             type: "range",
             min: 0,
             max: 1000000000,
+            icon: "DollarSign",
         },
         {
             id: "duration",
@@ -327,6 +330,7 @@ export const FILTER_CONFIG = {
             type: "range",
             min: 0,
             max: 600,
+            icon: "Clock",
         },
     ],
     anime: [
@@ -335,18 +339,21 @@ export const FILTER_CONFIG = {
             label: "Тип",
             type: "select",
             options: ANIME_KINDS,
+            icon: "Shapes",
         },
         {
             id: "animeStatus",
             label: "Статус",
             type: "select",
             options: ANIME_STATUSES,
+            icon: "Activity",
         },
         {
             id: "rating",
             label: "Возрастной рейтинг",
             type: "select",
             options: ANIME_RATINGS,
+            icon: "Banana",
         },
         {
             id: "year",
@@ -354,6 +361,7 @@ export const FILTER_CONFIG = {
             type: "range",
             min: 1917,
             max: new Date().getFullYear() + 5,
+            icon: "Calendar",
         },
         {
             id: "episodes",
@@ -361,6 +369,7 @@ export const FILTER_CONFIG = {
             type: "range",
             min: 1,
             max: 200,
+            icon: "Tv",
         },
         {
             id: "duration",
@@ -368,6 +377,7 @@ export const FILTER_CONFIG = {
             type: "range",
             min: 1,
             max: 120,
+            icon: "Timer",
         },
     ],
     book: [
@@ -376,6 +386,7 @@ export const FILTER_CONFIG = {
             label: "Возрастной рейтинг",
             type: "select",
             options: BOOK_MATURITY_RATINGS,
+            icon: "Banana",
         },
         {
             id: "year",
@@ -383,6 +394,7 @@ export const FILTER_CONFIG = {
             type: "range",
             min: 1450,
             max: new Date().getFullYear() + 5,
+            icon: "Calendar",
         },
         {
             id: "pageCount",
@@ -390,6 +402,7 @@ export const FILTER_CONFIG = {
             type: "range",
             min: 0,
             max: 5000,
+            icon: "BookOpen",
         },
     ],
     game: [
@@ -398,6 +411,7 @@ export const FILTER_CONFIG = {
             label: "ESRB рейтинг",
             type: "select",
             options: ESRB_RATINGS,
+            icon: "ShieldCheck",
         },
         {
             id: "year",
@@ -405,6 +419,7 @@ export const FILTER_CONFIG = {
             type: "range",
             min: 1970,
             max: new Date().getFullYear() + 5,
+            icon: "Calendar",
         },
         {
             id: "metacritic",
@@ -412,6 +427,7 @@ export const FILTER_CONFIG = {
             type: "range",
             min: 0,
             max: 100,
+            icon: "Star",
         },
         {
             id: "duration",
@@ -419,6 +435,26 @@ export const FILTER_CONFIG = {
             type: "range",
             min: 0,
             max: 500,
+            icon: "Gamepad2",
         },
+    ],
+};
+
+export const CATEGORY_CONFIG = {
+    movie: [
+        { title: "Топ страны", key: "topCountries" },
+        { title: "Топ производства", key: "topCompanies" },
+    ],
+    anime: [
+        { title: "Топ типы", key: "topKinds" },
+        { title: "Топ студии", key: "topStudios" },
+    ],
+    game: [
+        { title: "Топ платформы", key: "topPlatforms" },
+        { title: "Топ разработчики", key: "topDevelopers" },
+    ],
+    book: [
+        { title: "Топ авторы", key: "topAuthors" },
+        { title: "Топ издатели", key: "topPublishers" },
     ],
 };
