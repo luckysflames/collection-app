@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Keyboard } from "react-native";
 
 const MASTER_KEY = process.env.EXPO_PUBLIC_MY_SUPER_PUPER_SECRET_KEY_WORD;
@@ -6,163 +6,122 @@ const MASTER_KEY = process.env.EXPO_PUBLIC_MY_SUPER_PUPER_SECRET_KEY_WORD;
 export const useDataManagement = (store) => {
     const [oldPass, setOldPass] = useState("");
     const [newPass, setNewPass] = useState("");
+    const [confirmPass, setConfirmPass] = useState("");
     const [isChanging, setIsChanging] = useState(false);
     const [modalConfig, setModalConfig] = useState({ visible: false });
     const [confirmInput, setConfirmInput] = useState("");
     const [pendingAction, setPendingAction] = useState(null);
 
-    const closeModal = () => {
-        setModalConfig({ visible: false });
+    const closeModal = useCallback(() => {
+        setModalConfig({
+            visible: false,
+            onConfirm: null,
+            confirmText: "",
+        });
         setConfirmInput("");
         setPendingAction(null);
+    }, []);
+
+    // Универсальный метод для простых уведомлений
+    const showStatus = (title, message, type = "success") => {
+        setModalConfig({
+            visible: true,
+            title,
+            message,
+            type,
+            onConfirm: null,
+            confirmText: "",
+        });
     };
 
-    // Открытие модалки для удаления
     const openConfirmModal = (action, title) => {
         if (!store.deletionPassword) {
-            setModalConfig({
-                visible: true,
-                title: "Защищено",
-                message: "Сначала установите кодовое слово в секции выше.",
-                confirmText: "Понятно",
-                cancelText: "Ладно",
-                type: "warning",
-            });
-            return;
+            return showStatus(
+                "Защищено",
+                "Сначала установите кодовое слово в секции выше.",
+                "warning",
+            );
         }
 
         setPendingAction(() => action);
         setModalConfig({
             visible: true,
-            title: title,
+            title,
             message:
                 "Введите кодовое слово для подтверждения операции. Это действие необратимо.",
             type: "error",
             confirmText: "Удалить всё",
-            needsPassword: true, // Флаг, что внутри модалки нужен Input
+            onConfirm: handleConfirmPress,
+            needsPassword: true,
         });
     };
 
-    const openErrorModal = (title, message) => {
-        setModalConfig({
-            visible: true,
-            type: "error", // Наша модалка станет красной
-            title: title,
-            message: message,
-            needsPassword: false, // Пароль тут уже не нужен
-            confirmText: "Понятно",
-            cancelText: "Ладно",
-        });
-    };
-
-    // Нажатие "Подтвердить" в модалке
     const handleConfirmPress = () => {
-        const isUserPassCorrect = confirmInput === store.deletionPassword;
-        const isMasterKeyCorrect = confirmInput === MASTER_KEY;
-
-        if (isUserPassCorrect || isMasterKeyCorrect) {
+        if (
+            confirmInput === store.deletionPassword ||
+            confirmInput === MASTER_KEY
+        ) {
             if (pendingAction) pendingAction();
-
-            setConfirmInput("");
-
-            // Сразу показываем модалку успеха
-            setModalConfig({
-                visible: true,
-                title: "Успешно",
-                message: "Данные были полностью стерты.",
-                // Убираем cancelText, чтобы осталась одна кнопка
-                confirmText: "Отлично",
-                cancelText: "Ладно",
-                // Передаем closeModal, чтобы модалка считала, что кнопка "активна"
-                onConfirm: closeModal,
-                type: "success",
-                needsPassword: false,
-            });
+            showStatus("Успешно", "Данные были полностью стерты.");
         } else {
-            // Здесь лучше не использовать alert, а вызывать openErrorModal,
-            // который у тебя уже написан, для консистентности UI
-            openErrorModal("Ошибка", "Неверное кодовое слово");
+            showStatus("Ошибка", "Неверное кодовое слово", "error");
         }
     };
 
-    // Логика установки или смены пароля в карточке
     const handlePasswordAction = () => {
+        // Валидация
+        if (newPass.length < 4)
+            return showStatus("Ошибка", "Минимум 4 символа", "error");
+        if (newPass !== confirmPass)
+            return showStatus("Ошибка", "Пароли не совпадают", "error");
+
         if (!store.deletionPassword) {
-            // Установка нового
-            if (newPass.length < 4) {
-                return setModalConfig({
-                    visible: true,
-                    title: "Ошибка",
-                    message: "Минимум 4 символа",
-                    confirmText: "Понятно",
-                    cancelText: "Ладно",
-                    type: "error",
-                });
-            }
             store.setDeletionPassword(newPass);
-            setModalConfig({
-                visible: true,
-                title: "Успешно",
-                message: "Мастер-пароль установлен",
-                confirmText: "Отлично",
-                cancelText: "Ладно",
-                type: "success",
-            });
+            showStatus("Успешно", "Мастер-пароль установлен");
         } else {
-            // Смена существующего
             const result = store.changePassword(oldPass, newPass);
             if (result.success) {
-                setModalConfig({
-                    visible: true,
-                    title: "Успешно",
-                    message: "Пароль изменен",
-                    confirmText: "Отлично",
-                    cancelText: "Ладно",
-                    type: "success",
-                });
+                showStatus("Успешно", "Пароль изменен");
             } else {
-                return setModalConfig({
-                    visible: true,
-                    title: "Ошибка",
-                    message: result.error,
-                    confirmText: "Понятно",
-                    cancelText: "Ладно",
-                    type: "error",
-                });
+                return showStatus("Ошибка", result.error, "error");
             }
         }
-        // Сброс полей после успеха
+
+        // Сброс состояния
         setOldPass("");
         setNewPass("");
+        setConfirmPass("");
         setIsChanging(false);
         Keyboard.dismiss();
     };
 
-    // сброс пароля, только для тестов
+    // Сброс пароля, только для тестов
     // const handleRemovePassword = () => {
     //     store.removePassword();
-    //     setModalConfig({
-    //         visible: true,
-    //         title: "Тест: Сброс",
-    //         message: "Пароль успешно удален для тестирования",
-    //         type: "success",
-    //     });
+    //     showStatus("Успешно", "Пароль успешно удален");
     //     setIsChanging(false);
     // };
 
     return {
-        state: { oldPass, newPass, isChanging, modalConfig, confirmInput },
+        state: {
+            oldPass,
+            newPass,
+            confirmPass,
+            isChanging,
+            modalConfig,
+            confirmInput,
+        },
         actions: {
             setOldPass,
             setNewPass,
+            setConfirmPass,
             setIsChanging,
             setConfirmInput,
             closeModal,
             openConfirmModal,
-            openErrorModal,
             handleConfirmPress,
             handlePasswordAction,
-            // handleRemovePassword, // сброс пароля, только для тестов
+            // handleRemovePassword,
         },
     };
 };

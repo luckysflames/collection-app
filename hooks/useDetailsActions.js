@@ -19,6 +19,7 @@ export const useDetailsActions = (item, displayData, category) => {
 
     // Поиск подходящих папок для текущей секции (Фильмы/Аниме и т.д.)
     const currentSection = category || item.appSection || "Фильмы";
+
     const existingFolders = myCollection.filter((i) => {
         if (!i.isFolder) return false;
         const folderSection = String(i.appSection || "")
@@ -28,35 +29,35 @@ export const useDetailsActions = (item, displayData, category) => {
         return folderSection === activeSection;
     });
 
-    const defaultStatus =
-        DEFAULT_STATUS_BY_SECTION[getSectionKey(currentSection)] ||
-        DEFAULT_FALLBACK_STATUS;
+    // Вспомогательная функция для обработки статуса перед сохранением
+    const processStatus = (inputStatus) => {
+        const isFavoriteStatus = inputStatus === FAVORITE_STATUS;
+        return {
+            finalStatus: isFavoriteStatus ? null : inputStatus,
+            isFavorite: isFavoriteStatus,
+        };
+    };
 
     // Логика добавления/удаления из папки (Toggle)
     const handleAddToFolder = (folderId) => {
         if (!isInCollection) {
-            // Если айтема еще нет в коллекции, добавляем его сразу с массивом папок
+            const rawStatus = displayData.status || FAVORITE_STATUS;
+            const { finalStatus, isFavorite } = processStatus(rawStatus);
+
             addToCollection({
                 ...item,
                 ...displayData,
-                status: displayData.status || defaultStatus,
+                status: finalStatus,
+                isFavorite: isFavorite,
                 appSection: currentSection,
-                parentFolderIds: [folderId], // Сразу создаем массив
+                parentFolderIds: [folderId],
             });
         } else {
-            // Если айтем уже в коллекции, работаем с массивом ID папок
             const currentFolders = savedItem.parentFolderIds || [];
-            let newFolderIds;
+            const newFolderIds = currentFolders.includes(folderId)
+                ? currentFolders.filter((id) => id !== folderId)
+                : [...currentFolders, folderId];
 
-            if (currentFolders.includes(folderId)) {
-                // Если уже есть в этой папке — удаляем из неё
-                newFolderIds = currentFolders.filter((id) => id !== folderId);
-            } else {
-                // Если нет — добавляем в массив
-                newFolderIds = [...currentFolders, folderId];
-            }
-
-            // Обновляем карточку в сторе
             updateCard(item.id, { parentFolderIds: newFolderIds });
         }
     };
@@ -85,7 +86,7 @@ export const useDetailsActions = (item, displayData, category) => {
             addToCollection({
                 ...item,
                 ...displayData,
-                status: displayData.status ?? "Без статуса",
+                status: null,
                 isFavorite: true,
                 appSection: currentSection,
                 parentFolderIds: [],

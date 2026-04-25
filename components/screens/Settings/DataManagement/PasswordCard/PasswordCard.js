@@ -18,6 +18,8 @@ export const PasswordCard = ({
     setOldPass,
     newPass,
     setNewPass,
+    confirmPass,
+    setConfirmPass,
     handlePasswordAction,
     handleRemovePassword,
 }) => {
@@ -43,6 +45,8 @@ export const PasswordCard = ({
                         setOldPass={setOldPass}
                         newPass={newPass}
                         setNewPass={setNewPass}
+                        confirmPass={confirmPass}
+                        setConfirmPass={setConfirmPass}
                         isChanging={isChanging}
                         setIsChanging={setIsChanging}
                         handlePasswordAction={handlePasswordAction}
@@ -63,7 +67,7 @@ export const PasswordCard = ({
                                 color="#7D8AFF"
                             />
                         </TouchableOpacity>
-                        
+
                         {/* Кнопка для сброса пароля, только для тестов */}
                         {/* <TouchableOpacity
                             activeOpacity={0.7}
@@ -118,7 +122,6 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
     description: {
-        // textAlign: "center",
         color: "#8E94A4",
         fontSize: 13,
         lineHeight: 19,
@@ -139,6 +142,5 @@ const styles = StyleSheet.create({
     },
     testButtonsRow: {
         flexDirection: "column",
-        alignItems: "center",
     },
 });

@@ -143,8 +143,7 @@ export const fetchDetailsById = async (id) => {
             const json = await res.json();
             return {
                 type: "movie",
-                budget:
-                    json.budget > 0 ? json.budget : "?",
+                budget: json.budget > 0 ? json.budget : "?",
                 genres: json.genres?.map((g) => g.name) || [],
                 originalTitle: json.original_title,
                 description: json.overview,
@@ -216,15 +215,22 @@ export const fetchDetailsById = async (id) => {
                 `https://www.googleapis.com/books/v1/volumes/${bookId}?hl=ru&key=${GOOGLE_BOOKS_KEY}`,
             );
             const json = await res.json();
-            console.log(JSON.stringify(json));
             const info = json.volumeInfo;
+
+            // Обработка категорий: "A / B" превращаем в ["A", "B"]
+            const processedGenres = info.categories
+                ? info.categories.flatMap((cat) =>
+                      cat.split("/").map((s) => s.trim()),
+                  )
+                : [];
+
             return {
                 type: "book",
                 authors: info.authors || [],
                 publisher: info.publisher,
                 year: info.publishedDate,
                 pageCount: info.pageCount || null,
-                genres: info.categories || [],
+                genres: processedGenres,
                 score: info.averageRating || "0.0",
                 rating: info.maturityRating,
                 description:

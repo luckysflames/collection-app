@@ -64,9 +64,10 @@ export const calculateStats = (items, category) => {
     switch (category) {
         case "movie": {
             // Топ жанры, страны, компании
-            stats.topGenres = getTopValues(
-                filtered,
-                (item) => item.genres || [],
+            stats.topGenres = getTopValues(filtered, (item) =>
+                (item.genres || []).map(
+                    (genre) => genre.charAt(0).toUpperCase() + genre.slice(1),
+                ),
             );
 
             stats.topCountries = getTopValues(filtered, (item) =>

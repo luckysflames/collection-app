@@ -12,11 +12,6 @@ import {
 // --- HELPERS ---
 const getSectionKey = (section) => SECTION_MAPPING[section] || section;
 
-const getDefaultStatusForSection = (section) => {
-    const key = getSectionKey(section);
-    return DEFAULT_STATUS_BY_SECTION[key] || DEFAULT_FALLBACK_STATUS;
-};
-
 export const useCollectionStore = create(
     persist(
         (set, get) => ({
@@ -138,9 +133,7 @@ export const useCollectionStore = create(
                             item.status === statusToDelete
                                 ? {
                                       ...item,
-                                      status: getDefaultStatusForSection(
-                                          item.appSection,
-                                      ),
+                                      status: null,
                                   }
                                 : item,
                         ),
@@ -159,11 +152,9 @@ export const useCollectionStore = create(
 
                     const newItem = {
                         ...item,
-                        status:
-                            item.status ??
-                            getDefaultStatusForSection(item.appSection),
+                        status: item.status,
                         isFavorite: item.isFavorite || false,
-                        userScore: item.userScore || 0, // Наша 10-балльная шкала
+                        userScore: item.userScore || 0,
                         parentFolderIds: item.parentFolderIds || [],
                         createdAt: item.createdAt || Date.now(),
                     };
@@ -241,12 +232,41 @@ export const useCollectionStore = create(
             // --- FOLDER METHODS ---
             createFolder: (folderName, section, status, selectedItemIds) =>
                 set((state) => {
+                    // 1. Проверяем, существует ли папка с таким же именем в этом разделе
+                    // (Обычно уникальность проверяют внутри одного appSection)
+                    const isDuplicate = state.myCollection.some(
+                        (item) =>
+                            item.isFolder &&
+                            item.appSection === section &&
+                            item.title.trim().toLowerCase() ===
+                                folderName.trim().toLowerCase(),
+                    );
+
+                    // 2. Если дубликат найден, можно либо прервать выполнение,
+                    // либо модифицировать имя. Вот пример с добавлением (1), (2) и т.д.
+                    let finalName = folderName;
+                    if (isDuplicate) {
+                        let counter = 1;
+                        while (
+                            state.myCollection.some(
+                                (item) =>
+                                    item.isFolder &&
+                                    item.appSection === section &&
+                                    item.title.toLowerCase() ===
+                                        `${folderName} (${counter})`.toLowerCase(),
+                            )
+                        ) {
+                            counter++;
+                        }
+                        finalName = `${folderName} (${counter})`;
+                    }
+
                     const folderId = `folder_${Date.now()}`;
                     const shouldBeFavorite = status === FAVORITE_STATUS;
 
                     const newFolder = {
                         id: folderId,
-                        title: folderName,
+                        title: finalName,
                         isFolder: true,
                         appSection: section,
                         status: shouldBeFavorite ? null : status,

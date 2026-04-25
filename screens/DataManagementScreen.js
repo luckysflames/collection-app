@@ -56,6 +56,7 @@ export const DataManagementScreen = ({ navigation }) => {
                     setOldPass={actions.setOldPass}
                     newPass={state.newPass}
                     setNewPass={actions.setNewPass}
+                    setConfirmPass={actions.setConfirmPass}
                     handlePasswordAction={actions.handlePasswordAction}
                     handleRemovePassword={actions.handleRemovePassword}
                 />
@@ -71,30 +72,7 @@ export const DataManagementScreen = ({ navigation }) => {
                     state.modalConfig.needsPassword &&
                     state.confirmInput.length < 4
                 }
-                onConfirm={
-                    state.modalConfig.needsPassword
-                        ? () => {
-                              // Проверяем пароль
-                              if (
-                                  state.confirmInput ===
-                                      store.deletionPassword ||
-                                  state.confirmInput === MASTER_KEY
-                              ) {
-                                  actions.handleConfirmPress(); // Выполняем действие (например, сброс)
-                              } else {
-                                  actions.closeModal(); // Закрываем текущую модалку
-
-                                  // Вызываем модалку ошибки (через небольшую задержку для плавной анимации)
-                                  setTimeout(() => {
-                                      actions.openErrorModal(
-                                          "Неверный пароль",
-                                          "Введенный мастер-пароль не совпадает. Попробуйте еще раз.",
-                                      );
-                                  }, 400);
-                              }
-                          }
-                        : actions.closeModal
-                }
+                onConfirm={state.modalConfig.onConfirm}
             >
                 {state.modalConfig.needsPassword && (
                     <TextInput

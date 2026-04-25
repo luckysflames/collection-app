@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
     StyleSheet,
     Text,
@@ -14,72 +14,102 @@ export const PasswordInputs = ({
     setOldPass,
     newPass,
     setNewPass,
+    confirmPass, // Добавь этот проп
+    setConfirmPass, // Добавь этот проп
     isChanging,
     setIsChanging,
     handlePasswordAction,
-}) => (
-    <View style={styles.inputGroup}>
-        {hasPassword && (
-            <View style={styles.inputWrapper}>
-                <Ionicons
-                    name="key-outline"
-                    size={18}
-                    color="#4E55D7"
-                    style={styles.inputIcon}
-                />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Старый пароль"
-                    placeholderTextColor="#5E6272"
-                    value={oldPass}
-                    onChangeText={setOldPass}
-                    secureTextEntry
-                    autoCapitalize="none"
-                />
-            </View>
-        )}
+}) => {
+    const [secureEntry, setSecureEntry] = useState(true);
+
+    const renderInput = (
+        icon,
+        placeholder,
+        value,
+        onChange,
+        color = "#7D8AFF",
+    ) => (
         <View style={styles.inputWrapper}>
             <Ionicons
-                name="lock-closed-outline"
+                name={icon}
                 size={18}
-                color="#7D8AFF"
+                color={color}
                 style={styles.inputIcon}
             />
             <TextInput
                 style={styles.input}
-                placeholder={hasPassword ? "Новый пароль" : "Придумайте пароль"}
+                placeholder={placeholder}
                 placeholderTextColor="#5E6272"
-                value={newPass}
-                onChangeText={setNewPass}
-                secureTextEntry
+                value={value}
+                onChangeText={onChange}
+                secureTextEntry={secureEntry}
                 autoCapitalize="none"
             />
-        </View>
-
-        <View style={styles.buttonRow}>
-            {isChanging && (
-                <TouchableOpacity
-                    style={styles.cancelButton}
-                    onPress={() => {
-                        setIsChanging(false);
-                        setOldPass("");
-                        setNewPass("");
-                    }}
-                >
-                    <Text style={styles.cancelButtonText}>Отмена</Text>
-                </TouchableOpacity>
-            )}
             <TouchableOpacity
-                style={[styles.saveButton, { flex: isChanging ? 1.5 : 1 }]}
-                onPress={handlePasswordAction}
+                onPress={() => setSecureEntry(!secureEntry)}
+                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
             >
-                <Text style={styles.buttonText}>
-                    {hasPassword ? "Обновить" : "Сохранить"}
-                </Text>
+                <Ionicons
+                    name={secureEntry ? "eye-off-outline" : "eye-outline"}
+                    size={20}
+                    color={secureEntry ? "#5E6272" : "#4E55D7"}
+                />
             </TouchableOpacity>
         </View>
-    </View>
-);
+    );
+
+    return (
+        <View style={styles.inputGroup}>
+            {hasPassword &&
+                renderInput(
+                    "key-outline",
+                    "Старый пароль",
+                    oldPass,
+                    setOldPass,
+                    "#4E55D7",
+                )}
+
+            {renderInput(
+                "lock-closed-outline",
+                hasPassword ? "Новый пароль" : "Придумайте пароль",
+                newPass,
+                setNewPass,
+            )}
+
+            {/* Поле подтверждения показываем только при создании или смене */}
+            {renderInput(
+                "checkmark-circle-outline",
+                "Повторите пароль",
+                confirmPass,
+                setConfirmPass,
+            )}
+
+            <View style={styles.buttonRow}>
+                {isChanging && (
+                    <TouchableOpacity
+                        style={styles.cancelButton}
+                        onPress={() => {
+                            setIsChanging(false);
+                            setOldPass("");
+                            setNewPass("");
+                            setConfirmPass("");
+                        }}
+                    >
+                        <Text style={styles.cancelButtonText}>Отмена</Text>
+                    </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                    style={[styles.saveButton, { flex: isChanging ? 1.5 : 1 }]}
+                    onPress={handlePasswordAction}
+                >
+                    <Text style={styles.buttonText}>
+                        {hasPassword ? "Обновить" : "Сохранить"}
+                    </Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+    );
+};
 
 const styles = StyleSheet.create({
     inputWrapper: {

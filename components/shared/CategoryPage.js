@@ -97,6 +97,8 @@ export const CategoryPage = ({
                 ]}
                 keyExtractor={(item) => item.id.toString()}
                 numColumns={2}
+                showsVerticalScrollIndicator={false}
+                showsHorizontalScrollIndicator={false}
                 columnWrapperStyle={styles.row}
                 contentContainerStyle={[
                     styles.listPadding,

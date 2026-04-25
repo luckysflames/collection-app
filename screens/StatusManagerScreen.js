@@ -66,22 +66,28 @@ export const StatusManagerScreen = ({ navigation }) => {
             });
         }
 
-        const fallbackStatus =
-            DEFAULT_STATUS_BY_SECTION[selectedSection] || "В планах";
-
         setModalConfig({
             visible: true,
             title: "Удалить статус?",
-            message: `Карточки будут перенесены в статус "${fallbackStatus}".`,
+            message: `Карточки, которые находятся в "${status}", можно будет найти в разделе "Всё". Чтобы не запутаться, советуем сначала перенести карточки в другой статус.`,
             type: "error",
             confirmText: "Удалить",
             onConfirm: () => {
-                if (currentDefault === status)
+                // 1. Если удаляемый статус был дефолтным для этой вкладки, сбрасываем локально на "Всё"
+                if (currentDefault === status) {
                     updateSectionDefault(selectedSection, "Всё");
+                }
+
+                // 2. Обновляем локальный список статусов (черновик), чтобы из списка пропала строка
                 updateSectionStatuses(
                     selectedSection,
                     currentStatuses.filter((s) => s !== status),
                 );
+
+                // 3. ВАЖНО: Вызываем метод стора, чтобы он ПРОШЕЛСЯ ПО КАРТОЧКАМ и поставил им null
+                // Мы делаем это сразу, так как это действие с данными коллекции
+                store.removeCustomStatus(selectedSection, status);
+
                 setModalConfig({ visible: false });
             },
         });

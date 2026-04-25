@@ -6,8 +6,14 @@ import {
     TextInput,
     TouchableOpacity,
     StyleSheet,
+    Dimensions,
+    Pressable,
 } from "react-native";
+import { BlurView } from "expo-blur";
+import { Ionicons } from "@expo/vector-icons";
 import { FAVORITE_STATUS, SYSTEM_STATUSES } from "../../../../constants";
+
+const { width } = Dimensions.get("window");
 
 export const CreateFolderModal = ({
     isVisible,
@@ -36,32 +42,66 @@ export const CreateFolderModal = ({
             visible={isVisible}
             onRequestClose={onClose}
         >
-            <View style={styles.modalOverlay}>
+            <View style={styles.overlay}>
+                <Pressable style={StyleSheet.absoluteFill} onPress={onClose}>
+                    <BlurView
+                        intensity={20}
+                        tint="dark"
+                        style={StyleSheet.absoluteFill}
+                    />
+                </Pressable>
+
                 <View style={styles.modalContent}>
-                    <Text style={styles.modalTitle}>Новая папка</Text>
-                    <Text style={styles.modalSubtitle}>
+                    {/* Иконка в круге, как в WarnModal */}
+                    <View style={styles.iconCircle}>
+                        <Ionicons
+                            name="folder-open"
+                            size={40}
+                            color="#7D8AFF"
+                        />
+                    </View>
+
+                    <Text style={styles.title}>Новая папка</Text>
+
+                    <Text style={styles.message}>
                         Будет создана в "{filteredCategory}"
                     </Text>
+
                     <TextInput
                         style={styles.input}
                         placeholder="Название папки..."
-                        placeholderTextColor="#8E94A4"
+                        placeholderTextColor="#666"
                         value={name}
                         onChangeText={setName}
                         autoFocus
                     />
-                    <View style={styles.modalButtons}>
+
+                    <View style={styles.buttonContainer}>
                         <TouchableOpacity
                             style={[styles.button, styles.cancelButton]}
                             onPress={onClose}
+                            activeOpacity={0.7}
                         >
-                            <Text style={styles.buttonText}>Отмена</Text>
+                            <Text style={styles.cancelButtonText}>Отмена</Text>
                         </TouchableOpacity>
+
                         <TouchableOpacity
-                            style={[styles.button, styles.createButton]}
+                            style={[
+                                styles.button,
+                                styles.confirmButton,
+                                !name.trim() && styles.disabledButton,
+                            ]}
                             onPress={handleCreate}
+                            disabled={!name.trim()}
                         >
-                            <Text style={styles.buttonText}>Создать</Text>
+                            <Text
+                                style={[
+                                    styles.buttonText,
+                                    !name.trim() && styles.disabledButtonText,
+                                ]}
+                            >
+                                Создать
+                            </Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -71,61 +111,100 @@ export const CreateFolderModal = ({
 };
 
 const styles = StyleSheet.create({
-    modalOverlay: {
+    overlay: {
         flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.8)",
         justifyContent: "center",
         alignItems: "center",
-        padding: 20,
+        backgroundColor: "rgba(0,0,0,0.75)",
     },
     modalContent: {
-        width: "100%",
-        backgroundColor: "#1A2232",
-        borderRadius: 25,
-        padding: 25,
+        width: width * 0.85,
+        backgroundColor: "#0B1534", // Твой цвет фона
+        borderRadius: 32, // Скругление как в WarnModal
+        padding: 24,
+        alignItems: "center",
         borderWidth: 1,
-        borderColor: "rgba(255, 255, 255, 0.1)",
+        borderColor: "rgba(125, 138, 255, 0.2)",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 20 },
+        shadowOpacity: 0.6,
+        shadowRadius: 30,
+        elevation: 25,
     },
-    modalTitle: {
-        fontSize: 20,
-        fontWeight: "bold",
-        color: "#fff",
-        marginBottom: 5,
-    },
-    modalSubtitle: {
-        fontSize: 14,
-        color: "#8E94A4",
+    iconCircle: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: "rgba(125, 138, 255, 0.15)",
+        justifyContent: "center",
+        alignItems: "center",
         marginBottom: 20,
+    },
+    title: {
+        color: "#FFF",
+        fontSize: 22,
+        fontWeight: "700",
+        marginBottom: 12,
+        textAlign: "center",
+        letterSpacing: 0.5,
+    },
+    message: {
+        color: "#8E94A4",
+        fontSize: 16,
+        textAlign: "center",
+        lineHeight: 24,
+        marginBottom: 24,
     },
     input: {
         backgroundColor: "rgba(255, 255, 255, 0.05)",
-        borderRadius: 12,
-        padding: 15,
-        color: "#fff",
+        borderRadius: 18,
+        padding: 16,
+        color: "#FFF",
         fontSize: 16,
-        marginBottom: 20,
+        width: "100%",
+        marginBottom: 24,
+        borderWidth: 1,
+        borderColor: "rgba(125, 138, 255, 0.2)",
+    },
+    buttonContainer: {
+        flexDirection: "row",
+        width: "100%",
+        gap: 12,
+    },
+    button: {
+        flex: 1,
+        height: 58,
+        borderRadius: 18,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    confirmButton: {
+        backgroundColor: "#7D8AFF",
+        shadowColor: "#7D8AFF",
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.4,
+        shadowRadius: 15,
+    },
+    cancelButton: {
+        backgroundColor: "rgba(255, 255, 255, 0.05)",
         borderWidth: 1,
         borderColor: "rgba(255, 255, 255, 0.1)",
     },
-    modalButtons: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-    },
-    button: {
-        flex: 0.48,
-        padding: 15,
-        borderRadius: 15,
-        alignItems: "center",
-    },
-    cancelButton: {
-        backgroundColor: "rgba(255, 255, 255, 0.08)",
-    },
-    createButton: {
-        backgroundColor: "#7D8AFF",
-    },
     buttonText: {
-        color: "#fff",
-        fontWeight: "600",
+        color: "#FFF",
         fontSize: 16,
+        fontWeight: "700",
+    },
+    cancelButtonText: {
+        color: "#8E94A4",
+        fontSize: 16,
+        fontWeight: "600",
+    },
+    disabledButton: {
+        backgroundColor: "rgba(125, 138, 255, 0.05)",
+        shadowOpacity: 0,
+    },
+    disabledButtonText: {
+        color: "rgba(255, 255, 255, 0.1)",
     },
 });

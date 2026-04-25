@@ -7,6 +7,8 @@ import {
     StyleSheet,
     Dimensions,
     Pressable,
+    KeyboardAvoidingView,
+    Platform,
 } from "react-native";
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,7 +21,7 @@ export const WarnModal = ({
     message,
     onClose,
     onConfirm,
-    confirmText = "Удалить",
+    confirmText,
     cancelText = "Отмена",
     confirmDisabled = false,
     type = "warning",
@@ -31,7 +33,7 @@ export const WarnModal = ({
                 return { name: "checkmark-circle", color: "#4ADE80" };
             case "warning":
                 return { name: "alert-circle", color: "#FACC15" };
-            case "error": // Явно добавил error
+            case "error":
                 return { name: "close-circle", color: "#FF6B6B" };
             default:
                 return { name: "information-circle", color: "#7D8AFF" };
@@ -40,18 +42,26 @@ export const WarnModal = ({
 
     const icon = getIcon();
 
+    // Проверяем: передана ли функция
+    const hasConfirmAction = typeof onConfirm === "function" && !!onConfirm;
+
+    // Текст для основной кнопки:
+    // 1. Если функции нет -> "Понятно"
+    // 2. Если функция есть, но confirmText пустой -> "Подтвердить" (или "Удалить")
+    // 3. Если всё есть -> confirmText
+    const finalConfirmText = !hasConfirmAction
+        ? "Понятно"
+        : confirmText || (type === "error" ? "Удалить" : "Ок");
+
     return (
         <Modal
             visible={visible}
             transparent
             animationType="fade"
-            onRequestClose={onClose} // Важно для кнопки "Назад" на Android
+            onRequestClose={onClose}
             statusBarTranslucent
         >
             <View style={styles.overlay}>
-                {/* Используем BlurView только как фон. 
-                   Pressable только на область ВНЕ контента. 
-                */}
                 <Pressable style={StyleSheet.absoluteFill} onPress={onClose}>
                     <BlurView
                         intensity={20}
@@ -60,9 +70,6 @@ export const WarnModal = ({
                     />
                 </Pressable>
 
-                {/* Важно: Оборачиваем контент в Pressable без onPress, 
-                   чтобы нажатия внутри модалки не "пролетало" сквозь неё на фон.
-                */}
                 <Pressable style={styles.modalContent}>
                     <View
                         style={[
@@ -83,13 +90,12 @@ export const WarnModal = ({
 
                     <Text style={styles.message}>{message}</Text>
 
-                    {/* Слот для TextInput или другого контента */}
                     {children && (
                         <View style={styles.childrenContainer}>{children}</View>
                     )}
 
                     <View style={styles.buttonContainer}>
-                        {onConfirm && (
+                        {hasConfirmAction && (
                             <TouchableOpacity
                                 style={[styles.button, styles.cancelButton]}
                                 onPress={onClose}
@@ -104,26 +110,24 @@ export const WarnModal = ({
                         <TouchableOpacity
                             style={[
                                 styles.button,
-                                onConfirm
-                                    ? styles.confirmButton
-                                    : styles.singleButton,
+                                !hasConfirmAction
+                                    ? styles.singleButton
+                                    : styles.confirmButton,
                                 type === "error" &&
-                                    onConfirm &&
+                                    hasConfirmAction &&
                                     styles.errorConfirmButton,
-                                confirmDisabled && styles.disabledButton, // Стиль для блокировки
+                                confirmDisabled && styles.disabledButton,
                             ]}
-                            onPress={onConfirm || onClose}
-                            activeOpacity={0.8}
-                            disabled={confirmDisabled} // Блокируем нажатие
+                            onPress={hasConfirmAction ? onConfirm : onClose}
                         >
                             <Text
                                 style={[
                                     styles.buttonText,
                                     confirmDisabled &&
-                                        styles.disabledButtonText, // Текст посветлее
+                                        styles.disabledButtonText,
                                 ]}
                             >
-                                {onConfirm ? confirmText : "Понятно"}
+                                {finalConfirmText}
                             </Text>
                         </TouchableOpacity>
                     </View>
