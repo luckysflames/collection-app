@@ -2,17 +2,10 @@ import React from "react";
 import StatusModal from "../../../shared/StatusModal";
 import FolderSelectModal from "./FolderSelectModal";
 import { WarnModal } from "../../../ui/WarnModal";
-import { CreateFolderModal } from "../../Main/Modals/CreateFolderModal"; // Проверь путь
+import { CreateFolderModal } from "../../Main/Modals/CreateFolderModal";
 import { FAVORITE_STATUS } from "../../../../constants";
 
 export const DetailsModals = ({ state, actions, data, handlers }) => {
-    // Внутренний хэндлер для создания
-    const handleFolderCreated = (name) => {
-        // Здесь можно вызвать логику создания из твоего стора
-        // Например: handlers.handleCreateNewFolder(name);
-        actions.closeCreateFolder();
-    };
-
     return (
         <>
             <WarnModal

@@ -61,7 +61,7 @@ export default function AnalyticsSection({ category, stats, itemCount }) {
             {isExpanded && (
                 <View style={styles.content}>
                     <TopValuesList
-                        title="Топ статусов"
+                        title="Топ статусы"
                         values={stats.topStatuses}
                     />
 

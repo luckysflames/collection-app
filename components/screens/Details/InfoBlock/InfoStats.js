@@ -19,6 +19,10 @@ const StatSubItem = ({ label, value }) => (
 export const InfoStats = ({ displayData }) => {
     if (!displayData) return null;
 
+    const isAnimeMovie =
+        displayData.type === "anime" &&
+        (displayData.animeKind === "movie" || displayData.episodes === 1);
+
     // Универсальный помощник для поиска человеческого названия по ID
     const getLabelById = (id, options) => {
         if (!id) return "—";
@@ -34,7 +38,11 @@ export const InfoStats = ({ displayData }) => {
             case "movie":
                 return `${val} мин.`;
             case "anime":
-                return `по ~${val} мин.`;
+                if (isAnimeMovie) {
+                    return `${val} мин.`;
+                } else {
+                    return `по ~${val} мин.`;
+                }
             case "game":
                 return `${val} ч.`;
             default:
@@ -57,8 +65,18 @@ export const InfoStats = ({ displayData }) => {
 
     const getPeriod = () => {
         if (displayData.type === "anime") {
-            return `${formatDate(displayData.airedOn)} — ${formatDate(displayData.releasedOn) || "..."}`;
+            if (isAnimeMovie) {
+                // Для аниме-фильма берем только дату начала (премьеру)
+                return formatDate(displayData.airedOn) || "—";
+            }
+            // Для сериала — классический период
+            const start = formatDate(displayData.airedOn);
+            const end = formatDate(displayData.releasedOn);
+            if (!start && !end) return "—";
+            return `${start || "..."} — ${end || "..."}`;
         }
+
+        // Для обычных фильмов, игр и книг
         return formatDate(displayData.year) || "—";
     };
 
@@ -88,7 +106,7 @@ export const InfoStats = ({ displayData }) => {
             >
                 <StatSubItem
                     label={
-                        displayData.type === "anime"
+                        displayData.type === "anime" && !isAnimeMovie
                             ? "Период выхода"
                             : "Дата выхода"
                     }

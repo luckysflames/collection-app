@@ -96,11 +96,11 @@ export const useDataManagement = (store) => {
     };
 
     // Сброс пароля, только для тестов
-    // const handleRemovePassword = () => {
-    //     store.removePassword();
-    //     showStatus("Успешно", "Пароль успешно удален");
-    //     setIsChanging(false);
-    // };
+    const handleRemovePassword = () => {
+        store.removePassword();
+        showStatus("Успешно", "Пароль успешно удален");
+        setIsChanging(false);
+    };
 
     return {
         state: {
@@ -121,7 +121,7 @@ export const useDataManagement = (store) => {
             openConfirmModal,
             handleConfirmPress,
             handlePasswordAction,
-            // handleRemovePassword,
+            handleRemovePassword,
         },
     };
 };

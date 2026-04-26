@@ -5,6 +5,7 @@ import {
     SECTION_MAPPING,
     FAVORITE_STATUS,
 } from "../constants";
+import { useState } from "react";
 
 const getSectionKey = (section) => SECTION_MAPPING[section] || section;
 
@@ -19,6 +20,8 @@ export const useDetailsActions = (item, displayData, category) => {
 
     // Поиск подходящих папок для текущей секции (Фильмы/Аниме и т.д.)
     const currentSection = category || item.appSection || "Фильмы";
+
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     const existingFolders = myCollection.filter((i) => {
         if (!i.isFolder) return false;
@@ -94,6 +97,32 @@ export const useDetailsActions = (item, displayData, category) => {
         }
     };
 
+    const refreshCardDetails = async (item, fetchDetailsById) => {
+        if (!savedItem) return;
+        setIsRefreshing(true);
+
+        try {
+            const freshDetails = await fetchDetailsById(item.id);
+            updateCard(item.id, {
+                ...freshDetails,
+                image: savedItem.image || item.image,
+                userNotes: savedItem.userNotes,
+                userScore: savedItem.userScore,
+                status: savedItem.status,
+                isFavorite: savedItem.isFavorite,
+                parentFolderIds: savedItem.parentFolderIds || [],
+                appSection: savedItem.appSection,
+                createdAt: savedItem.createdAt,
+                isCustom: savedItem.isCustom,
+            });
+        } catch (error) {
+            console.warn("Refresh details failed:", error);
+            throw error; // Пробрасываем ошибку для Alert в компоненте
+        } finally {
+            setIsRefreshing(false);
+        }
+    };
+
     return {
         savedItem,
         isInCollection,
@@ -103,5 +132,7 @@ export const useDetailsActions = (item, displayData, category) => {
         handleToggleFavorite,
         updateCard,
         deleteCard,
+        refreshCardDetails,
+        isRefreshing,
     };
 };

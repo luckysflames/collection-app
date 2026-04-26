@@ -51,30 +51,30 @@ export const useFolderActions = (
 
         const updates = {};
 
-        // Если сохраняем порядок (нажали "Применить" внизу)
+        // 1. Собираем изменения порядка, если они есть
         if (saveOnlyOrder || isReordering) {
             if (reorderBuffer && reorderBuffer.length > 0) {
-                // reorderBuffer должен содержать полный набор ID в новом порядке
                 updates.itemsOrder = reorderBuffer;
             }
-        }
-
-        // Если это полное сохранение (верхняя галочка)
-        if (!saveOnlyOrder) {
-            if (editForm.title.trim().length === 0) return;
-            updates.title = editForm.title.trim();
-            updates.image = editForm.image;
-            updates.description = editForm.description;
-            setIsEditing(false);
-        }
-
-        updateCard(folder.id, updates);
-
-        // Если были в режиме сортировки — сбрасываем его
-        if (isReordering) {
             setIsReordering(false);
             setReorderBuffer([]);
         }
+
+        // 2. ВСЕГДА добавляем данные из формы (даже если нажали только порядок)
+        // Это гарантирует, что набранный текст не пропадет
+        if (editForm.title.trim().length > 0) {
+            updates.title = editForm.title.trim();
+            updates.image = editForm.image;
+            updates.description = editForm.description;
+        }
+
+        // 3. Выполняем ОДИН общий апдейт в стор
+        if (Object.keys(updates).length > 0) {
+            updateCard(folder.id, updates);
+        }
+
+        // 4. Всегда выходим из режима редактирования
+        setIsEditing(false);
     };
 
     const handleCancel = () => {

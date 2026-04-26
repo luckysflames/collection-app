@@ -106,6 +106,8 @@ export const InfoBlock = ({
                             styles.actionBtnText,
                             isAnyFolderSelected && { color: "#7D8AFF" },
                         ]}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
                     >
                         {folderLabel}
                     </Text>
@@ -198,7 +200,8 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         gap: 10,
         marginBottom: 20,
-        marginTop: -5, // Чтобы прижать чуть ближе к кнопке статуса
+        marginTop: -5,
+        alignItems: "center",
     },
     actionBtn: {
         flex: 1, // Чтобы кнопки делили место поровну
@@ -207,6 +210,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         backgroundColor: "rgba(255, 255, 255, 0.05)",
         paddingVertical: 10,
+        paddingHorizontal: 15,
         borderRadius: 12,
         gap: 8,
     },
@@ -217,6 +221,7 @@ const styles = StyleSheet.create({
         color: "#8E94A4",
         fontSize: 13,
         fontWeight: "600",
+        flexShrink: 1,
     },
     genreRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
     badge: {
