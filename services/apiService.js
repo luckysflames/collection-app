@@ -181,6 +181,7 @@ export const fetchDetailsById = async (id) => {
                 kind
                 genres { russian }
                 studios { name }
+                screenshots { x332Url }
               }
             }`;
 
@@ -205,6 +206,7 @@ export const fetchDetailsById = async (id) => {
                 description: cleanHtml(data.description),
                 genres: data.genres?.map((g) => g.russian) || [],
                 studios: data.studios?.map((s) => s.name) || [],
+                screenshots: data.screenshots?.map((s) => s.x332Url) || [],
                 isAnime: true,
             };
         }

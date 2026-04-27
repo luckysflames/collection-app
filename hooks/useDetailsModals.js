@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FAVORITE_STATUS } from "../constants";
 
 export const useDetailsModals = (category, createFolder) => {
     const [modals, setModals] = useState({

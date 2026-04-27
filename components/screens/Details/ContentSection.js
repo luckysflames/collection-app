@@ -80,6 +80,7 @@ export const ContentSection = ({
         </View>
     );
 };
+
 const styles = StyleSheet.create({
     editToggle: {
         alignSelf: "flex-start",

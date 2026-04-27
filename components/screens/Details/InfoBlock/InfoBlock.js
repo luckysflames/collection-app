@@ -1,5 +1,12 @@
-import React, { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useRef, useState } from "react";
+import {
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 import { TitlesModal } from "./TitlesModal";
 import {
@@ -14,6 +21,7 @@ import {
 } from "./Sections";
 import { InfoStats } from "./InfoStats";
 import { Bookmark, Folder, Info, Star } from "lucide-react-native";
+import { ScreenshotCarousel } from "./ScreenshotCarousel";
 
 export const InfoBlock = ({
     displayData,
@@ -151,6 +159,9 @@ export const InfoBlock = ({
                     </View>
                 ))}
             </View>
+
+            {/* Скриншоты */}
+            <ScreenshotCarousel screenshots={displayData.screenshots} />
 
             {/* Модальное окно с доп. названиями */}
             <TitlesModal

@@ -44,14 +44,13 @@ export const useDetailsActions = (item, displayData, category) => {
     // Логика добавления/удаления из папки (Toggle)
     const handleAddToFolder = (folderId) => {
         if (!isInCollection) {
-            const rawStatus = displayData.status || FAVORITE_STATUS;
-            const { finalStatus, isFavorite } = processStatus(rawStatus);
+            const rawStatus = displayData.status || null;
+            const { finalStatus } = processStatus(rawStatus);
 
             addToCollection({
                 ...item,
                 ...displayData,
                 status: finalStatus,
-                isFavorite: isFavorite,
                 appSection: currentSection,
                 parentFolderIds: [folderId],
             });

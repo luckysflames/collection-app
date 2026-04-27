@@ -124,9 +124,12 @@ export default function DetailsScreen({ route, navigation }) {
     return (
         <KeyboardAwareScrollView
             style={styles.container}
+            contentContainerStyle={{ flexGrow: 1 }}
             bounces={false}
             extraScrollHeight={200}
+            scrollEventThrottle={16}
             enableOnAndroid={true}
+            nestedScrollEnabled={true}
             keyboardShouldPersistTaps="handled"
         >
             <HeaderSection
