@@ -46,7 +46,8 @@
       "checkOnLaunch": "ALWAYS"
     },
     "plugins": [
-      "expo-localization"
+      "expo-localization",
+      "expo-sharing"
     ]
   }
 }

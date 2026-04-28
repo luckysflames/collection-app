@@ -62,7 +62,7 @@ export const useCollectionStore = create(
             // --- PASSWORD MANAGEMENT ---
             setDeletionPassword: (newPassword) =>
                 set({ deletionPassword: newPassword }),
-            removePassword: () => set({ deletionPassword: "" }),
+            removePassword: () => set({ deletionPassword: null }),
             changePassword: (oldPassword, newPassword) => {
                 const current = get().deletionPassword;
                 if (!current || oldPassword === current) {
@@ -340,6 +340,9 @@ export const useCollectionStore = create(
             // --- RESET ACTIONS ---
             clearCollection: () =>
                 set({ myCollection: [], version: get().version + 1 }),
+
+            setMyCollection: (newCollection) =>
+                set({ myCollection: newCollection, version: get().version + 1 }),
 
             resetAllStatuses: () =>
                 set((state) => ({

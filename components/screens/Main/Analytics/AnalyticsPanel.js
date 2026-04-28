@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useMemo, useState } from "react";
+import { View, Text, StyleSheet, Switch } from "react-native";
 
 import { CATEGORY_CONFIG, SUB_CATEGORIES } from "../../../../constants";
 import { calculateStats } from "../../../../utils/analyticsHelpers";
@@ -7,25 +7,32 @@ import { TopValuesList } from "./TopValuesList";
 import AnalyticsSection from "./AnalyticsSection";
 
 export default function AnalyticsPanel({ collection }) {
+    const [onlyRated, setOnlyRated] = useState(false);
     const categories = ["movie", "anime", "game", "book"];
 
     const analyticsData = useMemo(() => {
+        const filteredCollection = onlyRated
+            ? collection.filter((item) => item.userScore > 0)
+            : collection;
+
         return categories.reduce((acc, cat) => {
-            const stats = calculateStats(collection, cat);
+            // Передаем флаг onlyRated, чтобы функция знала, какой топ строить
+            const stats = calculateStats(filteredCollection, cat, onlyRated);
+
             if (stats) {
                 acc.push({
                     id: cat,
                     stats,
-                    count: collection.filter(
+                    count: filteredCollection.filter(
                         (i) => i.appSection === cat && !i.isFolder,
                     ).length,
                 });
             }
             return acc;
         }, []);
-    }, [collection]);
+    }, [collection, onlyRated]);
 
-    if (analyticsData.length === 0) {
+    if (analyticsData.length === 0 && !onlyRated) {
         return (
             <View style={styles.container}>
                 <View style={styles.section}>
@@ -41,17 +48,44 @@ export default function AnalyticsPanel({ collection }) {
     return (
         <View style={styles.container}>
             <View style={styles.mainHeader}>
-                <Text style={styles.mainTitle}>Аналитика</Text>
+                <View>
+                    <Text style={styles.mainTitle}>Аналитика</Text>
+                    {onlyRated && (
+                        <Text style={styles.subTitleBadge}>
+                            Только оценённые
+                        </Text>
+                    )}
+                </View>
+
+                {/* Блок переключателя */}
+                <View style={styles.switchWrapper}>
+                    <Text style={styles.switchLabel}>С оценкой</Text>
+                    <Switch
+                        value={onlyRated}
+                        onValueChange={setOnlyRated}
+                        trackColor={{ false: "#1A213E", true: "#7D8AFF" }}
+                        thumbColor={onlyRated ? "#FFF" : "#8E94A4"}
+                        ios_backgroundColor="#1A213E"
+                    />
+                </View>
             </View>
 
-            {analyticsData.map((item) => (
-                <AnalyticsSection
-                    key={item.id}
-                    category={item.id}
-                    stats={item.stats}
-                    itemCount={item.count}
-                />
-            ))}
+            {analyticsData.length === 0 && onlyRated ? (
+                <View style={styles.emptyFiltered}>
+                    <Text style={styles.emptyFilteredText}>
+                        У вас пока нет карточек с оценками в категориях
+                    </Text>
+                </View>
+            ) : (
+                analyticsData.map((item) => (
+                    <AnalyticsSection
+                        key={item.id}
+                        category={item.id}
+                        stats={item.stats}
+                        itemCount={item.count}
+                    />
+                ))
+            )}
         </View>
     );
 }
@@ -62,6 +96,9 @@ const styles = StyleSheet.create({
         gap: 10,
     },
     mainHeader: {
+        flexDirection: "row", // В ряд
+        justifyContent: "space-between", // Раскидываем по краям
+        alignItems: "center",
         marginBottom: 10,
         paddingHorizontal: 4,
     },
@@ -70,6 +107,32 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "700",
         letterSpacing: 0.5,
+    },
+    subTitleBadge: {
+        color: "#7D8AFF",
+        fontSize: 10,
+        fontWeight: "600",
+        textTransform: "uppercase",
+        marginTop: 2,
+    },
+    switchWrapper: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+    },
+    switchLabel: {
+        color: "#8E94A4",
+        fontSize: 12,
+        fontWeight: "600",
+    },
+    emptyFiltered: {
+        padding: 40,
+        alignItems: "center",
+    },
+    emptyFilteredText: {
+        color: "#8E94A4",
+        textAlign: "center",
+        fontSize: 14,
     },
     section: {
         backgroundColor: "#0B1534",

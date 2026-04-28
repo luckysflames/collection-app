@@ -72,7 +72,7 @@ export const DataManagementScreen = ({ navigation }) => {
                     state.modalConfig.needsPassword &&
                     state.confirmInput.length < 4
                 }
-                onConfirm={state.modalConfig.onConfirm}
+                onConfirm={() => state.modalConfig.onConfirm?.(state.confirmInput)}
             >
                 {state.modalConfig.needsPassword && (
                     <TextInput

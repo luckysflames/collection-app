@@ -10,6 +10,8 @@ import {
     Users,
     CloudDownload,
     Vibrate,
+    Download,
+    Upload,
 } from "lucide-react-native";
 
 import { getBugReportTemplate } from "../utils/bugReportHelper";
@@ -18,6 +20,7 @@ import { SettingItem } from "../components/screens/Settings/SettingItem";
 import { DevelopersModal } from "../components/screens/Settings/DevelopersModal";
 import { ApiInfoModal } from "../components/screens/Settings/ApiInfoModal";
 import { useDataManagement } from "../hooks/useDataManagement";
+import { useFileManagement } from "../hooks/useFileManagement";
 
 export default function SettingsScreen({ navigation }) {
     const insets = useSafeAreaInsets();
@@ -30,6 +33,8 @@ export default function SettingsScreen({ navigation }) {
     const setIsVibration = useCollectionStore((state) => state.setIsVibration);
 
     const { actions } = useDataManagement(store);
+    const { handleExportCollection, handleImportCollection, FileModal } =
+        useFileManagement(store);
 
     const [isDevModalVisible, setDevModalVisible] = useState(false);
     const [isApiModalVisible, setApiModalVisible] = useState(false);
@@ -51,12 +56,43 @@ export default function SettingsScreen({ navigation }) {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 100 }}
             >
-                <Text style={styles.sectionTitle}>Контент</Text>
+                <Text style={styles.sectionTitle}>Персонализация</Text>
+                <View style={styles.card}>
+                    <SettingItem
+                        icon={LayoutGrid}
+                        label="Компактное меню"
+                        type="switch"
+                        value={isCompactMenu}
+                        onValueChange={setIsCompactMenu}
+                    />
+                    <View style={styles.separator} />
+                    <SettingItem
+                        icon={Vibrate}
+                        label="Вибрация"
+                        type="switch"
+                        value={isVibration}
+                        onValueChange={setIsVibration}
+                    />
+                </View>
+
+                <Text style={styles.sectionTitle}>Управление данными</Text>
                 <View style={styles.card}>
                     <SettingItem
                         icon={List}
                         label="Мои статусы"
                         onPress={() => navigation.navigate("StatusManager")}
+                    />
+                    <View style={styles.separator} />
+                    <SettingItem
+                        icon={Download}
+                        label="Экспорт коллекции"
+                        onPress={handleExportCollection}
+                    />
+                    <View style={styles.separator} />
+                    <SettingItem
+                        icon={Upload}
+                        label="Импорт коллекции"
+                        onPress={handleImportCollection}
                     />
                     <View style={styles.separator} />
                     <SettingItem
@@ -66,14 +102,12 @@ export default function SettingsScreen({ navigation }) {
                     />
                 </View>
 
-                <Text style={styles.sectionTitle}>Внешний вид</Text>
+                <Text style={styles.sectionTitle}>Источники контента</Text>
                 <View style={styles.card}>
                     <SettingItem
-                        icon={LayoutGrid}
-                        label="Компактное меню"
-                        type="switch"
-                        value={isCompactMenu}
-                        onValueChange={setIsCompactMenu}
+                        icon={CloudDownload}
+                        label="Используемые API"
+                        onPress={() => setApiModalVisible(true)}
                     />
                 </View>
 
@@ -89,26 +123,6 @@ export default function SettingsScreen({ navigation }) {
                         icon={Users}
                         label="О разработчиках"
                         onPress={() => setDevModalVisible(true)}
-                    />
-                </View>
-
-                <Text style={styles.sectionTitle}>Данные</Text>
-                <View style={styles.card}>
-                    <SettingItem
-                        icon={CloudDownload}
-                        label="Используемые API"
-                        onPress={() => setApiModalVisible(true)}
-                    />
-                </View>
-
-                <Text style={styles.sectionTitle}>Дополнительно</Text>
-                <View style={styles.card}>
-                    <SettingItem
-                        icon={Vibrate}
-                        label="Вибрация"
-                        type="switch"
-                        value={isVibration}
-                        onValueChange={setIsVibration}
                     />
                 </View>
 
@@ -139,6 +153,7 @@ export default function SettingsScreen({ navigation }) {
                 visible={isApiModalVisible}
                 onClose={() => setApiModalVisible(false)}
             />
+            <FileModal />
         </View>
     );
 }

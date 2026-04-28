@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Keyboard } from "react-native";
 
 const MASTER_KEY = process.env.EXPO_PUBLIC_MY_SUPER_PUPER_SECRET_KEY_WORD;
@@ -10,7 +10,7 @@ export const useDataManagement = (store) => {
     const [isChanging, setIsChanging] = useState(false);
     const [modalConfig, setModalConfig] = useState({ visible: false });
     const [confirmInput, setConfirmInput] = useState("");
-    const [pendingAction, setPendingAction] = useState(null);
+    const pendingActionRef = useRef(null);
 
     const closeModal = useCallback(() => {
         setModalConfig({
@@ -19,7 +19,7 @@ export const useDataManagement = (store) => {
             confirmText: "",
         });
         setConfirmInput("");
-        setPendingAction(null);
+        pendingActionRef.current = null;
     }, []);
 
     // Универсальный метод для простых уведомлений
@@ -43,7 +43,8 @@ export const useDataManagement = (store) => {
             );
         }
 
-        setPendingAction(() => action);
+        setConfirmInput("");
+        pendingActionRef.current = action;
         setModalConfig({
             visible: true,
             title,
@@ -56,13 +57,31 @@ export const useDataManagement = (store) => {
         });
     };
 
-    const handleConfirmPress = () => {
+    const handleConfirmPress = (currentInput) => {
         if (
-            confirmInput === store.deletionPassword ||
-            confirmInput === MASTER_KEY
+            currentInput === store.deletionPassword ||
+            currentInput === MASTER_KEY
         ) {
-            if (pendingAction) pendingAction();
-            showStatus("Успешно", "Данные были полностью стерты.");
+            const action = pendingActionRef.current;
+            if (action) {
+                try {
+                    closeModal();
+                    action();
+                    showStatus("Успешно", "Данные были полностью стерты.");
+                } catch (error) {
+                    showStatus(
+                        "Ошибка",
+                        "Не удалось выполнить действие. Пожалуйста, попробуйте снова.",
+                        "error",
+                    );
+                }
+            } else {
+                showStatus(
+                    "Ошибка",
+                    "Не удалось выполнить действие. Пожалуйста, попробуйте снова.",
+                    "error",
+                );
+            }
         } else {
             showStatus("Ошибка", "Неверное кодовое слово", "error");
         }
