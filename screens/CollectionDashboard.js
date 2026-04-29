@@ -139,6 +139,10 @@ const styles = StyleSheet.create({
         color: "rgba(125, 138, 255, 0.8)",
         fontSize: 16,
         fontWeight: "700",
+        width: 30,
+        textAlign: "center",
+        marginRight: -10,
+        marginTop: -5,
     },
     cardFooter: {
         gap: 4,

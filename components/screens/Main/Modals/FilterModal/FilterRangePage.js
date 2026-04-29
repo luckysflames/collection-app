@@ -125,63 +125,63 @@ export const FilterRangePage = ({
 const styles = StyleSheet.create({
     page: {
         width: SCREEN_WIDTH,
-        paddingHorizontal: 18,
-        height: "100%", // Важно для расчета внутри Animated.View
-        justifyContent: "space-between", // Распределяет ScrollView и Footer
+        paddingHorizontal: 20,
+        height: "100%",
     },
     scrollContainer: {
         flex: 1,
     },
     scrollContent: {
+        paddingTop: 10,
         paddingBottom: 20,
     },
     optionsContainer: {
         paddingBottom: 20,
     },
-    sectionSubtitle: {
-        color: "#8E94A4",
-        fontSize: 14,
-        marginBottom: 16,
-        paddingHorizontal: 8,
-        lineHeight: 20,
-    },
     detailOptionItem: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: 20,
-        borderRadius: 20,
+        paddingVertical: 14,
+        paddingHorizontal: 16,
+        borderRadius: 18,
         marginBottom: 8,
         backgroundColor: "rgba(255, 255, 255, 0.02)",
+        borderWidth: 1,
+        borderColor: "transparent",
     },
     detailOptionActive: {
-        backgroundColor: "rgba(125, 138, 255, 0.1)",
+        backgroundColor: "rgba(125, 138, 255, 0.08)",
+        borderColor: "rgba(125, 138, 255, 0.15)",
     },
     optionLabel: {
-        fontSize: 17,
+        fontSize: 16,
         color: "#8E94A4",
-        fontWeight: "500",
+        fontWeight: "600",
     },
     optionLabelActive: {
         color: "#fff",
-        fontWeight: "700",
     },
     rangeValuesHint: {
-        fontSize: 12,
+        fontSize: 13,
         color: "#5E6577",
-        marginTop: 4,
+        marginTop: 2,
     },
     footerActions: {
-        paddingTop: 20,
+        paddingTop: 15,
         backgroundColor: "#0B1534",
     },
     applyBtn: {
         height: 56,
-        borderRadius: 18,
+        borderRadius: 20,
         backgroundColor: "#7D8AFF",
         justifyContent: "center",
         alignItems: "center",
         width: "100%",
     },
-    applyBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+    applyBtnText: {
+        color: "#fff",
+        fontSize: 16,
+        fontWeight: "bold",
+    },
 });

@@ -103,12 +103,22 @@ export const useFilteredCollection = ({
                         }
 
                         // Для динамических полей (genres, studios и т.д.) проверяем вхождение
-                        const isDynamicField = ['genres', 'studios', 'developers', 'platforms', 'authors', 'companies', 'countries'].includes(filterKey);
+                        const isDynamicField = [
+                            "genres",
+                            "studios",
+                            "developers",
+                            "platforms",
+                            "authors",
+                            "companies",
+                            "countries",
+                        ].includes(filterKey);
                         if (isDynamicField) {
                             // Если значение - строка, разделяем по запятым
                             let values = [];
-                            if (typeof itemValue === 'string') {
-                                values = itemValue.split(',').map(v => v.trim());
+                            if (typeof itemValue === "string") {
+                                values = itemValue
+                                    .split(",")
+                                    .map((v) => v.trim());
                             } else if (Array.isArray(itemValue)) {
                                 values = itemValue;
                             }
@@ -164,10 +174,10 @@ export const useFilteredCollection = ({
             }
 
             // Стандартная сортировка (если не папка или нет ручного порядка)
-            const dateA = a.createdAt || 0;
-            const dateB = b.createdAt || 0;
-            const ratingA = a.userScore || 0;
-            const ratingB = b.userScore || 0;
+            const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            const ratingA = Number(a.userScore) || 0;
+            const ratingB = Number(b.userScore) || 0;
             const titleA = a.title?.toLowerCase() || "";
             const titleB = b.title?.toLowerCase() || "";
 

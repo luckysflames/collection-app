@@ -42,7 +42,7 @@ export default function MainScreen({ route, navigation }) {
 
     // --- Local State ---
     const [activeCategory, setActiveCategory] = useState(defaultActive);
-    const [sortType, setSortType] = useState("newest");
+    const [sortType, setSortType] = useState("date_desc");
     const [searchQuery, setSearchQuery] = useState("");
     const [showFoldersOnly, setShowFoldersOnly] = useState(false);
     const [activeFilters, setActiveFilters] = useState({});

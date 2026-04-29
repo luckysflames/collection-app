@@ -69,11 +69,13 @@ export default function FolderSelectModal({
                     </Text>
                 </View>
 
-                {isSelected && (
-                    <View style={styles.checkWrapper}>
+                <View style={styles.checkWrapper}>
+                    {isSelected ? (
                         <Check color="#7D8AFF" size={20} strokeWidth={3} />
-                    </View>
-                )}
+                    ) : (
+                        <Check color="transparent" size={20} strokeWidth={3} />
+                    )}
+                </View>
             </TouchableOpacity>
         );
     };
@@ -171,6 +173,8 @@ const styles = StyleSheet.create({
         borderRadius: 18,
         marginBottom: 8,
         backgroundColor: "rgba(255,255,255,0.02)",
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.02)",
     },
     folderItemActive: {
         backgroundColor: "rgba(125, 138, 255, 0.06)",

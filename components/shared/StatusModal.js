@@ -5,7 +5,7 @@ import {
     TouchableOpacity,
     StyleSheet,
     Dimensions,
-    ScrollView, // Добавляем ScrollView
+    ScrollView,
 } from "react-native";
 import { Check, Trash2, Circle } from "lucide-react-native";
 import { BottomSheet } from "../ui/BottomSheet";
@@ -55,12 +55,10 @@ export default function StatusModal({
         >
             <Text style={styles.header}>Статус</Text>
 
-            {/* Оборачиваем в View с flex: 1, чтобы список занял всё доступное место */}
-            <View style={styles.mainContent}>
+            <View style={styles.listContainer}>
                 <ScrollView
-                    style={styles.scrollContainer}
-                    contentContainerStyle={styles.scrollContent}
                     showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.scrollContent}
                 >
                     {selectableStatuses.map((option) => {
                         const isActive =
@@ -84,8 +82,8 @@ export default function StatusModal({
                                     ]}
                                 >
                                     <Circle
-                                        color={isActive ? "#7D8AFF" : "#4E5564"}
-                                        size={14}
+                                        color={isActive ? "#7D8AFF" : "#8E94A4"}
+                                        size={18}
                                         fill={
                                             isActive ? "#7D8AFF" : "transparent"
                                         }
@@ -101,24 +99,28 @@ export default function StatusModal({
                                     >
                                         {option.label}
                                     </Text>
+                                    <Text style={styles.statusSubtext}>
+                                        {isActive
+                                            ? "Текущий статус"
+                                            : "Нажмите, чтобы выбрать"}
+                                    </Text>
                                 </View>
 
-                                {isActive && (
-                                    <View style={styles.checkWrapper}>
+                                <View style={styles.checkWrapper}>
+                                    {isActive && (
                                         <Check
                                             color="#7D8AFF"
-                                            size={20}
+                                            size={22}
                                             strokeWidth={3}
                                         />
-                                    </View>
-                                )}
+                                    )}
+                                </View>
                             </TouchableOpacity>
                         );
                     })}
                 </ScrollView>
             </View>
 
-            {/* Кнопки вынесены за пределы скролла, они всегда прижаты к низу */}
             <View style={styles.footer}>
                 {!!removeCard && (
                     <TouchableOpacity
@@ -128,8 +130,8 @@ export default function StatusModal({
                     >
                         <Trash2
                             color="#FF4B4B"
-                            size={18}
-                            style={{ marginRight: 8 }}
+                            size={20}
+                            style={{ marginRight: 12 }}
                         />
                         <Text style={styles.removeText}>
                             Удалить из коллекции
@@ -145,20 +147,16 @@ const styles = StyleSheet.create({
     sheetContainer: {
         backgroundColor: "#0B1534",
         paddingHorizontal: 20,
-        maxHeight: SCREEN_HEIGHT * 0.6, // Ограничиваем общую высоту модалки
     },
     header: {
         color: "#fff",
         fontSize: 22,
         fontWeight: "bold",
-        marginBottom: 15,
+        marginBottom: 20,
         textAlign: "center",
     },
-    mainContent: {
-        maxHeight: SCREEN_HEIGHT * 0.4, // Ограничиваем зону скролла
-    },
-    scrollContainer: {
-        width: "100%",
+    listContainer: {
+        maxHeight: SCREEN_HEIGHT * 0.45,
     },
     scrollContent: {
         paddingBottom: 10,
@@ -166,29 +164,29 @@ const styles = StyleSheet.create({
     statusItem: {
         flexDirection: "row",
         alignItems: "center",
-        paddingVertical: 14, // Немного увеличил тап-зону
+        paddingVertical: 12,
         paddingHorizontal: 12,
         borderRadius: 18,
         marginBottom: 8,
-        backgroundColor: "rgba(255,255,255,0.03)",
+        backgroundColor: "rgba(255,255,255,0.02)",
         borderWidth: 1,
-        borderColor: "transparent",
+        borderColor: "rgba(255,255,255,0.02)",
     },
     statusItemActive: {
-        backgroundColor: "rgba(125, 138, 255, 0.08)",
-        borderColor: "rgba(125, 138, 255, 0.25)",
+        backgroundColor: "rgba(125, 138, 255, 0.06)",
+        borderColor: "rgba(125, 138, 255, 0.2)",
     },
     iconWrapper: {
-        width: 38, // Слегка уменьшил, чтобы выглядело изящнее
-        height: 38,
-        borderRadius: 10,
-        backgroundColor: "rgba(255,255,255,0.05)",
+        width: 44,
+        height: 44,
+        borderRadius: 12,
+        backgroundColor: "rgba(255,255,255,0.03)",
         justifyContent: "center",
         alignItems: "center",
         marginRight: 15,
     },
     iconWrapperActive: {
-        backgroundColor: "rgba(125, 138, 255, 0.15)",
+        backgroundColor: "rgba(125, 138, 255, 0.1)",
     },
     statusInfo: {
         flex: 1,
@@ -201,25 +199,34 @@ const styles = StyleSheet.create({
     statusTextActive: {
         color: "#fff",
     },
+    statusSubtext: {
+        color: "#4E5564",
+        fontSize: 12,
+        marginTop: 2,
+    },
     checkWrapper: {
+        width: 24,
+        alignItems: "center",
+        justifyContent: "center",
         marginLeft: 10,
     },
     footer: {
-        marginTop: 10,
+        marginTop: 15,
+        gap: 10, // Расстояние между кнопками
     },
     removeBtn: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
         padding: 16,
-        backgroundColor: "rgba(255, 75, 75, 0.08)",
+        backgroundColor: "rgba(255, 75, 75, 0.05)",
         borderRadius: 20,
         borderWidth: 1,
-        borderColor: "rgba(255, 75, 75, 0.15)",
+        borderColor: "rgba(255, 75, 75, 0.1)",
     },
     removeText: {
         color: "#FF4B4B",
-        fontSize: 15,
+        fontSize: 16,
         fontWeight: "700",
     },
 });

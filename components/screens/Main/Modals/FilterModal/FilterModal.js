@@ -242,20 +242,20 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         top: -30,
-        left: -8, // Небольшая компенсация отступа иконки
+        left: -8,
     },
     contentWrapper: {
         overflow: "hidden",
         width: SCREEN_WIDTH,
-        height: 530, // Ваша фиксированная высота
+        height: 530,
     },
     animatedContainer: {
         flexDirection: "row",
         width: SCREEN_WIDTH * 2,
-        height: "100%", // Добавляем явное указание высоты
+        height: "100%",
     },
     pageContainer: {
         width: SCREEN_WIDTH,
-        height: "100%", // Добавляем явное указание высоты
+        height: "100%",
     },
 });

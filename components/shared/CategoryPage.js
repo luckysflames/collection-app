@@ -1,12 +1,15 @@
 import React, { useCallback, useMemo } from "react";
 import { View, FlatList, StyleSheet, Dimensions, Platform } from "react-native";
 import { MediaCard } from "../ui/MediaCard";
-import { EmptyState } from "./EmptyState"; // Вынесли отдельно
+import { EmptyState } from "./EmptyState";
 import { useFilteredCollection } from "../../hooks/useFilteredCollection";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCollectionStore } from "../../store/useCollectionStore";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+// 1. Выносим keyExtractor ЗА ПРЕДЕЛЫ компонента, чтобы он не пересоздавался
+const keyExtractor = (item) => `card-${item.id}`;
 
 export const CategoryPage = ({
     category,
@@ -16,7 +19,7 @@ export const CategoryPage = ({
     folderOrder,
     isInsideFolder = false,
     ListHeaderComponent,
-    sortType = "newest",
+    sortType = "date_desc",
     activeFilters = {},
     onCardPress,
     onCardLongPress,
@@ -52,13 +55,14 @@ export const CategoryPage = ({
         [onCardPress],
     );
 
+    // 2. Оптимизируем renderItem через useCallback
     const renderItem = useCallback(
         ({ item }) => {
-            const indexInBuffer = reorderBuffer
-                ? reorderBuffer.indexOf(item.id)
-                : -1;
-            const currentOrder =
-                indexInBuffer !== -1 ? indexInBuffer + 1 : null;
+            let currentOrder = null;
+            if (isReordering && reorderBuffer) {
+                const index = reorderBuffer.indexOf(item.id);
+                currentOrder = index !== -1 ? index + 1 : null;
+            }
 
             return (
                 <MediaCard
@@ -72,7 +76,22 @@ export const CategoryPage = ({
                 />
             );
         },
-        [handlePress, onCardLongPress, isReordering, reorderBuffer],
+        [
+            handlePress,
+            onCardLongPress,
+            isReordering,
+            reorderBuffer,
+            isInsideFolder,
+        ],
+    );
+
+    // 3. Используем стабильный объект для extraData
+    const memoizedExtraData = useMemo(
+        () => ({
+            isReordering,
+            reorderBufferLength: reorderBuffer?.length, // Следим за длиной, а не за всем массивом
+        }),
+        [isReordering, reorderBuffer?.length],
     );
 
     return (
@@ -88,40 +107,27 @@ export const CategoryPage = ({
         >
             <FlatList
                 data={pageData}
-                extraData={[
-                    data,
-                    pageData,
-                    reorderBuffer,
-                    folderOrder,
-                    isReordering,
-                ]}
-                keyExtractor={(item) => item.id.toString()}
+                extraData={memoizedExtraData}
+                keyExtractor={keyExtractor}
                 numColumns={2}
                 showsVerticalScrollIndicator={false}
                 showsHorizontalScrollIndicator={false}
                 columnWrapperStyle={styles.row}
-                contentContainerStyle={[
-                    styles.listPadding,
-                    { paddingTop: isInsideFolder ? 0 : 10 },
-                ]}
-                ListHeaderComponent={ListHeaderComponent}
+                contentContainerStyle={styles.listPadding}
                 renderItem={renderItem}
+                initialNumToRender={6}
+                maxToRenderPerBatch={2}
+                windowSize={5}
+                removeClippedSubviews={true}
+                updateCellsBatchingPeriod={100}
+                scrollEventThrottle={16}
+                ListHeaderComponent={ListHeaderComponent}
                 ListEmptyComponent={
                     <EmptyState
                         category={category}
                         isInsideFolder={isInsideFolder}
                     />
                 }
-                // Оптимизации производительности
-                removeClippedSubviews={Platform.OS === "android"}
-                initialNumToRender={10}
-                maxToRenderPerBatch={10}
-                windowSize={7}
-                getItemLayout={(data, index) => ({
-                    length: 230, // Уточни высоту карточки с учетом отступов
-                    offset: 230 * Math.floor(index / 2),
-                    index,
-                })}
             />
         </View>
     );

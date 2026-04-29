@@ -21,18 +21,23 @@ export const parseCommaSeparated = (value) => {
 };
 
 /**
- * Вычисляет топ-N значений.
- * Если sortByScore = true, то сортирует по среднему баллу.
+ * Вычисляет топ-N значений на основе среднего балла.
+ * Если onlyRated = true, сортируем по рейтингу.
+ * Если false (обычный режим), сортируем по количеству.
  */
 export const getTopValues = (
     items,
     extractor,
-    sortByScore = false,
+    onlyRated = false,
     limit = 5,
 ) => {
     const statsMap = {};
 
     items.forEach((item) => {
+        if (onlyRated && (!item.userScore || item.userScore === 0)) {
+            return;
+        }
+
         const values = extractor(item);
         if (Array.isArray(values)) {
             values.forEach((val) => {
@@ -48,26 +53,35 @@ export const getTopValues = (
     });
 
     return Object.entries(statsMap)
-        .map(([name, data]) => {
-            const avgScore = data.totalScore / data.count;
-            return {
-                name,
-                // Если режим оценки — берем среднее, если обычный — количество
-                count: sortByScore
-                    ? parseFloat(avgScore.toFixed(1))
-                    : data.count,
-                // Сохраняем реальное кол-во для доп. инфо (опционально)
-                realCount: data.count,
-            };
+        .map(([name, data]) => ({
+            name,
+            avgScore: data.totalScore / data.count,
+            realCount: data.count,
+        }))
+        .sort((a, b) => {
+            if (onlyRated) {
+                // СОРТИРОВКА ПО СРЕДНЕМУ БАЛЛУ
+                // Если баллы равны, смотрим на количество
+                return b.avgScore - a.avgScore || b.realCount - a.realCount;
+            }
+            // ОБЫЧНАЯ СОРТИРОВКА ПО КОЛИЧЕСТВУ
+            return b.realCount - a.realCount;
         })
-        .sort((a, b) => b.count - a.count) // Сортируем по полю count (там либо баллы, либо кол-во)
-        .slice(0, limit);
+        .slice(0, limit)
+        .map((item) => ({
+            name: item.name,
+            // ВАЖНО: всегда возвращаем количество для отображения справа
+            count: item.realCount,
+            // Доп. инфо для отладки или будущих фич
+            avgScore: parseFloat(item.avgScore.toFixed(1)),
+            isScoreBased: onlyRated,
+        }));
 };
 
 /**
  * Вычисляет статистику (теперь принимает третий аргумент sortByScore)
  */
-export const calculateStats = (items, category, sortByScore = false) => {
+export const calculateStats = (items, category, onlyRated = false) => {
     const filtered = items.filter(
         (item) => item.appSection === category && !item.isFolder,
     );
@@ -76,9 +90,7 @@ export const calculateStats = (items, category, sortByScore = false) => {
 
     const stats = {};
 
-    // Вспомогательная функция, чтобы не дублировать sortByScore в каждом вызове
-    const getTop = (extractor) =>
-        getTopValues(filtered, extractor, sortByScore);
+    const getTop = (extractor) => getTopValues(filtered, extractor, onlyRated);
 
     stats.topStatuses = getTop((item) => (item.status ? [item.status] : []));
 

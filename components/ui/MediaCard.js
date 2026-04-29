@@ -115,18 +115,6 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         backgroundColor: "#1A2232",
         overflow: "hidden",
-        // Убираем тяжелые тени для Android, если их слишком много
-        ...Platform.select({
-            ios: {
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 5,
-            },
-            android: {
-                elevation: 4,
-            },
-        }),
     },
     image: {
         width: "100%",

@@ -12,7 +12,6 @@ import {
     Clock,
     Star,
     StarOff,
-    X,
     CaseSensitive,
     ChevronLeft,
     ChevronRight,
@@ -47,17 +46,25 @@ export const SortModal = ({
 }) => {
     const [viewLevel, setViewLevel] = useState("main");
     const [selectedType, setSelectedType] = useState(null);
+    const [pendingSort, setPendingSort] = useState(currentSort);
 
-    // Анимация сдвига страниц (горизонтальная)
     const slideAnim = useRef(new Animated.Value(0)).current;
 
-    // Сбрасываем уровень при каждом открытии
     useEffect(() => {
         if (isVisible) {
             setViewLevel("main");
             slideAnim.setValue(0);
+            setPendingSort(currentSort);
         }
-    }, [isVisible]);
+    }, [isVisible, currentSort]);
+
+    const handleSelect = (subId) => {
+        setPendingSort(subId);
+        onClose();
+        setTimeout(() => {
+            onSelectSort(subId);
+        }, 100);
+    };
 
     const animatePage = (toValue, callback) => {
         Animated.timing(slideAnim, {
@@ -100,7 +107,8 @@ export const SortModal = ({
                         {IconComponent && (
                             <IconComponent
                                 size={20}
-                                color={isSelected ? "#fff" : "#8E94A4"}
+                                // Иконка становится ярко-синей при выборе
+                                color={isSelected ? "#7D8AFF" : "#8E94A4"}
                             />
                         )}
                     </View>
@@ -115,7 +123,7 @@ export const SortModal = ({
                 </View>
 
                 {viewLevel === "main" ? (
-                    <ChevronRight size={20} color="rgba(142, 148, 164, 0.5)" />
+                    <ChevronRight size={20} color="rgba(142, 148, 164, 0.3)" />
                 ) : (
                     isSelected && (
                         <Check size={20} color="#7D8AFF" strokeWidth={3} />
@@ -133,22 +141,17 @@ export const SortModal = ({
         >
             {/* Header */}
             <View style={styles.header}>
-                <View style={styles.headerLeft}>
-                    {viewLevel === "sub" ? (
-                        <TouchableOpacity
-                            onPress={goBack}
-                            style={styles.backBtn}
-                        >
-                            <ChevronLeft size={24} color="#fff" />
-                            <Text style={styles.title}>Назад</Text>
-                        </TouchableOpacity>
-                    ) : (
-                        <Text style={styles.title}>Сортировка</Text>
-                    )}
-                </View>
+                {viewLevel === "sub" && (
+                    <TouchableOpacity onPress={goBack} style={styles.backBtn}>
+                        <ChevronLeft size={24} color="#fff" />
+                    </TouchableOpacity>
+                )}
+                <Text style={styles.title}>
+                    {viewLevel === "sub" ? "Параметры" : "Сортировка"}
+                </Text>
             </View>
 
-            {/* Content with Sliding Pages */}
+            {/* Content */}
             <View style={styles.overflowHidden}>
                 <Animated.View
                     style={[
@@ -179,11 +182,8 @@ export const SortModal = ({
                                 SORT_SUB_OPTIONS[selectedType]?.map((sub) =>
                                     renderOption(
                                         sub,
-                                        currentSort === sub.id,
-                                        () => {
-                                            onSelectSort(sub.id);
-                                            onClose(); // Закрываем через BottomSheet
-                                        },
+                                        pendingSort === sub.id,
+                                        () => handleSelect(sub.id),
                                     ),
                                 )}
                         </View>
@@ -197,29 +197,30 @@ export const SortModal = ({
 const styles = StyleSheet.create({
     bottomSheetCustom: {
         backgroundColor: "#0B1534",
-        paddingHorizontal: 0, // Убираем тут, чтобы страницы были во всю ширину
+        paddingHorizontal: 0,
     },
     header: {
+        height: 60,
         flexDirection: "row",
-        justifyContent: "center",
         alignItems: "center",
-        paddingHorizontal: 30,
-        paddingTop: 10,
-        paddingBottom: 20,
-        minHeight: 60,
+        justifyContent: "center",
+        paddingHorizontal: 20,
+        marginBottom: 10,
     },
-    // headerLeft: { flex: 1 },
     title: {
-        fontSize: 22,
+        fontSize: 20,
         fontWeight: "bold",
         color: "#fff",
     },
     backBtn: {
-        flexDirection: "row",
-        alignItems: "center",
-        left: -8,
+        position: "absolute",
+        left: 20,
+        width: 40,
+        height: 40,
+        justifyContent: "center",
+        alignItems: "flex-start",
+        zIndex: 10,
     },
-    closeBtn: { padding: 4 },
     overflowHidden: {
         overflow: "hidden",
         width: SCREEN_WIDTH,
@@ -230,39 +231,46 @@ const styles = StyleSheet.create({
     },
     page: {
         width: SCREEN_WIDTH,
-        paddingHorizontal: 30,
+        paddingHorizontal: 20,
     },
-    optionsContainer: { gap: 10 },
+    optionsContainer: {
+        gap: 8,
+    },
     optionItem: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        paddingVertical: 15,
-        paddingHorizontal: 15,
-        borderRadius: 20,
-        backgroundColor: "rgba(255, 255, 255, 0.03)",
-        borderBottomWidth: 1,
-        borderBottomColor: "rgba(255, 255, 255, 0.05)",
+        paddingVertical: 12,
+        paddingHorizontal: 12,
+        borderRadius: 18,
+        backgroundColor: "rgba(255, 255, 255, 0.02)",
+        borderWidth: 1,
+        borderColor: "transparent",
     },
     optionItemActive: {
-        backgroundColor: "rgba(125, 138, 255, 0.1)",
-        borderColor: "rgba(125, 138, 255, 0.3)",
-        borderWidth: 1,
+        backgroundColor: "rgba(125, 138, 255, 0.06)",
+        borderColor: "rgba(125, 138, 255, 0.15)",
     },
-    optionLeft: { flexDirection: "row", alignItems: "center" },
+    optionLeft: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
     iconBox: {
-        width: 42,
-        height: 42,
-        borderRadius: 14,
-        backgroundColor: "rgba(255, 255, 255, 0.05)",
+        width: 44,
+        height: 44,
+        borderRadius: 12,
+        backgroundColor: "rgba(255, 255, 255, 0.03)",
         justifyContent: "center",
         alignItems: "center",
     },
-    iconBoxActive: { backgroundColor: "#7D8AFF" },
+    iconBoxActive: {
+        backgroundColor: "rgba(125, 138, 255, 0.1)",
+    },
     optionLabel: {
-        fontSize: 18,
+        fontSize: 16,
         color: "#8E94A4",
         marginLeft: 15,
+        fontWeight: "500",
     },
     optionLabelActive: {
         color: "#fff",

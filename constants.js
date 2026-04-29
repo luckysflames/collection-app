@@ -176,8 +176,8 @@ export const INITIAL_FORM_STATE = {
  */
 
 export const SORT_LABELS = {
-    newest: "Сначала новые",
-    oldest: "Сначала старые",
+    date_desc: "Сначала новые",
+    date_asc: "Сначала старые",
     rating_desc: "Сначала лучшие",
     rating_asc: "Сначала худшие",
     alphabet_asc: "От А до Я",
@@ -192,8 +192,8 @@ export const SORT_TYPES = [
 
 export const SORT_SUB_OPTIONS = {
     date: [
-        { id: "newest", label: "Сначала новые", icon: "ArrowDownWideNarrow" },
-        { id: "oldest", label: "Сначала старые", icon: "ArrowUpNarrowWide" },
+        { id: "date_desc", label: "Сначала новые", icon: "ArrowDownWideNarrow" },
+        { id: "date_asc", label: "Сначала старые", icon: "ArrowUpNarrowWide" },
     ],
     rating: [
         { id: "rating_desc", label: "Сначала лучшие", icon: "Star" },
