@@ -34,7 +34,7 @@ export const getTopValues = (
     const statsMap = {};
 
     items.forEach((item) => {
-        if (onlyRated && (!item.userScore || item.userScore === 0)) {
+        if (onlyRated && !item.isBrilliant && (!item.userScore || item.userScore === 0)) {
             return;
         }
 
@@ -46,7 +46,7 @@ export const getTopValues = (
                         statsMap[val] = { count: 0, totalScore: 0 };
                     }
                     statsMap[val].count += 1;
-                    statsMap[val].totalScore += item.userScore || 0;
+                    statsMap[val].totalScore += item.isBrilliant ? 11 : (item.userScore || 0);
                 }
             });
         }

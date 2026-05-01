@@ -1,7 +1,14 @@
 import React from "react";
 import { Animated, Easing } from "react-native";
-import { X, ChevronLeft, Check, Pen, RefreshCcw } from "lucide-react-native";
-import { BaseHeroLayout } from "../../ui/BaseHeroLayout";
+import {
+    X,
+    ChevronLeft,
+    Check,
+    Pen,
+    RefreshCcw,
+    Gem,
+} from "lucide-react-native";
+import { BaseHeroLayout } from "../../layout/BaseHeroLayout";
 import { HeroPoster } from "../../ui/HeroPoster";
 
 export const HeaderSection = ({
@@ -14,6 +21,9 @@ export const HeaderSection = ({
     showEditButton,
     showRefreshButton,
     isRefreshing,
+    showBrilliantBtn,
+    isBrilliant,
+    onBrilliantPress,
 }) => {
     // Создаем значение для вращения
     const spinValue = React.useRef(new Animated.Value(0)).current;
@@ -35,7 +45,7 @@ export const HeaderSection = ({
 
     const spin = spinValue.interpolate({
         inputRange: [0, 1],
-        outputRange: ["0deg", "360deg"],
+        outputRange: ["0deg", "-360deg"],
     });
 
     return (
@@ -50,6 +60,18 @@ export const HeaderSection = ({
                     <ChevronLeft size={24} color="#fff" />
                 ),
             }}
+            centerButton={
+                showBrilliantBtn
+                    ? {
+                          onPress: onBrilliantPress,
+                          icon: isBrilliant ? (
+                              <Gem size={22} color="#7D8AFF" />
+                          ) : (
+                              <Gem size={22} color="#fff" />
+                          ),
+                      }
+                    : null
+            }
             rightButton={
                 showEditButton
                     ? {

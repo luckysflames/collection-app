@@ -1,10 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 export const useEditForm = (isEditing, initialData) => {
     const [form, setForm] = useState({});
+    const prevInitialDataRef = useRef();
 
     useEffect(() => {
-        if (isEditing && initialData) {
+        // Проверяем, изменились ли данные
+        const hasDataChanged =
+            JSON.stringify(prevInitialDataRef.current) !==
+            JSON.stringify(initialData);
+
+        if (
+            isEditing &&
+            initialData &&
+            (prevInitialDataRef.current === undefined || hasDataChanged)
+        ) {
+            prevInitialDataRef.current = initialData;
             const preparedData = {};
 
             const fieldsToClean = [
@@ -28,6 +39,12 @@ export const useEditForm = (isEditing, initialData) => {
                 "esrb",
             ];
 
+            const cleanNumeric = (value) => {
+                const normalized = String(value).replace(",", ".").trim();
+                const match = normalized.match(/^(\d*\.?\d+)/);
+                return match ? match[0] : "";
+            };
+
             Object.keys(initialData).forEach((key) => {
                 let value = initialData[key];
 
@@ -42,19 +59,36 @@ export const useEditForm = (isEditing, initialData) => {
                     return;
                 }
 
-                // 2. Массивы в строку
+                // 2. Специально обрабатываем список платформ для редактирования
+                if (key === "platforms") {
+                    if (Array.isArray(value)) {
+                        // Теперь сохраняем весь массив для мультивыбора
+                        preparedData[key] = value;
+                    } else if (typeof value === "string") {
+                        // Если пришла строка (например, из старых данных), превращаем в массив
+                        preparedData[key] = value
+                            .split(",")
+                            .map((s) => s.trim())
+                            .filter(Boolean);
+                    } else {
+                        preparedData[key] = [];
+                    }
+                    return;
+                }
+
+                // 3. Массивы в строку
                 if (Array.isArray(value)) {
                     preparedData[key] = value.join(", ");
                     return;
                 }
 
-                // 3. Поля селекторов копируются как есть (уже содержат ID)
+                // 4. Поля селекторов копируются как есть (уже содержат ID)
                 if (selectFields.includes(key)) {
                     preparedData[key] = String(value);
                     return;
                 }
 
-                // 4. Обработка дат: преобразуем гггг-мм-дд в дд.мм.гггг для отображения
+                // 5. Обработка дат: преобразуем гггг-мм-дд в дд.мм.гггг для отображения
                 // MaskedDateInput будет преобразовывать обратно
                 if (dateFields.includes(key) && typeof value === "string") {
                     if (value.match(/^\d{4}-\d{2}-\d{2}$/)) {
@@ -67,10 +101,9 @@ export const useEditForm = (isEditing, initialData) => {
                     return;
                 }
 
-                // 5. Очистка числовых полей (только цифры)
+                // 6. Очистка числовых полей (с поддержкой десятичных значений)
                 if (fieldsToClean.includes(key) && typeof value === "string") {
-                    let cleaned = value.replace(/[^0-9]/g, "");
-                    preparedData[key] = cleaned;
+                    preparedData[key] = cleanNumeric(value);
                     return;
                 }
 
@@ -82,6 +115,7 @@ export const useEditForm = (isEditing, initialData) => {
 
         if (!isEditing) {
             setForm({});
+            prevInitialDataRef.current = undefined;
         }
     }, [isEditing]);
 

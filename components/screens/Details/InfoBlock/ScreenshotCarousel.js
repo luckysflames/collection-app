@@ -47,51 +47,57 @@ export const ScreenshotCarousel = ({ screenshots = [] }) => {
         <View style={styles.container}>
             <Text style={styles.sectionTitle}>Кадры</Text>
 
-            <View style={styles.carouselWrapper}>
-                <ScrollView
-                    ref={scrollRef}
-                    horizontal
-                    scrollEnabled={false}
-                    showsHorizontalScrollIndicator={false}
-                    // Убираем SIDE_SPACING отсюда, чтобы первый скрин стоял слева
-                    contentContainerStyle={{
-                        paddingHorizontal: 15, // Небольшой отступ, чтобы первый скрин не лип к краю
-                        gap: GAP,
-                    }}
-                >
-                    {screenshots.map((s, i) => (
-                        <Image
-                            key={i}
-                            source={{ uri: s }}
-                            style={styles.image}
-                        />
-                    ))}
-                </ScrollView>
-
-                {/* Кнопки навигации */}
-                {currentIndex > 0 && (
-                    <TouchableOpacity
-                        style={[styles.navButton, styles.leftButton]}
-                        onPress={() => handleScroll("prev")}
+            <View style={styles.carouselWrapper} pointerEvents="box-none">
+                {/* 1. Слой со скриншотами: полностью игнорирует любые касания */}
+                <View pointerEvents="none">
+                    <ScrollView
+                        ref={scrollRef}
+                        horizontal
+                        scrollEnabled={false}
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={{
+                            paddingHorizontal: 15,
+                            gap: GAP,
+                        }}
                     >
-                        <ChevronLeft color="#fff" size={30} />
-                    </TouchableOpacity>
-                )}
-
-                {currentIndex < screenshots.length - 1 && (
-                    <TouchableOpacity
-                        style={[styles.navButton, styles.rightButton]}
-                        onPress={() => handleScroll("next")}
-                    >
-                        <ChevronRight color="#fff" size={30} />
-                    </TouchableOpacity>
-                )}
-
-                <View style={styles.counterBadge}>
-                    <Text style={styles.counterText}>
-                        {currentIndex + 1} / {screenshots.length}
-                    </Text>
+                        {screenshots.map((s, i) => (
+                            <Image
+                                key={i}
+                                source={{ uri: s }}
+                                style={styles.image}
+                            />
+                        ))}
+                    </ScrollView>
                 </View>
+
+                {/* 2. Слой с кнопками: box-none позволяет кнопкам работать, 
+                   пропуская касания мимо них к родителю */}
+                <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+                    {currentIndex > 0 && (
+                        <TouchableOpacity
+                            style={[styles.navButton, styles.leftButton]}
+                            onPress={() => handleScroll("prev")}
+                        >
+                            <ChevronLeft color="#fff" size={30} />
+                        </TouchableOpacity>
+                    )}
+
+                    {currentIndex < screenshots.length - 1 && (
+                        <TouchableOpacity
+                            style={[styles.navButton, styles.rightButton]}
+                            onPress={() => handleScroll("next")}
+                        >
+                            <ChevronRight color="#fff" size={30} />
+                        </TouchableOpacity>
+                    )}
+                </View>
+            </View>
+
+            {/* Счетчик выносим ниже, чтобы он не перекрывался абсолютным слоем кнопок */}
+            <View style={styles.counterBadge}>
+                <Text style={styles.counterText}>
+                    {currentIndex + 1} / {screenshots.length}
+                </Text>
             </View>
         </View>
     );
@@ -126,7 +132,7 @@ const styles = StyleSheet.create({
     navButton: {
         position: "absolute",
         top: "50%",
-        marginTop: -40,
+        marginTop: -25,
         width: 50,
         height: 50,
         borderRadius: 25,

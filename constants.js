@@ -288,6 +288,20 @@ export const ESRB_RATINGS = [
     { id: "rp", label: "RP (Rating Pending)" },
 ];
 
+// Список игровых платформ для выбора при заполнении карточки
+export const GAME_PLATFORMS = [
+    { id: "PC", label: "PC" },
+    { id: "PlayStation 5", label: "PlayStation 5" },
+    { id: "PlayStation 4", label: "PlayStation 4" },
+    { id: "Xbox Series X|S", label: "Xbox Series X|S" },
+    { id: "Xbox One", label: "Xbox One" },
+    { id: "Nintendo Switch", label: "Nintendo Switch" },
+    { id: "Nintendo Wii", label: "Nintendo Wii" },
+    { id: "Mobile", label: "Mobile" },
+    { id: "Steam Deck", label: "Steam Deck" },
+    { id: "Web", label: "Web" },
+];
+
 // Возрастные рейтинги для книг
 export const BOOK_MATURITY_RATINGS = [
     { id: "not_mature", label: "Для всех" },

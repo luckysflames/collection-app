@@ -1,11 +1,13 @@
 import React from "react";
 import { View, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { Gem } from "lucide-react-native";
 
 export const BaseHeroLayout = ({
     image,
     insets,
     leftButton,
+    centerButton,
     rightButton,
     children,
 }) => (
@@ -33,6 +35,19 @@ export const BaseHeroLayout = ({
         >
             {leftButton.icon}
         </TouchableOpacity>
+
+        {centerButton && (
+            <TouchableOpacity
+                style={[
+                    styles.roundButton,
+                    styles.centerButton,
+                    { top: insets.top },
+                ]}
+                onPress={centerButton.onPress}
+            >
+               {centerButton.icon}
+            </TouchableOpacity>
+        )}
 
         {rightButton && (
             <TouchableOpacity
@@ -90,6 +105,11 @@ const styles = StyleSheet.create({
         // Добавим легкую рамку для стиля
         borderWidth: 1,
         borderColor: "rgba(255,255,255,0.05)",
+    },
+    centerButton: {
+        alignSelf: "center",
+        left: "50%",
+        marginLeft: -22.5, // половина ширины кнопки (45/2) для точного центра
     },
     mainPosterWrapper: {
         zIndex: 5,

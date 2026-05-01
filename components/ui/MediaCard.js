@@ -9,7 +9,7 @@ import {
     Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { BookCopy, Pin, Star } from "lucide-react-native";
+import { BookCopy, Gem, Infinity, Pin, Star } from "lucide-react-native";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
@@ -59,16 +59,20 @@ const MediaCardComponent = ({
                     </View>
                 )}
 
-                {/* Рейтинг пользователя (справа сверху) */}
-                {/* Используем отдельный стиль или условие, чтобы не накладывалось на папку */}
-                {item.userScore > 0 && (
+                {/* Рейтинг пользователя (слева сверху) */}
+                {item.isBrilliant ? (
+                    <View style={styles.ratingBadge}>
+                        <Gem size={12} color="#7D8AFF" fill="#7D8AFF" />
+                        <Infinity size={12} color="#7D8AFF" />
+                    </View>
+                ) : item.userScore > 0 && !item.isBrilliant ? (
                     <View style={styles.ratingBadge}>
                         <Star size={12} color="#FFD700" fill="#FFD700" />
                         <Text style={styles.scoreCount}>{item.userScore}</Text>
                     </View>
-                )}
+                ) : null}
 
-                {/* Бейдж папки (справа сверху, если нет рейтинга, или чуть ниже) */}
+                {/* Бейдж папки (справа сверху) */}
                 {item.isFolder && (
                     <View style={styles.folderBadge}>
                         <BookCopy size={12} color="#ffffff" />
@@ -97,6 +101,7 @@ export const MediaCard = memo(MediaCardComponent, (prevProps, nextProps) => {
         prevProps.item.id === nextProps.item.id &&
         prevProps.item.isPinned === nextProps.item.isPinned &&
         prevProps.item.userScore === nextProps.item.userScore &&
+        prevProps.item.isBrilliant === nextProps.item.isBrilliant &&
         prevProps.orderNumber === nextProps.orderNumber &&
         prevProps.showOrderNumber === nextProps.showOrderNumber &&
         prevProps.itemCount === nextProps.itemCount &&
@@ -179,6 +184,7 @@ const styles = StyleSheet.create({
         position: "absolute",
         top: 10,
         left: 10,
+        height: 25,
         backgroundColor: "rgba(26, 34, 50, 0.9)", // Темный фон для контраста со звездой
         paddingHorizontal: 8,
         paddingVertical: 4,
@@ -194,6 +200,7 @@ const styles = StyleSheet.create({
         position: "absolute",
         top: 10,
         right: 10,
+        height: 25,
         backgroundColor: "rgba(125, 138, 255, 0.95)",
         paddingHorizontal: 8,
         paddingVertical: 4,

@@ -13,8 +13,13 @@ const splitString = (str) =>
 // Извлекаем только числовое значение, убираем любые единицы (мин., стр., ч., $)
 const extractNumeric = (value) => {
     if (!value) return "";
-    // Извлекаем только цифры и точку
-    const match = String(value).match(/[\d.]+/);
+
+    // 1. Приводим к строке и заменяем запятую на точку, чтобы "1,5" стало "1.5"
+    const normalized = String(value).replace(",", ".");
+
+    // 2. Ищем число (целое или с плавающей точкой)
+    const match = normalized.match(/\d+(\.\d+)?/);
+
     return match ? match[0] : "";
 };
 

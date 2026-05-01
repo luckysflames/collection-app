@@ -2,7 +2,7 @@ import React, { memo } from "react";
 import { View, StyleSheet } from "react-native";
 import { ChevronLeft, Check, Pen, X } from "lucide-react-native";
 
-import { BaseHeroLayout } from "../../../ui/BaseHeroLayout";
+import { BaseHeroLayout } from "../../../layout/BaseHeroLayout";
 import { FolderEditForm } from "./FolderEditForm";
 import { FolderInfo } from "./FolderInfo";
 import { HeroPoster } from "../../../ui/HeroPoster";

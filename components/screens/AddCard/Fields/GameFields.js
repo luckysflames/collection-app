@@ -4,7 +4,7 @@ import { View } from "react-native";
 import { formStyles } from "../styles/formStyles";
 import CommonField from "./CommonField";
 import SelectField from "./SelectField";
-import { ESRB_RATINGS } from "../../../../constants";
+import { ESRB_RATINGS, GAME_PLATFORMS } from "../../../../constants";
 
 export default function GameFields({ form, updateField }) {
     return (
@@ -40,21 +40,31 @@ export default function GameFields({ form, updateField }) {
                 updateField={updateField}
                 fieldName="developers"
             />
-            <CommonField
-                label="Платформы"
-                placeholder="PC, Playstation, ..."
-                form={form}
-                updateField={updateField}
-                fieldName="platforms"
-            />
-            <CommonField
-                label="Время прохождения (часы)"
-                placeholder="150"
-                form={form}
-                updateField={updateField}
-                fieldName="duration"
-                keyboardType="numeric"
-            />
+
+            <View style={formStyles.rowInputs}>
+                <View style={{ flex: 1 }}>
+                    <SelectField
+                        label="Платформа"
+                        placeholder="PC, ..."
+                        form={form}
+                        updateField={updateField}
+                        fieldName="platforms"
+                        options={GAME_PLATFORMS}
+                        isMulti
+                    />
+                </View>
+
+                <View style={{ flex: 1 }}>
+                    <CommonField
+                        label="Время прохождения"
+                        placeholder="1.5"
+                        form={form}
+                        updateField={updateField}
+                        fieldName="duration"
+                        keyboardType="numeric"
+                    />
+                </View>
+            </View>
         </View>
     );
 }

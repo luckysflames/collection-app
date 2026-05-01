@@ -30,19 +30,21 @@ export const useAddCardForm = (navigation) => {
         }));
     }, [form.type]);
 
-    const split = (str) =>
-        str
+    const split = (str) => {
+        if (Array.isArray(str)) return str; // Если уже массив (от мультивыбора), возвращаем как есть
+        return str
             ? str
                   .split(",")
                   .map((s) => s.trim())
                   .filter(Boolean)
             : [];
+    };
 
-    // Извлекаем только числовое значение, убираем любые единицы (мин., стр., ч., $)
+    // Извлекаем числовое значение и поддерживаем дробную часть с точкой или запятой
     const extractNumeric = (value) => {
         if (!value) return "";
-        // Извлекаем только цифры и точку
-        const match = String(value).match(/[\d.]+/);
+        const normalized = String(value).replace(",", ".").trim();
+        const match = normalized.match(/\d+(\.\d+)?/);
         return match ? match[0] : "";
     };
 

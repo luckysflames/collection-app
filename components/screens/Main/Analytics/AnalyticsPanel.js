@@ -12,7 +12,7 @@ export default function AnalyticsPanel({ collection }) {
 
     const analyticsData = useMemo(() => {
         const filteredCollection = onlyRated
-            ? collection.filter((item) => item.userScore > 0)
+            ? collection.filter((item) => item.userScore > 0 || item.isBrilliant)
             : collection;
 
         return categories.reduce((acc, cat) => {

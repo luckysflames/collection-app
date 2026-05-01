@@ -21,18 +21,24 @@ import { useImagePicker } from "../hooks/useImagePicker";
 
 // Components
 import { ContentSection } from "../components/screens/Details/ContentSection";
-import { EditSection } from "../components/screens/Details/EditSection";
+import { EditSection } from "../components/screens/Details/Edit/EditSection";
 import { HeaderSection } from "../components/screens/Details/HeaderSection";
 import { DetailsModals } from "../components/screens/Details/Modals/DetailsModals";
+import { DiamondRain } from "../components/ui/Effects/DiamondRain";
 
 // Utils & Services
 import { prepareDataForSave } from "../utils/prepareDetailsData";
 import { fetchDetailsById } from "../services/apiService";
+import { WarnModal } from "../components/ui/WarnModal";
 
 export default function DetailsScreen({ route, navigation }) {
     const insets = useSafeAreaInsets();
     const { item, category } = route.params;
     const { pickImage } = useImagePicker();
+    const [errorModal, setErrorModal] = useState({
+        visible: false,
+        message: "",
+    });
 
     // 1. Store
     const myCollection = useCollectionStore((state) => state.myCollection);
@@ -41,10 +47,12 @@ export default function DetailsScreen({ route, navigation }) {
     const isVibration = useCollectionStore((state) => state.isVibration);
 
     // 2. Data Fetching & Preparation
-    const { data: fullDetails, loading } = useFetchDetails(item.id);
     const initialSavedItem = useMemo(
         () => myCollection.find((fav) => String(fav.id) === String(item.id)),
         [myCollection, item.id],
+    );
+    const { data: fullDetails, loading } = useFetchDetails(
+        initialSavedItem ? null : item.id,
     );
     const displayData = useDetailsData(item, fullDetails, initialSavedItem);
 
@@ -75,6 +83,8 @@ export default function DetailsScreen({ route, navigation }) {
     });
 
     const cardType = item.type || savedItem?.type || category;
+    const isBrilliant = savedItem?.isBrilliant || false;
+    const isPeak = savedItem?.userScore === 10 || isBrilliant;
 
     // 5. Handlers
     const onSaveAction = () => {
@@ -87,11 +97,16 @@ export default function DetailsScreen({ route, navigation }) {
         try {
             await refreshCardDetails(item, fetchDetailsById);
         } catch (error) {
-            Alert.alert(
-                "Ошибка обновления",
-                "Не удалось получить свежие данные.",
-            );
+            setErrorModal({
+                visible: true,
+                message:
+                    "Не удалось получить свежие данные. Проверьте соединение.",
+            });
         }
+    };
+
+    const handleToggleBrilliant = () => {
+        updateCard(item.id, { isBrilliant: !isBrilliant });
     };
 
     const handleScoreWithHaptics = (score) => {
@@ -122,75 +137,81 @@ export default function DetailsScreen({ route, navigation }) {
     }, [parentFolders]);
 
     return (
-        <KeyboardAwareScrollView
-            style={styles.container}
-            contentContainerStyle={{ flexGrow: 1 }}
-            bounces={false}
-            extraScrollHeight={200}
-            scrollEventThrottle={16}
-            enableOnAndroid={true}
-            nestedScrollEnabled={true}
-            keyboardShouldPersistTaps="handled"
-        >
-            <HeaderSection
-                isEditing={isEditing}
-                image={editForm.image || item.image}
-                insets={insets}
-                onLeftPress={
-                    isEditing
-                        ? () => setIsEditing(false)
-                        : () => navigation.goBack()
-                }
-                onRightPress={
-                    isEditing
-                        ? onSaveAction
-                        : isInCollection && savedItem?.isCustom
-                          ? () => setIsEditing(true)
-                          : isInCollection && !savedItem?.isCustom
-                            ? handleRefresh
-                            : undefined
-                }
-                onPickImage={async () => {
-                    const uri = await pickImage([240, 340]);
-                    if (uri) updateField("image", uri);
-                }}
-                showEditButton={isInCollection && savedItem?.isCustom}
-                showRefreshButton={isInCollection && !savedItem?.isCustom}
-                isRefreshing={isRefreshing}
-            />
+        <View style={styles.container}>
+            <DiamondRain isBrilliant={isBrilliant} />
 
-            <View style={styles.infoContainer}>
-                {loading && !fullDetails && !savedItem ? (
-                    <View style={styles.loaderContainer}>
-                        <ActivityIndicator size="large" color="#7D8AFF" />
-                    </View>
-                ) : isEditing ? (
-                    <EditSection
-                        form={editForm}
-                        updateField={updateField}
-                        type={cardType}
-                        onSave={onSaveAction}
-                        onCancel={() => setIsEditing(false)}
-                    />
-                ) : (
-                    <ContentSection
-                        displayData={displayData}
-                        savedItem={savedItem}
-                        isInCollection={isInCollection}
-                        isFavorite={!!savedItem?.isFavorite}
-                        folderLabel={folderLabel}
-                        isAnyFolderSelected={parentFolders.length > 0}
-                        onStatusPress={() => openModal("status")}
-                        onFolderPress={() => openModal("folder")}
-                        onInfoPress={() => openModal("info")}
-                        onToggleFavorite={handleToggleFavorite}
-                        onUpdateNotes={(text) =>
-                            updateCard(item.id, { userNotes: text })
-                        }
-                        onSetScore={handleScoreWithHaptics}
-                    />
-                )}
-            </View>
+            <KeyboardAwareScrollView
+                contentContainerStyle={{ flexGrow: 1 }}
+                bounces={false}
+                extraScrollHeight={200}
+                scrollEventThrottle={16}
+                enableOnAndroid={true}
+                // nestedScrollEnabled={true}
+                keyboardShouldPersistTaps="handled"
+            >
+                <HeaderSection
+                    isEditing={isEditing}
+                    image={editForm.image || item.image}
+                    insets={insets}
+                    onLeftPress={
+                        isEditing
+                            ? () => setIsEditing(false)
+                            : () => navigation.goBack()
+                    }
+                    onRightPress={
+                        isEditing
+                            ? onSaveAction
+                            : isInCollection && savedItem?.isCustom
+                              ? () => setIsEditing(true)
+                              : isInCollection && !savedItem?.isCustom
+                                ? handleRefresh
+                                : undefined
+                    }
+                    onPickImage={async () => {
+                        const uri = await pickImage([240, 340]);
+                        if (uri) updateField("image", uri);
+                    }}
+                    showEditButton={isInCollection && savedItem?.isCustom}
+                    showRefreshButton={isInCollection && !savedItem?.isCustom}
+                    isRefreshing={isRefreshing}
+                    isBrilliant={isBrilliant}
+                    onBrilliantPress={handleToggleBrilliant}
+                    showBrilliantBtn={isPeak}
+                />
+
+                <View style={styles.infoContainer}>
+                    {loading && !fullDetails && !savedItem ? (
+                        <View style={styles.loaderContainer}>
+                            <ActivityIndicator size="large" color="#7D8AFF" />
+                        </View>
+                    ) : isEditing ? (
+                        <EditSection
+                            form={editForm}
+                            updateField={updateField}
+                            type={cardType}
+                            onSave={onSaveAction}
+                            onCancel={() => setIsEditing(false)}
+                        />
+                    ) : (
+                        <ContentSection
+                            displayData={displayData}
+                            savedItem={savedItem}
+                            isInCollection={isInCollection}
+                            isFavorite={!!savedItem?.isFavorite}
+                            folderLabel={folderLabel}
+                            isAnyFolderSelected={parentFolders.length > 0}
+                            onStatusPress={() => openModal("status")}
+                            onFolderPress={() => openModal("folder")}
+                            onInfoPress={() => openModal("info")}
+                            onToggleFavorite={handleToggleFavorite}
+                            onUpdateNotes={(text) =>
+                                updateCard(item.id, { userNotes: text })
+                            }
+                            onSetScore={handleScoreWithHaptics}
+                        />
+                    )}
+                </View>
+            </KeyboardAwareScrollView>
 
             <DetailsModals
                 state={{
@@ -216,7 +237,14 @@ export default function DetailsScreen({ route, navigation }) {
                     },
                 }}
             />
-        </KeyboardAwareScrollView>
+
+            <WarnModal
+                visible={errorModal.visible}
+                type="error"
+                message={errorModal.message}
+                onClose={() => setErrorModal({ ...errorModal, visible: false })}
+            />
+        </View>
     );
 }
 

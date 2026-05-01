@@ -29,6 +29,7 @@ export const CategoryPage = ({
 }) => {
     const insets = useSafeAreaInsets();
     const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
+    const collectionVersion = useCollectionStore((state) => state.version);
 
     // 1. Получаем отфильтрованные и базово отсортированные данные из хука
     const filteredData = useFilteredCollection({
@@ -90,8 +91,9 @@ export const CategoryPage = ({
         () => ({
             isReordering,
             reorderBufferLength: reorderBuffer?.length, // Следим за длиной, а не за всем массивом
+            collectionVersion, // Следим за версией коллекции для перерисовки при изменении любого элемента
         }),
-        [isReordering, reorderBuffer?.length],
+        [isReordering, reorderBuffer?.length, collectionVersion],
     );
 
     return (

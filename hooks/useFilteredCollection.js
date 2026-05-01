@@ -176,8 +176,9 @@ export const useFilteredCollection = ({
             // Стандартная сортировка (если не папка или нет ручного порядка)
             const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
             const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-            const ratingA = Number(a.userScore) || 0;
-            const ratingB = Number(b.userScore) || 0;
+            // isBrilliant считается рейтингом 11 (выше максимума 10)
+            const ratingA = a.isBrilliant ? 11 : Number(a.userScore) || 0;
+            const ratingB = b.isBrilliant ? 11 : Number(b.userScore) || 0;
             const titleA = a.title?.toLowerCase() || "";
             const titleB = b.title?.toLowerCase() || "";
 

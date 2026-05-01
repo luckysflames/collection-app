@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
     View,
     Text,
@@ -7,7 +7,12 @@ import {
     FlatList,
     Dimensions,
 } from "react-native";
-import { FolderPlus, Folder as FolderIcon, Check } from "lucide-react-native";
+import {
+    FolderPlus,
+    Folder as FolderIcon,
+    Check,
+    FolderHeart,
+} from "lucide-react-native";
 import { BottomSheet } from "../../../ui/BottomSheet";
 import { useCollectionStore } from "../../../../store/useCollectionStore";
 
@@ -22,6 +27,15 @@ export default function FolderSelectModal({
     selectedFolderIds = [], // Список ID папок, где уже есть этот айтем
 }) {
     const myCollection = useCollectionStore((state) => state.myCollection);
+
+    // Сортируем список: сначала закрепленные (isPinned), затем остальные
+    const sortedFolders = useMemo(() => {
+        if (!folders) return [];
+        return [...folders].sort((a, b) => {
+            if (a.isPinned === b.isPinned) return 0;
+            return a.isPinned ? -1 : 1;
+        });
+    }, [folders]);
 
     // Считаем айтемы, у которых id этой папки есть в массиве parentFolderIds
     const getItemCount = (folderId) => {
@@ -49,10 +63,17 @@ export default function FolderSelectModal({
                         isSelected && styles.folderIconWrapperActive,
                     ]}
                 >
-                    <FolderIcon
-                        color={isSelected ? "#7D8AFF" : "#8E94A4"}
-                        size={20}
-                    />
+                    {item.isPinned ? (
+                        <FolderHeart
+                            color={isSelected ? "#7D8AFF" : "#8E94A4"}
+                            size={20}
+                        />
+                    ) : (
+                        <FolderIcon
+                            color={isSelected ? "#7D8AFF" : "#8E94A4"}
+                            size={20}
+                        />
+                    )}
                 </View>
 
                 <View style={styles.folderInfo}>
@@ -103,7 +124,7 @@ export default function FolderSelectModal({
 
             <View style={styles.listContainer}>
                 <FlatList
-                    data={folders}
+                    data={sortedFolders}
                     keyExtractor={(item) => item.id}
                     showsVerticalScrollIndicator={false}
                     renderItem={renderFolderItem}

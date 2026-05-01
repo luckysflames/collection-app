@@ -3,7 +3,7 @@ import { fetchDetailsById } from "../services/apiService";
 
 export const useFetchDetails = (id) => {
     const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(Boolean(id));
     const [error, setError] = useState(null);
 
     useEffect(() => {
@@ -21,7 +21,16 @@ export const useFetchDetails = (id) => {
             }
         };
 
-        if (id) load();
+        if (!id) {
+            setData(null);
+            setError(null);
+            setLoading(false);
+            return () => {
+                isMounted = false;
+            };
+        }
+
+        load();
 
         return () => {
             isMounted = false;

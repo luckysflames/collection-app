@@ -8,12 +8,12 @@ export const AverageRatingBlock = ({ items, onApply }) => {
     const averageScore = useMemo(() => {
         const filteredItems = includeUnrated
             ? items
-            : items.filter((item) => (item.userScore) > 0);
+            : items.filter((item) => (item.userScore) > 0 || item.isBrilliant);
 
         if (filteredItems.length === 0) return 0;
 
         const sum = filteredItems.reduce(
-            (acc, item) => acc + (item.userScore || 0),
+            (acc, item) => acc + (item.isBrilliant ? 11 : item.userScore || 0),
             0,
         );
 

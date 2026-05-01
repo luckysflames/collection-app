@@ -10,10 +10,47 @@ const SHIKIMORI_GRAPHQL_URL = "https://shikimori.one/api/graphql";
 const cleanHtml = (text) => {
     if (!text) return "";
 
-    return text
-        .replace(/<[^>]*>?/gm, "") // Чистим HTML: <div>...</div>
-        .replace(/\[[^\]]*\]/g, "") // Чистим BBCode: [character=123]...[/character]
-        .trim(); // Убираем лишние пробелы по краям
+    let cleaned = text;
+
+    // 1. СТРАХОВКА: Если это HTML и мы видим пустые ссылки <a></a>,
+    // пробуем вытащить русское имя из data-attrs прежде чем удалить теги
+    if (cleaned.includes("data-attrs")) {
+        cleaned = cleaned.replace(
+            /<a[^>]*data-attrs="([^"]*)"[^>]*><\/a>/g,
+            (match, encodedAttrs) => {
+                try {
+                    // Декодируем кавычки &quot; -> "
+                    const decoded = encodedAttrs.replace(/&quot;/g, '"');
+                    const attrs = JSON.parse(decoded);
+                    return attrs.russian || attrs.name || "";
+                } catch (e) {
+                    return "";
+                }
+            },
+        );
+    }
+
+    // 2. Обработка BB-кодов (на случай, если пришел description)
+    cleaned = cleaned
+        // Случай [character=669] (пустой внутри) — тут сложнее, так как ID нам ничего не даст без базы
+        .replace(/\[\w+=[^\]]*\]/g, "")
+        .replace(/\[\/\w+\]/g, "")
+        .replace(/\[\[(.*?)\]\]/g, "$1")
+        .replace(/\[[^\]]*\]/g, "");
+
+    // 3. Основная чистка HTML
+    cleaned = cleaned
+        .replace(/<br\s*\/?>/gi, "\n") // Сохраняем переносы строк
+        .replace(/<[^>]*>?/gm, "") // Удаляем все остальные теги
+        .replace(/&nbsp;/g, " ") // Чистим сущности
+        .replace(/&quot;/g, '"')
+        .replace(/&amp;/g, "&");
+
+    // 4. Финальный лоск
+    return cleaned
+        .replace(/[ ]+/g, " ") // Убираем двойные пробелы
+        .replace(/\n\s*\n/g, "\n\n") // Убираем лишние пустые строки
+        .trim();
 };
 
 // Вспомогательная функция для получения чистого ID без префикса и номера страницы
@@ -177,7 +214,7 @@ export const fetchDetailsById = async (id) => {
                 releasedOn { date }
                 rating
                 duration
-                description
+                descriptionHtml
                 kind
                 genres { russian }
                 studios { name }
@@ -203,7 +240,7 @@ export const fetchDetailsById = async (id) => {
                 englishTitle: data.english,
                 japaneseTitle: data.japanese,
                 duration: data.duration || null,
-                description: cleanHtml(data.description),
+                description: cleanHtml(data.descriptionHtml),
                 genres: data.genres?.map((g) => g.russian) || [],
                 studios: data.studios?.map((s) => s.name) || [],
                 screenshots: data.screenshots?.map((s) => s.x332Url) || [],

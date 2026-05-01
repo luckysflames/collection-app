@@ -21,6 +21,7 @@ export default function SelectField({
     updateField,
     fieldName,
     options = [],
+    isMulti = false,
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const value = form[fieldName];
@@ -29,9 +30,44 @@ export default function SelectField({
         options.find((opt) => String(opt.id) === String(value))?.label ||
         placeholder;
 
+    // Формируем текст для отображения в поле
+    const getDisplayLabel = () => {
+        if (isMulti) {
+            if (Array.isArray(value) && value.length > 0) {
+                return options
+                    .filter((opt) => value.includes(opt.id))
+                    .map((opt) => opt.label)
+                    .join(", ");
+            }
+            return placeholder;
+        }
+        return (
+            options.find((opt) => String(opt.id) === String(value))?.label ||
+            placeholder
+        );
+    };
+
     const handleSelect = (id) => {
-        updateField(fieldName, id);
-        setIsOpen(false);
+        if (isMulti) {
+            const currentValues = Array.isArray(value) ? value : [];
+            const nextValues = currentValues.includes(id)
+                ? currentValues.filter((v) => v !== id) // Убираем, если уже есть
+                : [...currentValues, id]; // Добавляем, если нет
+
+            updateField(fieldName, nextValues);
+            // При мультивыборе НЕ закрываем модалку сразу для удобства
+        } else {
+            updateField(fieldName, id);
+            setIsOpen(false);
+        }
+    };
+
+    // Проверка, выбран ли конкретный пункт
+    const isSelected = (id) => {
+        if (isMulti) {
+            return Array.isArray(value) && value.includes(id);
+        }
+        return String(value) === String(id);
     };
 
     return (
@@ -52,8 +88,9 @@ export default function SelectField({
             >
                 <Text
                     style={[styles.inputText, !value && styles.placeholderText]}
+                    numberOfLines={1}
                 >
-                    {currentLabel}
+                    {getDisplayLabel()}
                 </Text>
                 <ChevronDown
                     size={20}
@@ -104,7 +141,7 @@ export default function SelectField({
                                     <Text
                                         style={[
                                             styles.optionText,
-                                            String(value) === String(item.id) &&
+                                            isSelected(item.id) &&
                                                 styles.selectedOptionText,
                                         ]}
                                     >
