@@ -34,6 +34,7 @@ export default function MainScreen({ route, navigation }) {
     const myCollection = useCollectionStore((state) => state.myCollection);
     const createFolder = useCollectionStore((state) => state.createFolder);
     const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
+    const defaultSorts = useCollectionStore((state) => state.defaultSorts);
 
     // --- Section & Category Logic ---
     const currentSection =
@@ -42,7 +43,9 @@ export default function MainScreen({ route, navigation }) {
 
     // --- Local State ---
     const [activeCategory, setActiveCategory] = useState(defaultActive);
-    const [sortType, setSortType] = useState("date_desc");
+    const sectionKey = SECTION_MAPPING[currentSection];
+    const initialSort = defaultSorts[sectionKey] || "date_desc";
+    const [sortType, setSortType] = useState(initialSort);
     const [searchQuery, setSearchQuery] = useState("");
     const [showFoldersOnly, setShowFoldersOnly] = useState(false);
     const [activeFilters, setActiveFilters] = useState({});

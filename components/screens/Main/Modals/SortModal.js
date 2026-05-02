@@ -19,6 +19,7 @@ import {
     ArrowDownWideNarrow,
     ArrowDownAZ,
     ArrowUpAZ,
+    CalendarClock,
 } from "lucide-react-native";
 import { BottomSheet } from "../../../ui/BottomSheet";
 import { SORT_TYPES, SORT_SUB_OPTIONS } from "../../../../constants";
@@ -36,6 +37,7 @@ const ICON_COMPONENTS = {
     ArrowUpAZ,
     Check,
     ChevronRight,
+    CalendarClock,
 };
 
 export const SortModal = ({
@@ -43,6 +45,7 @@ export const SortModal = ({
     onClose,
     currentSort,
     onSelectSort,
+    isInsideFolder = false,
 }) => {
     const [viewLevel, setViewLevel] = useState("main");
     const [selectedType, setSelectedType] = useState(null);
@@ -73,6 +76,10 @@ export const SortModal = ({
             useNativeDriver: true,
         }).start(callback);
     };
+
+    const visibleSortTypes = isInsideFolder
+        ? SORT_TYPES
+        : SORT_TYPES.filter((type) => type.id !== "manual");
 
     const goToSubLevel = (typeId) => {
         setSelectedType(typeId);
@@ -162,7 +169,7 @@ export const SortModal = ({
                     {/* Page 1: Main Categories */}
                     <View style={styles.page}>
                         <View style={styles.optionsContainer}>
-                            {SORT_TYPES.map((type) => {
+                            {visibleSortTypes.map((type) => {
                                 const isActive =
                                     currentSort === type.id ||
                                     SORT_SUB_OPTIONS[type.id]?.some(

@@ -23,6 +23,10 @@ export const SectionTabs = ({ sections, selectedSection, onSelect }) => {
                                     isActive ? subCat.active : subCat.inactive
                                 }
                                 style={styles.tabIcon}
+                                style={[
+                                    styles.tabIcon,
+                                    isActive && styles.activeTabIcon,
+                                ]}
                             />
                         )}
                         <Text
@@ -41,19 +45,46 @@ export const SectionTabs = ({ sections, selectedSection, onSelect }) => {
 };
 
 const styles = StyleSheet.create({
-    tabBar: { flexDirection: "row", gap: 8, marginBottom: 20 },
+    tabBar: {
+        flexDirection: "row",
+        gap: 10,
+        marginBottom: 20,
+        backgroundColor: "rgba(125, 138, 255, 0.03)",
+        padding: 4,
+        borderRadius: 18,
+    },
     tab: {
         flex: 1,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        gap: 4,
-        paddingVertical: 12,
+        gap: 6,
+        paddingVertical: 15,
         borderRadius: 14,
-        backgroundColor: "rgba(255,255,255,0.05)",
+        backgroundColor: "transparent",
     },
-    activeTab: { backgroundColor: "#7D8AFF" },
-    tabText: { color: "#8E94A4", fontSize: 11, fontWeight: "600" },
-    activeTabText: { color: "#fff" },
-    tabIcon: { width: 16, height: 16, objectFit: "contain" },
+    activeTab: {
+        backgroundColor: "#7D8AFF",
+        borderWidth: 1,
+        borderColor: "rgba(125, 138, 255, 0.3)",
+    },
+    tabText: {
+        color: "#4E5564",
+        fontSize: 12,
+        fontWeight: "600",
+        letterSpacing: 0.3,
+    },
+    activeTabText: {
+        color: "#fff",
+        fontWeight: "700",
+    },
+    tabIcon: {
+        width: 14,
+        height: 14,
+        objectFit: "contain",
+        opacity: 0.6,
+    },
+    activeTabIcon: {
+        opacity: 1,
+    },
 });

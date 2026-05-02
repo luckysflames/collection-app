@@ -1,6 +1,12 @@
 import React, { memo } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import {
+    ChevronDown,
+    ChevronUp,
+    LockIcon,
+    Trash2,
+    Star,
+} from "lucide-react-native";
 
 // Используем memo, чтобы не перерисовывать элементы списка при каждом чихе в родительском стейте
 export const StatusItem = memo(
@@ -9,15 +15,40 @@ export const StatusItem = memo(
         index,
         isFirst,
         isLast,
-        isSystem, // Переименовали для ясности (это системный статус или кастомный)
+        isSystem,
         onDelete,
         onMove,
-        isSelectedDefault, // А это — выбран ли он основным для раздела
+        isSelectedDefault,
         onSetDefault,
     }) => {
         return (
             <View style={styles.statusItem}>
-                <View style={styles.topRow}>
+                {/* Левая часть: Стрелки перемещения */}
+                <View style={styles.moveColumn}>
+                    <TouchableOpacity
+                        onPress={() => onMove(index, "up")}
+                        disabled={isFirst}
+                        style={[styles.arrowButton, isFirst && styles.disabled]}
+                    >
+                        <ChevronUp
+                            size={18}
+                            color={isLast ? "#2A3247" : "#7D8AFF"}
+                        />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => onMove(index, "down")}
+                        disabled={isLast}
+                        style={[styles.arrowButton, isLast && styles.disabled]}
+                    >
+                        <ChevronDown
+                            size={18}
+                            color={isLast ? "#2A3247" : "#7D8AFF"}
+                        />
+                    </TouchableOpacity>
+                </View>
+
+                {/* Центр: Текст статуса */}
+                <View style={styles.contentColumn}>
                     <Text
                         style={[
                             styles.statusText,
@@ -27,73 +58,38 @@ export const StatusItem = memo(
                     >
                         {status}
                     </Text>
-
-                    <TouchableOpacity
-                        onPress={() => onSetDefault(status)}
-                        style={styles.starButton}
-                        activeOpacity={0.7}
-                    >
-                        <Ionicons
-                            name={isSelectedDefault ? "star" : "star-outline"}
-                            size={22}
-                            color={isSelectedDefault ? "#FFD700" : "#4E5564"}
-                        />
-                    </TouchableOpacity>
-                </View>
-
-                <View style={styles.bottomRow}>
-                    {/* Если статус системный — показываем замок, если нет — кнопку удаления */}
-                    {isSystem ? (
+                    {isSystem && (
                         <View style={styles.systemBadge}>
-                            <Ionicons
-                                name="lock-closed"
-                                size={12}
-                                color="#4E5564"
-                            />
+                            <LockIcon size={10} color="#4E5564" />
                             <Text style={styles.systemText}>Системный</Text>
                         </View>
-                    ) : (
+                    )}
+                </View>
+
+                {/* Правая часть: Действия (Звезда и Удаление) */}
+                <View style={styles.actionsColumn}>
+                    {!isSystem && (
                         <TouchableOpacity
                             onPress={() => onDelete(status)}
-                            style={styles.deleteAction}
+                            style={[styles.actionIconButton, styles.deleteBg]}
                         >
-                            <Ionicons
-                                name="trash-outline"
-                                size={16}
-                                color="#FF6B6B"
-                            />
-                            <Text style={styles.deleteText}>Удалить</Text>
+                            <Trash2 size={18} color="#FF4B4B" />
                         </TouchableOpacity>
                     )}
 
-                    <View style={styles.moveControls}>
-                        <TouchableOpacity
-                            onPress={() => onMove(index, "up")}
-                            disabled={isFirst}
-                            style={[
-                                styles.miniButton,
-                                isFirst && styles.hidden,
-                            ]}
-                        >
-                            <Ionicons
-                                name="arrow-up"
-                                size={16}
-                                color="#7D8AFF"
-                            />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            onPress={() => onMove(index, "down")}
-                            disabled={isLast}
-                            style={[styles.miniButton, isLast && styles.hidden]}
-                        >
-                            <Ionicons
-                                name="arrow-down"
-                                size={16}
-                                color="#7D8AFF"
-                            />
-                        </TouchableOpacity>
-                    </View>
+                    <TouchableOpacity
+                        onPress={() => onSetDefault(status)}
+                        style={[
+                            styles.actionIconButton,
+                            isSelectedDefault && styles.starActiveBg,
+                        ]}
+                    >
+                        <Star
+                            size={18}
+                            color={isSelectedDefault ? "#FFD700" : "#4E5564"}
+                            fill={isSelectedDefault ? "#FFD700" : "transparent"}
+                        />
+                    </TouchableOpacity>
                 </View>
             </View>
         );
@@ -102,59 +98,71 @@ export const StatusItem = memo(
 
 const styles = StyleSheet.create({
     statusItem: {
-        backgroundColor: "rgba(255,255,255,0.03)",
-        borderRadius: 16,
-        padding: 12,
-        marginBottom: 4,
-        borderWidth: 1,
-        borderColor: "rgba(255,255,255,0.05)",
-    },
-    topRow: {
         flexDirection: "row",
-        justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: 10,
+        backgroundColor: "rgba(11, 21, 52, 0.6)",
+        borderRadius: 16,
+        paddingVertical: 8,
+        paddingHorizontal: 10,
+        marginBottom: 8,
+        borderWidth: 1,
+        borderColor: "rgba(125, 138, 255, 0.08)",
+        height: 64,
+    },
+    moveColumn: {
+        alignItems: "center",
+        justifyContent: "center",
+        marginRight: 12,
+        gap: 2,
+    },
+    arrowButton: {
+        padding: 2,
+    },
+    contentColumn: {
+        flex: 1,
+        justifyContent: "center",
     },
     statusText: {
         color: "#fff",
-        fontSize: 16,
+        fontSize: 15,
         fontWeight: "600",
-        flex: 1,
-        marginRight: 10,
     },
-    activeStatusText: { color: "#FFD700" },
-    starButton: { padding: 4 },
-    bottomRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        paddingTop: 8,
-        borderTopWidth: 1,
-        borderTopColor: "rgba(255,255,255,0.05)",
+    activeStatusText: {
+        color: "#7D8AFF",
     },
-    moveControls: { flexDirection: "row", gap: 12 },
-    miniButton: {
-        backgroundColor: "rgba(125, 138, 255, 0.1)",
-        borderRadius: 8,
-        width: 32,
-        height: 32,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    deleteAction: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 4,
-        paddingVertical: 4,
-        paddingHorizontal: 8,
-    },
-    deleteText: { color: "#FF6B6B", fontSize: 12, fontWeight: "600" },
     systemBadge: {
         flexDirection: "row",
         alignItems: "center",
         gap: 4,
-        opacity: 0.5,
+        marginTop: 2,
     },
-    systemText: { color: "#4E5564", fontSize: 11, fontWeight: "600" },
-    hidden: { opacity: 0 },
+    systemText: {
+        color: "#4E5564",
+        fontSize: 10,
+        fontWeight: "600",
+        textTransform: "uppercase",
+    },
+    actionsColumn: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+        marginLeft: 8,
+    },
+    actionIconButton: {
+        width: 36,
+        height: 36,
+        borderRadius: 10,
+        backgroundColor: "rgba(255, 255, 255, 0.03)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    starActiveBg: {
+        backgroundColor: "rgba(255, 215, 0, 0.1)",
+    },
+    deleteBg: {
+        backgroundColor: "rgba(255, 75, 75, 0.08)",
+    },
+    disabled: {
+        opacity: 0.2,
+    },
 });

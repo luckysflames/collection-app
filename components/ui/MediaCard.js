@@ -61,7 +61,7 @@ const MediaCardComponent = ({
 
                 {/* Рейтинг пользователя (слева сверху) */}
                 {item.isBrilliant ? (
-                    <View style={styles.ratingBadge}>
+                    <View style={[styles.ratingBadge, {borderColor: "#7D8AFF"}]}>
                         <Gem size={12} color="#7D8AFF" fill="#7D8AFF" />
                         <Infinity size={12} color="#7D8AFF" />
                     </View>
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
         columnGap: 4,
         zIndex: 11,
         borderWidth: 1,
-        borderColor: "rgba(255, 215, 0, 0.3)", // Золотистая рамка
+        borderColor: "#ffd700", // Золотистая рамка
     },
     folderBadge: {
         position: "absolute",

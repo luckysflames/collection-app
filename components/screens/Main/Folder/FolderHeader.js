@@ -1,6 +1,6 @@
 import React, { memo } from "react";
 import { View, StyleSheet } from "react-native";
-import { ChevronLeft, Check, Pen, X } from "lucide-react-native";
+import { ChevronLeft, Check, Pen, X, Gem } from "lucide-react-native";
 
 import { BaseHeroLayout } from "../../../layout/BaseHeroLayout";
 import { FolderEditForm } from "./FolderEditForm";
@@ -28,7 +28,11 @@ export const FolderHeader = memo((props) => {
         onToggleReorder,
         onStatusPress,
         onAddPress,
+        onSortPress,
         onInfoPress,
+        showBrilliantBtn,
+        isBrilliant,
+        onBrilliantPress,
     } = props;
 
     return (
@@ -43,6 +47,18 @@ export const FolderHeader = memo((props) => {
                     <ChevronLeft size={24} color="#fff" />
                 ),
             }}
+            centerButton={
+                showBrilliantBtn
+                    ? {
+                          onPress: onBrilliantPress,
+                          icon: isBrilliant ? (
+                              <Gem size={22} color="#7D8AFF" />
+                          ) : (
+                              <Gem size={22} color="#fff" />
+                          ),
+                      }
+                    : null
+            }
             rightButton={{
                 onPress: () => (isEditing ? onSave() : setIsEditing(true)),
                 icon: isEditing ? (
@@ -77,6 +93,7 @@ export const FolderHeader = memo((props) => {
                             toggleFavorite={toggleFavorite}
                             onStatusPress={onStatusPress}
                             onAddPress={onAddPress}
+                            onSortPress={onSortPress}
                             folderItems={folderItems}
                             onRatingUpdate={onRatingUpdate}
                             onInfoPress={onInfoPress}

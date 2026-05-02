@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Platform, Vibration, KeyboardAvoidingView } from "react-native";
+import {
+    View,
+    StyleSheet,
+    Platform,
+    Vibration,
+    KeyboardAvoidingView,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCollectionStore } from "../store/useCollectionStore";
 
@@ -9,9 +15,11 @@ import { useFolderActions } from "../hooks/useFolderActions";
 import { CategoryPage } from "../components/shared/CategoryPage";
 import { FolderHeader } from "../components/screens/Main/Folder/FolderHeader";
 import StatusModal from "../components/shared/StatusModal";
+import { SortModal } from "../components/screens/Main/Modals/SortModal";
 import { AddItemsToFolderModal } from "../components/screens/Main/Folder/AddItemsToFolderModal";
 import DeleteFolderModal from "../components/screens/Main/Folder/DeleteFolderModal";
 import { WarnModal } from "../components/ui/WarnModal";
+import { DiamondRain } from "../components/ui/Effects/DiamondRain";
 
 export default function FolderDetailScreen({ route, navigation }) {
     const insets = useSafeAreaInsets();
@@ -28,7 +36,8 @@ export default function FolderDetailScreen({ route, navigation }) {
     const { folder, folderItems, availableItems } = useFolderData(folderId);
 
     // --- UI STATE ---
-    const [sortType, setSortType] = useState("newest");
+    const [sortType, setSortType] = useState("manual");
+    const [isSortModalVisible, setIsSortModalVisible] = useState(false);
     const [isReordering, setIsReordering] = useState(false);
     const [reorderBuffer, setReorderBuffer] = useState([]);
     const [isInfoModalVisible, setInfoModalVisible] = useState(false);
@@ -95,7 +104,7 @@ export default function FolderDetailScreen({ route, navigation }) {
     };
 
     const handleStatusUpdate = (newStatus) => {
-        updateCard(folder.id, { status: newStatus });
+        updateCard(folder.id, { status: newStatus, lastStatusChangeAt: Date.now() });
         setModals((p) => ({ ...p, status: false }));
     };
 
@@ -121,60 +130,76 @@ export default function FolderDetailScreen({ route, navigation }) {
         }
     };
 
+    const isBrilliant = folder?.isBrilliant || false;
+    const isPeak = folder?.userScore === 10 || isBrilliant;
+    const handleToggleBrilliant = () => {
+        updateCard(folder.id, { isBrilliant: !isBrilliant });
+    };
+
     if (!folder) return null;
 
     return (
-        <KeyboardAvoidingView
-            style={styles.container}
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
-            // Это важно: смещение, чтобы не перекрыть инпуты
-            keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
-        >
-            <CategoryPage
-                data={folderItems}
-                folderOrder={folder.itemsOrder}
-                category={folder.status}
-                currentSection={folder.appSection}
-                navigation={navigation}
-                isInsideFolder
-                isEditing={isEditing}
-                isReordering={isReordering}
-                reorderBuffer={reorderBuffer}
-                sortType={sortType}
-                onCardPress={handleCardPress}
-                ListHeaderComponent={
-                    <FolderHeader
-                        folder={folder}
-                        folderItems={folderItems}
-                        editForm={editForm}
-                        displayImage={isEditing ? editForm.image : folder.image}
-                        insets={insets}
-                        toggleFavorite={() =>
-                            setFavorite(folder.id, !folder.isFavorite)
-                        }
-                        isEditing={isEditing}
-                        isReordering={isReordering}
-                        setIsEditing={setIsEditing}
-                        onSave={() => handleSave(false)} // Полное сохранение
-                        onCancel={handleCancel}
-                        onBack={() => navigation.goBack()}
-                        pickImage={pickImage}
-                        updateField={updateField}
-                        onRatingUpdate={handleRatingUpdate}
-                        onInfoPress={() => setInfoModalVisible(true)}
-                        onDeletePress={() =>
-                            setModals((p) => ({ ...p, delete: true }))
-                        }
-                        onToggleReorder={handleToggleReorder}
-                        onStatusPress={() =>
-                            setModals((p) => ({ ...p, status: true }))
-                        }
-                        onAddPress={() =>
-                            setModals((p) => ({ ...p, add: true }))
-                        }
-                    />
-                }
-            />
+        <View style={styles.container}>
+            <DiamondRain isBrilliant={isBrilliant} />
+
+            <KeyboardAvoidingView
+                style={styles.container}
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                // Это важно: смещение, чтобы не перекрыть инпуты
+                keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+            >
+                <CategoryPage
+                    data={folderItems}
+                    folderOrder={folder.itemsOrder}
+                    category={folder.status}
+                    currentSection={folder.appSection}
+                    navigation={navigation}
+                    isInsideFolder
+                    isEditing={isEditing}
+                    isReordering={isReordering}
+                    reorderBuffer={reorderBuffer}
+                    sortType={sortType}
+                    onCardPress={handleCardPress}
+                    ListHeaderComponent={
+                        <FolderHeader
+                            folder={folder}
+                            folderItems={folderItems}
+                            editForm={editForm}
+                            displayImage={
+                                isEditing ? editForm.image : folder.image
+                            }
+                            insets={insets}
+                            toggleFavorite={() =>
+                                setFavorite(folder.id, !folder.isFavorite)
+                            }
+                            isEditing={isEditing}
+                            isReordering={isReordering}
+                            setIsEditing={setIsEditing}
+                            onSave={() => handleSave(false)} // Полное сохранение
+                            onCancel={handleCancel}
+                            onBack={() => navigation.goBack()}
+                            pickImage={pickImage}
+                            updateField={updateField}
+                            onRatingUpdate={handleRatingUpdate}
+                            onInfoPress={() => setInfoModalVisible(true)}
+                            onDeletePress={() =>
+                                setModals((p) => ({ ...p, delete: true }))
+                            }
+                            onToggleReorder={handleToggleReorder}
+                            onStatusPress={() =>
+                                setModals((p) => ({ ...p, status: true }))
+                            }
+                            onAddPress={() =>
+                                setModals((p) => ({ ...p, add: true }))
+                            }
+                            onSortPress={() => setIsSortModalVisible(true)}
+                            isBrilliant={isBrilliant}
+                            onBrilliantPress={handleToggleBrilliant}
+                            showBrilliantBtn={isPeak}
+                        />
+                    }
+                />
+            </KeyboardAvoidingView>
 
             {/* MODALS */}
             <WarnModal
@@ -184,7 +209,6 @@ export default function FolderDetailScreen({ route, navigation }) {
                 type="info"
                 onClose={() => setInfoModalVisible(false)}
             />
-
             <StatusModal
                 visible={modals.status}
                 category={folder.appSection}
@@ -192,7 +216,6 @@ export default function FolderDetailScreen({ route, navigation }) {
                 onClose={() => setModals((p) => ({ ...p, status: false }))}
                 onSelect={handleStatusUpdate}
             />
-
             <AddItemsToFolderModal
                 visible={modals.add}
                 availableItems={availableItems}
@@ -202,7 +225,6 @@ export default function FolderDetailScreen({ route, navigation }) {
                     setModals((p) => ({ ...p, add: false }));
                 }}
             />
-
             <DeleteFolderModal
                 visible={modals.delete}
                 isEmpty={folderItems.length === 0}
@@ -216,7 +238,15 @@ export default function FolderDetailScreen({ route, navigation }) {
                     navigation.goBack();
                 }}
             />
-        </KeyboardAvoidingView>
+
+            <SortModal
+                isVisible={isSortModalVisible}
+                onClose={() => setIsSortModalVisible(false)}
+                currentSort={sortType}
+                onSelectSort={setSortType}
+                isInsideFolder
+            />
+        </View>
     );
 }
 

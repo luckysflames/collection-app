@@ -27,24 +27,13 @@ export const MainControls = ({
             </TouchableOpacity>
 
             <TouchableOpacity
-                style={[
-                    styles.actionBtn,
-                    showFoldersOnly && styles.activeBtn,
-                    hasActiveFilters && styles.disabledBtn,
-                ]}
-                disabled={hasActiveFilters}
+                style={[styles.actionBtn, showFoldersOnly && styles.activeBtn]}
                 onPress={onToggleFolderMode}
                 activeOpacity={0.7}
             >
                 <Folder
                     size={18}
-                    color={
-                        showFoldersOnly
-                            ? "#fff"
-                            : hasActiveFilters
-                              ? "#2d2a4b"
-                              : "#7D8AFF"
-                    }
+                    color={showFoldersOnly ? "#fff" : "#7D8AFF"}
                 />
             </TouchableOpacity>
 

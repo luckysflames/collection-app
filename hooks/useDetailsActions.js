@@ -67,7 +67,10 @@ export const useDetailsActions = (item, displayData, category) => {
     // Обновление статуса
     const handleStatusUpdate = (newStatus) => {
         if (isInCollection) {
-            updateCard(item.id, { status: newStatus });
+            updateCard(item.id, {
+                status: newStatus,
+                lastStatusChangeAt: Date.now(),
+            });
         } else {
             addToCollection({
                 ...item,
@@ -97,11 +100,13 @@ export const useDetailsActions = (item, displayData, category) => {
     };
 
     const refreshCardDetails = async (item, fetchDetailsById) => {
-        if (!savedItem) return;
+        const idToFetch = savedItem?.id || targetItem.id;
+
+        if (!idToFetch) return;
         setIsRefreshing(true);
 
         try {
-            const freshDetails = await fetchDetailsById(item.id);
+            const freshDetails = await fetchDetailsById(idToFetch);
             updateCard(item.id, {
                 ...freshDetails,
                 image: savedItem.image || item.image,

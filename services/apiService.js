@@ -64,7 +64,8 @@ const fetchShikimoriGraphql = async (query, variables = {}) => {
         headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
-            "User-Agent": "MyMediaApp", // Shikimori требует User-Agent
+            "User-Agent":
+                "Geekly/4.3.0 (contact: denisezakovskij341@gmail.com)",
         },
         body: JSON.stringify({ query, variables }),
     });

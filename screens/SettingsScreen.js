@@ -73,16 +73,16 @@ export default function SettingsScreen({ navigation }) {
                         value={isVibration}
                         onValueChange={setIsVibration}
                     />
+                    <View style={styles.separator} />
+                    <SettingItem
+                        icon={List}
+                        label="Настройки отображения"
+                        onPress={() => navigation.navigate("StatusManager")}
+                    />
                 </View>
 
                 <Text style={styles.sectionTitle}>Управление данными</Text>
                 <View style={styles.card}>
-                    <SettingItem
-                        icon={List}
-                        label="Мои статусы"
-                        onPress={() => navigation.navigate("StatusManager")}
-                    />
-                    <View style={styles.separator} />
                     <SettingItem
                         icon={Download}
                         label="Экспорт коллекции"

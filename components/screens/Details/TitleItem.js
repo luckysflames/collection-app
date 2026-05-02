@@ -28,7 +28,7 @@ export const TitleItem = ({ label, value }) => {
         <View style={styles.modalCopyRow}>
             <View style={{ flex: 1, marginRight: 10 }}>
                 <Text style={styles.modalLabel}>{label}</Text>
-                <Text style={styles.modalValue} numberOfLines={2}>
+                <Text style={styles.modalValue}>
                     {value}
                 </Text>
             </View>

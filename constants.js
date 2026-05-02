@@ -188,6 +188,8 @@ export const SORT_TYPES = [
     { id: "date", label: "По дате", icon: "Clock" },
     { id: "rating", label: "По рейтингу", icon: "Star" },
     { id: "alphabet", label: "По алфавиту", icon: "CaseSensitive" },
+    { id: "manual", label: "Ручной порядок", icon: "Check" },
+    { id: "status_change", label: "По изменению статуса", icon: "CalendarClock" },
 ];
 
 export const SORT_SUB_OPTIONS = {
@@ -202,6 +204,13 @@ export const SORT_SUB_OPTIONS = {
     alphabet: [
         { id: "alphabet_asc", label: "От А до Я", icon: "ArrowDownAZ" },
         { id: "alphabet_desc", label: "От Я до А", icon: "ArrowUpAZ" },
+    ],
+    manual: [
+        { id: "manual", label: "Ручной порядок", icon: "Check" },
+    ],
+    status_change: [
+        { id: "status_change_desc", label: "Сначала новые изменения", icon: "ArrowDownWideNarrow" },
+        { id: "status_change_asc", label: "Сначала старые изменения", icon: "ArrowUpNarrowWide" },
     ],
 };
 
@@ -264,7 +273,7 @@ export const ANIME_KINDS = [
 export const ANIME_STATUSES = [
     { id: "ongoing", label: "Онгоинг" },
     { id: "released", label: "Вышло" },
-    { id: "anounced", label: "Анонсировано" },
+    { id: "anons", label: "Анонсировано" },
 ];
 
 // Статусы фильмов

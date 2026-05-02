@@ -1,5 +1,11 @@
 import React from "react";
-import { Bookmark, ChevronDown, Zap } from "lucide-react-native";
+import {
+    ArrowUpDown,
+    Bookmark,
+    ChevronDown,
+    ListFilter,
+    Zap,
+} from "lucide-react-native";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { UserRating } from "../../../shared/UserRating";
 import { AverageRatingBlock } from "./AverageRatingBlock";
@@ -10,6 +16,7 @@ export const FolderInfo = ({
     toggleFavorite,
     onStatusPress,
     onAddPress,
+    onSortPress,
     folderItems,
     onRatingUpdate,
     onInfoPress,
@@ -29,13 +36,11 @@ export const FolderInfo = ({
         <View style={styles.container}>
             {/* Название и описание */}
             <Text style={styles.folderTitle}>{folder.title}</Text>
-
             {folder.description ? (
                 <Text style={styles.folderDescription}>
                     {folder.description}
                 </Text>
             ) : null}
-
             <View style={styles.controlsRow}>
                 {/* Кнопка статуса */}
                 <TouchableOpacity
@@ -89,6 +94,14 @@ export const FolderInfo = ({
 
             {/* ВЫНЕСЕННЫЙ БЛОК СРЕДНЕГО РЕЙТИНГА */}
             <AverageRatingBlock items={folderItems} onApply={onRatingUpdate} />
+
+            {/* Кнопка сортировки */}
+            <View style={styles.underRaitingRow}>
+                <TouchableOpacity onPress={onSortPress} style={styles.sortBtn}>
+                    <ListFilter size={18} color="#7D8AFF" />
+                    <Text style={styles.sortText}>Сортировка</Text>
+                </TouchableOpacity>
+            </View>
 
             {/* Мета-бейдж */}
             <View style={styles.metaBadge}>
@@ -190,16 +203,14 @@ const styles = StyleSheet.create({
     },
     addCardsBtn: {
         flex: 1,
-        backgroundColor: "rgba(125, 138, 255, 0.15)",
+        backgroundColor: "#7D8AFF",
         paddingVertical: 12,
         borderRadius: 12,
-        borderWidth: 1,
-        borderColor: "rgba(125, 138, 255, 0.3)",
         justifyContent: "center",
         alignItems: "center",
     },
     addCardsText: {
-        color: "#7D8AFF",
+        color: "#fff",
         fontWeight: "700",
         fontSize: 14,
     },
@@ -214,6 +225,27 @@ const styles = StyleSheet.create({
     },
     favoriteBtnActive: {
         backgroundColor: "rgba(255, 215, 0, 0.08)",
+    },
+    underRaitingRow: {
+        flexDirection: "row",
+        marginTop: 20,
+    },
+    sortBtn: {
+        flex: 1,
+        flexDirection: "row",
+        gap: 10,
+        backgroundColor: "rgba(125, 138, 255, 0.15)",
+        paddingVertical: 12,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: "rgba(125, 138, 255, 0.3)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    sortText: {
+        color: "#7D8AFF",
+        fontWeight: "700",
+        fontSize: 14,
     },
     metaBadge: {
         marginVertical: 20,

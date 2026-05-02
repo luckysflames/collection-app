@@ -158,8 +158,8 @@ export const useFilteredCollection = ({
                 if (a.isPinned && !b.isPinned) return -1;
                 if (!a.isPinned && b.isPinned) return 1;
             }
-            // Принудительный ручной порядок внутри папки
-            if (isInsideFolder) {
+            // Ручной порядок внутри папки активен только при выборе manual
+            if (isInsideFolder && sortType === "manual") {
                 if (Array.isArray(folderOrder) && folderOrder.length > 0) {
                     const orderStrings = folderOrder.map(String);
                     const indexA = orderStrings.indexOf(String(a.id));
@@ -171,11 +171,18 @@ export const useFilteredCollection = ({
                         return indexA - indexB;
                     }
                 }
+
+                // Если порядок не определен, падаем обратно на дату.
+                const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                return dateB - dateA;
             }
 
-            // Стандартная сортировка (если не папка или нет ручного порядка)
+            // Стандартная сортировка (если не папка или выбран другой вариант)
             const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
             const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            const statusChangeDateA = a.lastStatusChangeAt ? new Date(a.lastStatusChangeAt).getTime() : dateA;
+            const statusChangeDateB = b.lastStatusChangeAt ? new Date(b.lastStatusChangeAt).getTime() : dateB;
             // isBrilliant считается рейтингом 11 (выше максимума 10)
             const ratingA = a.isBrilliant ? 11 : Number(a.userScore) || 0;
             const ratingB = b.isBrilliant ? 11 : Number(b.userScore) || 0;
@@ -195,6 +202,10 @@ export const useFilteredCollection = ({
                     return titleA.localeCompare(titleB);
                 case "alphabet_desc":
                     return titleB.localeCompare(titleA);
+                case "status_change_desc":
+                    return statusChangeDateB - statusChangeDateA;
+                case "status_change_asc":
+                    return statusChangeDateA - statusChangeDateB;
                 default:
                     return dateB - dateA;
             }

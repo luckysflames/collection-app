@@ -27,6 +27,12 @@ export const useCollectionStore = create(
                 Games: "Всё",
                 Anime: "Всё",
             },
+            defaultSorts: {
+                Movies: "date_desc",
+                Books: "date_desc",
+                Games: "date_desc",
+                Anime: "date_desc",
+            },
             deletionPassword: null,
             version: 0,
 
@@ -77,6 +83,14 @@ export const useCollectionStore = create(
                 const key = getSectionKey(section);
                 set((state) => ({
                     defaultTabs: { ...state.defaultTabs, [key]: status },
+                    version: state.version + 1,
+                }));
+            },
+
+            setDefaultSort: (section, sortType) => {
+                const key = getSectionKey(section);
+                set((state) => ({
+                    defaultSorts: { ...state.defaultSorts, [key]: sortType },
                     version: state.version + 1,
                 }));
             },
@@ -353,6 +367,12 @@ export const useCollectionStore = create(
                         Games: "Всё",
                         Anime: "Всё",
                     },
+                    defaultSorts: {
+                        Movies: "date_desc",
+                        Books: "date_desc",
+                        Games: "date_desc",
+                        Anime: "date_desc",
+                    },
                     version: state.version + 1,
                 })),
 
@@ -367,6 +387,12 @@ export const useCollectionStore = create(
                         Books: "Всё",
                         Games: "Всё",
                         Anime: "Всё",
+                    },
+                    defaultSorts: {
+                        Movies: "date_desc",
+                        Books: "date_desc",
+                        Games: "date_desc",
+                        Anime: "date_desc",
                     },
                     version: 0,
                 })),

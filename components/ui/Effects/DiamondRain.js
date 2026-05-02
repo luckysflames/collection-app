@@ -11,7 +11,7 @@ const DiamondLayer = memo(() => (
     </View>
 ));
 
-export const DiamondRain = ({ isBrilliant, contentHeight = 1700 }) => {
+export const DiamondRain = ({ isBrilliant, contentHeight = 1000 }) => {
     const animation = useRef(new Animated.Value(0)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const [shouldRender, setShouldRender] = useState(isBrilliant);

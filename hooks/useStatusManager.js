@@ -6,8 +6,10 @@ export const useStatusManager = (store) => {
     const {
         getStatusesForSection,
         defaultTabs,
+        defaultSorts,
         setStatusesForSection,
         setDefaultTab,
+        setDefaultSort,
     } = store;
 
     // Инициализируем состояние для ВСЕХ секций сразу
@@ -28,6 +30,15 @@ export const useStatusManager = (store) => {
         return initial;
     });
 
+    const [allLocalSorts, setAllLocalSorts] = useState(() => {
+        const initial = {};
+        SECTIONS.forEach((s) => {
+            const key = SECTION_MAPPING[s.id];
+            initial[s.id] = defaultSorts[key] || "date_desc";
+        });
+        return initial;
+    });
+
     const [newStatus, setNewStatus] = useState("");
     const [isSaving, setIsSaving] = useState(false);
 
@@ -42,8 +53,12 @@ export const useStatusManager = (store) => {
             const key = SECTION_MAPPING[s.id];
             return allLocalDefaults[s.id] !== (defaultTabs[key] || "Всё");
         });
-        return statusesChanged || defaultsChanged;
-    }, [allLocalStatuses, allLocalDefaults, store]);
+        const sortsChanged = SECTIONS.some((s) => {
+            const key = SECTION_MAPPING[s.id];
+            return allLocalSorts[s.id] !== (defaultSorts[key] || "date_desc");
+        });
+        return statusesChanged || defaultsChanged || sortsChanged;
+    }, [allLocalStatuses, allLocalDefaults, allLocalSorts, store]);
 
     const handleSave = async () => {
         if (!hasChanges || isSaving) return;
@@ -54,6 +69,7 @@ export const useStatusManager = (store) => {
             SECTIONS.forEach((s) => {
                 setStatusesForSection(s.id, allLocalStatuses[s.id]);
                 setDefaultTab(s.id, allLocalDefaults[s.id]);
+                setDefaultSort(s.id, allLocalSorts[s.id]);
             });
             setIsSaving(false);
             Keyboard.dismiss();
@@ -69,9 +85,14 @@ export const useStatusManager = (store) => {
         setAllLocalDefaults((prev) => ({ ...prev, [sectionId]: newDefault }));
     };
 
+    const updateSectionSort = (sectionId, newSort) => {
+        setAllLocalSorts((prev) => ({ ...prev, [sectionId]: newSort }));
+    };
+
     return {
         allLocalStatuses,
         allLocalDefaults,
+        allLocalSorts,
         newStatus,
         isSaving,
         hasChanges,
@@ -79,5 +100,6 @@ export const useStatusManager = (store) => {
         handleSave,
         updateSectionStatuses,
         updateSectionDefault,
+        updateSectionSort,
     };
 };
