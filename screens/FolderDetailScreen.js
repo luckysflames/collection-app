@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
     View,
     StyleSheet,
     Platform,
     Vibration,
     KeyboardAvoidingView,
+    BackHandler,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCollectionStore } from "../store/useCollectionStore";
 
@@ -104,7 +106,10 @@ export default function FolderDetailScreen({ route, navigation }) {
     };
 
     const handleStatusUpdate = (newStatus) => {
-        updateCard(folder.id, { status: newStatus, lastStatusChangeAt: Date.now() });
+        updateCard(folder.id, {
+            status: newStatus,
+            lastStatusChangeAt: Date.now(),
+        });
         setModals((p) => ({ ...p, status: false }));
     };
 
@@ -137,6 +142,34 @@ export default function FolderDetailScreen({ route, navigation }) {
     };
 
     if (!folder) return null;
+
+    useFocusEffect(
+        useCallback(() => {
+            const onBackPress = () => {
+                // Если мы в режиме редактирования обложки/названия
+                if (isEditing) {
+                    handleCancel(); // Используем вашу функцию отмены из useFolderActions
+                    return true; // Блокируем стандартный переход назад
+                }
+                // Если мы в режиме изменения порядка (сортировки)
+                if (isReordering) {
+                    setIsReordering(false);
+                    setReorderBuffer([]);
+                    return true; // Блокируем стандартный переход назад
+                }
+                return false; // В обычном режиме кнопка работает как обычно
+            };
+
+            // Подписываемся на событие
+            const subscription = BackHandler.addEventListener(
+                "hardwareBackPress",
+                onBackPress,
+            );
+
+            // Удаляем подписку при уходе с экрана или изменении состояний
+            return () => subscription.remove();
+        }, [isEditing, isReordering, handleCancel]),
+    );
 
     return (
         <View style={styles.container}>

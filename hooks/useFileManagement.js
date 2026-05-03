@@ -107,6 +107,7 @@ export const useFileManagement = (store) => {
             }
 
             const newItems = backup.payload.myCollection;
+            const savedStatuses = backup.payload.availableStatuses || {};
 
             showWarn({
                 title: "Импорт данных",
@@ -119,6 +120,8 @@ export const useFileManagement = (store) => {
                     const currentIds = new Set(
                         current.map((item) => String(item.id)),
                     );
+
+                    // 1. Фильтруем только уникальные карточки
                     const uniqueNewItems = newItems.filter(
                         (item) => !currentIds.has(String(item.id)),
                     );
@@ -133,7 +136,17 @@ export const useFileManagement = (store) => {
                         return;
                     }
 
+                    // --- НОВАЯ ЛОГИКА: Сбор уникальных статусов ---
+                    // Проходим по всем новым карточкам и добавляем их статусы в разделы
+                    uniqueNewItems.forEach((item) => {
+                        if (item.status && item.appSection) {
+                            // Используем существующий экшен стора для добавления (он проверит на дубликаты)
+                            store.addCustomStatus(item.appSection, item.status);
+                        }
+                    });
+
                     store.setMyCollection([...current, ...uniqueNewItems]);
+
                     if (backup.payload.collectionGoal)
                         store.setCollectionGoal(backup.payload.collectionGoal);
 
@@ -141,7 +154,7 @@ export const useFileManagement = (store) => {
                         showWarn({
                             type: "success",
                             title: "Успех",
-                            message: `Добавлено ${uniqueNewItems.length} новых элементов.`,
+                            message: `Добавлено ${uniqueNewItems.length} новых элементов и обновлены списки статусов.`,
                         });
                     }, 500);
                 },
@@ -157,16 +170,29 @@ export const useFileManagement = (store) => {
                         }}
                         onPress={() => {
                             hideModal();
+                            // 1. Устанавливаем коллекцию
                             store.setMyCollection(newItems);
-                            if (backup.payload.availableStatuses)
+
+                            // 2. ИСПРАВЛЕНО: Правильная установка статусов при полной замене
+                            // Проходим по ключам объекта (Movies, Books и т.д.) и вызываем сеттер для каждого
+                            Object.keys(savedStatuses).forEach((sectionKey) => {
                                 store.setStatusesForSection(
-                                    backup.payload.availableStatuses,
+                                    sectionKey,
+                                    savedStatuses[sectionKey],
                                 );
+                            });
+
+                            if (backup.payload.collectionGoal)
+                                store.setCollectionGoal(
+                                    backup.payload.collectionGoal,
+                                );
+
                             setTimeout(() => {
                                 showWarn({
                                     type: "success",
                                     title: "Успех",
-                                    message: "Коллекция полностью заменена.",
+                                    message:
+                                        "Коллекция и статусы полностью восстановлены.",
                                 });
                             }, 500);
                         }}
