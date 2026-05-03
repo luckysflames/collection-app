@@ -35,7 +35,7 @@ export default function BookFields({ form, updateField }) {
                         placeholder="Выберите рейтинг"
                         form={form}
                         updateField={updateField}
-                        fieldName="maturity"
+                        fieldName="maturityRating"
                         options={BOOK_MATURITY_RATINGS}
                     />
                 </View>

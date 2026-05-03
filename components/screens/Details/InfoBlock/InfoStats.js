@@ -162,7 +162,11 @@ export const InfoStats = ({ displayData }) => {
                 ) : displayData.type === "book" ? (
                     <StatSubItem
                         label="Возраст"
-                        value={displayData.maturityRating}
+                        value={
+                            BOOK_MATURITY_RATINGS.find(
+                                (r) => r.id === displayData.maturityRating,
+                            )?.label || "Для всех"
+                        }
                     />
                 ) : (
                     <StatSubItem label="Статус" value={getAirStatus()} />

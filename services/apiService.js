@@ -4,7 +4,7 @@ const GOOGLE_BOOKS_KEY = process.env.EXPO_PUBLIC_GOOGLE_BOOKS_KEY;
 
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_URL = "https://image.tmdb.org/t/p/w500";
-const SHIKIMORI_GRAPHQL_URL = "https://shikimori.one/api/graphql";
+const SHIKIMORI_GRAPHQL_URL = "https://shikimori.io/api/graphql";
 
 // Вспомогательная функция для очистки HTML-тегов
 const cleanHtml = (text) => {
@@ -219,12 +219,24 @@ export const fetchDetailsById = async (id) => {
                 kind
                 genres { russian }
                 studios { name }
+                origin
                 screenshots { x332Url }
+                related {
+                    id
+                    relationKind
+                    relationText
+                    anime {
+                        id
+                        name
+                        russian
+                        poster { originalUrl }
+                    }
+                }
               }
             }`;
 
             const json = await fetchShikimoriGraphql(query, { id: animeId });
-            const data = json.data.animes[0];
+            const data = json.data?.animes?.[0];
 
             if (!data) throw new Error("Anime not found");
 
@@ -244,7 +256,18 @@ export const fetchDetailsById = async (id) => {
                 description: cleanHtml(data.descriptionHtml),
                 genres: data.genres?.map((g) => g.russian) || [],
                 studios: data.studios?.map((s) => s.name) || [],
+                origin: data.origin || null,
                 screenshots: data.screenshots?.map((s) => s.x332Url) || [],
+                related:
+                    data.related
+                        .filter((r) => r.anime !== null)
+                        .map((r) => ({
+                            id: `anime-${r.anime?.id}-1`,
+                            title: r.anime?.russian || r.anime?.name,
+                            image: r.anime?.poster?.originalUrl,
+                            relationKind: r.relationKind,
+                            relationText: r.relationText,
+                        })) || [],
                 isAnime: true,
             };
         }

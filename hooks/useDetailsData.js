@@ -58,7 +58,9 @@ export const useDetailsData = (item, fullDetails, savedItem) => {
                     releasedOn:
                         savedItem?.releasedOn || fullDetails?.releasedOn,
                     studios: savedItem?.studios || fullDetails?.studios || [],
+                    origin: savedItem?.origin || fullDetails?.origin,
                     screenshots: savedItem?.screenshots || fullDetails?.screenshots || [],
+                    related: savedItem?.related || fullDetails?.related || [],
                     rating: savedItem?.rating || fullDetails?.rating,
                     animeStatus:
                         savedItem?.animeStatus ||

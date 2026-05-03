@@ -23,6 +23,7 @@ const MediaCardComponent = ({
     showOrderNumber,
     orderNumber,
     isInsideFolder,
+    small,
 }) => {
     const badgeStyle = orderNumber
         ? [styles.orderBadge, styles.orderBadgeActive]
@@ -36,7 +37,7 @@ const MediaCardComponent = ({
             activeOpacity={0.8}
             style={styles.cardContainer}
         >
-            <View style={styles.card}>
+            <View style={[styles.card, small && { height: 200, width: 140 }]}>
                 <Image
                     source={{ uri: item.image }}
                     style={styles.image}
@@ -61,7 +62,9 @@ const MediaCardComponent = ({
 
                 {/* Рейтинг пользователя (слева сверху) */}
                 {item.isBrilliant ? (
-                    <View style={[styles.ratingBadge, {borderColor: "#7D8AFF"}]}>
+                    <View
+                        style={[styles.ratingBadge, { borderColor: "#7D8AFF" }]}
+                    >
                         <Gem size={12} color="#7D8AFF" fill="#7D8AFF" />
                         <Infinity size={12} color="#7D8AFF" />
                     </View>
@@ -105,7 +108,8 @@ export const MediaCard = memo(MediaCardComponent, (prevProps, nextProps) => {
         prevProps.orderNumber === nextProps.orderNumber &&
         prevProps.showOrderNumber === nextProps.showOrderNumber &&
         prevProps.itemCount === nextProps.itemCount &&
-        prevProps.item.image === nextProps.item.image
+        prevProps.item.image === nextProps.item.image &&
+        prevProps.small === nextProps.small
     );
 });
 

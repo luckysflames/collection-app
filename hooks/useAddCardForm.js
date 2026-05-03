@@ -52,7 +52,7 @@ export const useAddCardForm = (navigation) => {
         setForm((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleSave = () => {
+    const handleSave = (onSuccess) => {
         if (!form.title.trim()) {
             setErrorModal({
                 visible: true,
@@ -132,6 +132,7 @@ export const useAddCardForm = (navigation) => {
 
         // Сброс и навигация
         setForm(INITIAL_FORM_STATE);
+        if (onSuccess) onSuccess();
         navigation.navigate("Коллекция", { screen: "Дашборд" });
     };
 

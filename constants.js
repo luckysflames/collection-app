@@ -66,6 +66,26 @@ export const SECTIONS = [
     { id: "game", label: "Игры" },
 ];
 
+export const ANIME_ORIGIN_MAP = {
+    original: "Оригинал",
+    manga: "Манга",
+    web_manga: "Веб-манга",
+    four_koma_manga: "4-кома (манга)",
+    novel: "Новелла",
+    web_novel: "Веб-новелла",
+    visual_novel: "Визуальная новелла",
+    light_novel: "Ранобэ (Light Novel)",
+    game: "Игра",
+    card_game: "Карточная игра",
+    music: "Музыка",
+    radio: "Радио",
+    book: "Книга",
+    picture_book: "Книжка с картинками",
+    mixed_media: "Смешанные медиа",
+    other: "Другое",
+    unknown: "Неизвестно",
+};
+
 /**
  * --- СТАТУСЫ И ПРАВИЛА ---
  */
@@ -182,6 +202,8 @@ export const SORT_LABELS = {
     rating_asc: "Сначала худшие",
     alphabet_asc: "От А до Я",
     alphabet_desc: "От Я до А",
+    status_change_desc: "Сначала новые изменения",
+    status_change_asc: "Сначала старые изменения",
 };
 
 export const SORT_TYPES = [
@@ -251,12 +273,13 @@ export const API_SERVICES = [
 
 // Рейтинги аниме (из Shikimori)
 export const ANIME_RATINGS = [
-    { id: "g", label: "G" },
-    { id: "pg", label: "PG" },
-    { id: "pg_13", label: "PG-13" },
-    { id: "r", label: "R" },
-    { id: "r_plus", label: "R+" },
-    { id: "rx", label: "Rx" },
+    { id: "none", label: "Без рейтинга" },
+    { id: "g", label: "G" }, // 0+
+    { id: "pg", label: "PG" }, // 6+
+    { id: "pg_13", label: "PG-13" }, // 13+
+    { id: "r", label: "R" }, // 17+
+    { id: "r_plus", label: "R+" }, // 21+
+    { id: "rx", label: "Rx" }, // hentai
 ];
 
 // Типы аниме (kind)
@@ -266,7 +289,10 @@ export const ANIME_KINDS = [
     { id: "ova", label: "OVA" },
     { id: "ona", label: "ONA" },
     { id: "special", label: "Спешл" },
+    { id: "tv_special", label: "ТВ-Спешл" },
     { id: "music", label: "Клип" },
+    { id: "pv", label: "Промо" },
+    { id: "cm", label: "Реклама" },
 ];
 
 // Статусы аниме
@@ -280,8 +306,8 @@ export const ANIME_STATUSES = [
 export const MOVIE_STATUSES = [
     { id: "rumored", label: "Слухи" },
     { id: "planned", label: "Планируется" },
-    { id: "in_production", label: "В производстве" },
-    { id: "post_production", label: "Пост-продакшн" },
+    { id: "in production", label: "В производстве" },
+    { id: "post production", label: "Пост-продакшн" },
     { id: "released", label: "Вышло" },
     { id: "canceled", label: "Отменено" },
 ];
@@ -314,7 +340,7 @@ export const GAME_PLATFORMS = [
 // Возрастные рейтинги для книг
 export const BOOK_MATURITY_RATINGS = [
     { id: "not_mature", label: "Для всех" },
-    { id: "teen", label: "Для подростков (13+)" },
+    { id: "teen", label: "Для подростков (12+)" },
     { id: "mature", label: "Взрослые (18+)" },
 ];
 

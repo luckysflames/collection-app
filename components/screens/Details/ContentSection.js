@@ -9,6 +9,8 @@ import {
 import { Star } from "lucide-react-native";
 import { InfoBlock } from "./InfoBlock/InfoBlock";
 import { UserRating } from "../../shared/UserRating";
+import { RelatedCarousel } from "./InfoBlock/RelatedCarousel";
+import { ScreenshotCarousel } from "./InfoBlock/ScreenshotCarousel";
 
 export const ContentSection = ({
     displayData,
@@ -23,6 +25,7 @@ export const ContentSection = ({
     onUpdateNotes,
     onSetScore,
     onInfoPress,
+    onNavigateToDetails,
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -47,7 +50,7 @@ export const ContentSection = ({
             >
                 <Text
                     style={styles.description}
-                    numberOfLines={isExpanded ? 0 : 3} // 0 означает без ограничений
+                    numberOfLines={isExpanded ? 0 : 3}
                 >
                     {displayData.description ||
                         "Описание временно отсутствует."}
@@ -57,6 +60,12 @@ export const ContentSection = ({
                 )}
             </TouchableOpacity>
 
+            <View style={styles.separator} />
+
+            {displayData.type === "anime" && (
+                <ScreenshotCarousel screenshots={displayData.screenshots} />
+            )}
+
             {isInCollection && (
                 <View style={styles.userSection}>
                     <UserRating
@@ -64,7 +73,19 @@ export const ContentSection = ({
                         onSetScore={onSetScore}
                         onInfoPress={onInfoPress}
                     />
+                </View>
+            )}
 
+            {/* Связанное аниме */}
+            {displayData.type === "anime" && (
+                <RelatedCarousel
+                    related={displayData.related}
+                    onNavigateToDetails={onNavigateToDetails}
+                />
+            )}
+
+            {isInCollection && (
+                <View style={styles.userSection}>
                     <Text style={styles.sectionTitle}>Мои заметки</Text>
                     <TextInput
                         style={styles.notesInput}
@@ -82,18 +103,6 @@ export const ContentSection = ({
 };
 
 const styles = StyleSheet.create({
-    editToggle: {
-        alignSelf: "flex-start",
-        marginTop: 10,
-        paddingVertical: 5,
-        borderBottomWidth: 1,
-        borderBottomColor: "#7D8AFF",
-    },
-    editToggleText: {
-        color: "#7D8AFF",
-        fontSize: 14,
-        fontWeight: "500",
-    },
     sectionTitle: {
         color: "#fff",
         fontSize: 20,
@@ -112,27 +121,8 @@ const styles = StyleSheet.create({
         marginTop: 5,
         fontWeight: "500",
     },
-    ratingContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        flexWrap: "wrap",
-        backgroundColor: "rgba(255,255,255,0.03)",
-        padding: 12,
-        borderRadius: 15,
-        gap: 6,
-    },
-    starButton: {
-        padding: 2,
-    },
-    scoreText: {
-        color: "#FFD700",
-        fontSize: 16,
-        fontWeight: "bold",
-        marginLeft: 10,
-    },
     userSection: {
-        marginTop: 10,
-        paddingBottom: 60,
+        paddingBottom: 20,
     },
     notesInput: {
         backgroundColor: "rgba(255,255,255,0.05)",

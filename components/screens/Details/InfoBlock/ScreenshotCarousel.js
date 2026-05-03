@@ -9,6 +9,7 @@ import {
     Dimensions,
 } from "react-native";
 import { ChevronLeft, ChevronRight } from "lucide-react-native";
+import { ImageModal } from "../Modals/ImageModal";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const SCREENSHOT_WIDTH = 200; // Немного увеличим для красоты
@@ -19,6 +20,7 @@ const SIDE_SPACING = (SCREEN_WIDTH - SCREENSHOT_WIDTH) / 2;
 export const ScreenshotCarousel = ({ screenshots = [] }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const scrollRef = useRef(null);
+    const [selectedImage, setSelectedImage] = useState(null);
 
     if (!screenshots.length) return null;
 
@@ -48,27 +50,26 @@ export const ScreenshotCarousel = ({ screenshots = [] }) => {
             <Text style={styles.sectionTitle}>Кадры</Text>
 
             <View style={styles.carouselWrapper} pointerEvents="box-none">
-                {/* 1. Слой со скриншотами: полностью игнорирует любые касания */}
-                <View pointerEvents="none">
-                    <ScrollView
-                        ref={scrollRef}
-                        horizontal
-                        scrollEnabled={false}
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={{
-                            paddingHorizontal: 15,
-                            gap: GAP,
-                        }}
-                    >
-                        {screenshots.map((s, i) => (
-                            <Image
-                                key={i}
-                                source={{ uri: s }}
-                                style={styles.image}
-                            />
-                        ))}
-                    </ScrollView>
-                </View>
+                <ScrollView
+                    ref={scrollRef}
+                    horizontal
+                    scrollEnabled={false}
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{
+                        paddingHorizontal: 15,
+                        gap: GAP,
+                    }}
+                >
+                    {screenshots.map((s, i) => (
+                        <TouchableOpacity
+                            key={i}
+                            activeOpacity={0.8}
+                            onPress={() => setSelectedImage(s)}
+                        >
+                            <Image source={{ uri: s }} style={styles.image} />
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
 
                 {/* 2. Слой с кнопками: box-none позволяет кнопкам работать, 
                    пропуская касания мимо них к родителю */}
@@ -99,6 +100,12 @@ export const ScreenshotCarousel = ({ screenshots = [] }) => {
                     {currentIndex + 1} / {screenshots.length}
                 </Text>
             </View>
+
+            <ImageModal
+                visible={!!selectedImage}
+                imageUri={selectedImage}
+                onClose={() => setSelectedImage(null)}
+            />
         </View>
     );
 };
@@ -106,17 +113,16 @@ export const ScreenshotCarousel = ({ screenshots = [] }) => {
 const styles = StyleSheet.create({
     container: {
         marginTop: 20,
-        // Отрицательный маржин выводит компонент за пределы паддингов родителя
-        // Подставь здесь то значение, которое у тебя в общем контейнере (например -15 или -20)
         marginHorizontal: -20,
+        backgroundColor: "rgba(255,255,255,0.05)",
+        paddingVertical: 20,
     },
     sectionTitle: {
-        color: "#8E94A4",
-        fontSize: 12,
+        color: "#fff",
+        fontSize: 18,
         fontWeight: "bold",
-        textTransform: "uppercase",
         marginBottom: 12,
-        marginLeft: 25, // Увеличил, так как теперь есть отрицательный маржин
+        marginLeft: 20,
     },
     carouselWrapper: {
         position: "relative",
@@ -136,7 +142,7 @@ const styles = StyleSheet.create({
         width: 50,
         height: 50,
         borderRadius: 25,
-        backgroundColor: "rgba(0, 0, 0, 0.5)", // Чуть темнее для контраста
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
         justifyContent: "center",
         alignItems: "center",
         zIndex: 10,
@@ -144,7 +150,7 @@ const styles = StyleSheet.create({
     leftButton: { left: 18 },
     rightButton: { right: 18 },
     counterBadge: {
-        alignSelf: "center", // Теперь бадж центрируется относительно всего враппера
+        alignSelf: "center",
         marginTop: 10,
         backgroundColor: "rgba(255,255,255,0.1)",
         paddingHorizontal: 12,

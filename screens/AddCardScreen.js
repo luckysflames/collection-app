@@ -173,7 +173,7 @@ export default function AddCardScreen({ navigation }) {
                             : insets.bottom + 120,
                     },
                 ]}
-                onPress={handleSave}
+                onPress={() => handleSave(() => setIsOptionalVisible(false))}
             >
                 <Text style={styles.saveButtonText}>Создать карточку</Text>
             </TouchableOpacity>

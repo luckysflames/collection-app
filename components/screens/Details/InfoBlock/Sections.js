@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { LabelValue } from "./LabelValue";
 import { formatKind, formatRating } from "./utils";
+import { ANIME_ORIGIN_MAP } from "../../../../constants";
 
 export const AnimeQuickData = ({ data }) => {
     return (
@@ -50,7 +51,13 @@ export const BookQuickData = ({ data }) => {
 };
 
 export const AnimeExtra = ({ data }) => (
-    <LabelValue label="Студия" value={data.studios?.join(", ")} />
+    <>
+        <LabelValue label="Студия" value={data.studios?.join(", ")} />
+        <LabelValue
+            label="Первоисточник"
+            value={ANIME_ORIGIN_MAP[data.origin] || data.origin || "Неизвестно"}
+        />
+    </>
 );
 
 export const MovieExtra = ({ data }) => (

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import {
     View,
     StyleSheet,
@@ -6,7 +6,9 @@ import {
     Alert,
     Platform,
     Vibration,
+    BackHandler,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
@@ -93,6 +95,10 @@ export default function DetailsScreen({ route, navigation }) {
         setIsEditing(false);
     };
 
+    const handleNavigateToDetails = (newItem) => {
+        navigation.push("Details", { item: newItem, category: "Аниме" });
+    };
+
     const handleRefresh = async () => {
         try {
             await refreshCardDetails(item, fetchDetailsById);
@@ -136,9 +142,30 @@ export default function DetailsScreen({ route, navigation }) {
         return `В папках: ${parentFolders.length}`;
     }, [parentFolders]);
 
+    useFocusEffect(
+        useCallback(() => {
+            const onBackPress = () => {
+                if (isEditing) {
+                    setIsEditing(false);
+                    return true;
+                }
+                return false;
+            };
+
+            // 1. Создаем подписку
+            const subscription = BackHandler.addEventListener(
+                "hardwareBackPress",
+                onBackPress,
+            );
+
+            // 2. В cleanup-функции вызываем .remove() у объекта подписки
+            return () => subscription.remove();
+        }, [isEditing]),
+    );
+
     return (
         <View style={styles.container}>
-            <DiamondRain isBrilliant={isBrilliant} />
+            <DiamondRain isBrilliant={isBrilliant && !loading} />
 
             <KeyboardAwareScrollView
                 contentContainerStyle={{ flexGrow: 1 }}
@@ -146,7 +173,6 @@ export default function DetailsScreen({ route, navigation }) {
                 extraScrollHeight={200}
                 scrollEventThrottle={16}
                 enableOnAndroid={true}
-                // nestedScrollEnabled={true}
                 keyboardShouldPersistTaps="handled"
             >
                 <HeaderSection
@@ -208,6 +234,7 @@ export default function DetailsScreen({ route, navigation }) {
                                 updateCard(item.id, { userNotes: text })
                             }
                             onSetScore={handleScoreWithHaptics}
+                            onNavigateToDetails={handleNavigateToDetails}
                         />
                     )}
                 </View>

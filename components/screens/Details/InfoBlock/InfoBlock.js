@@ -21,7 +21,6 @@ import {
 } from "./Sections";
 import { InfoStats } from "./InfoStats";
 import { Bookmark, Folder, Info, Star } from "lucide-react-native";
-import { ScreenshotCarousel } from "./ScreenshotCarousel";
 
 export const InfoBlock = ({
     displayData,
@@ -99,7 +98,6 @@ export const InfoBlock = ({
             </TouchableOpacity>
 
             {/* --- НОВЫЙ БЛОК КНОПОК ПОД СТАТУСОМ --- */}
-            {/* {isInCollection && ( */}
             <View style={styles.actionButtonsRow}>
                 <TouchableOpacity
                     style={styles.actionBtn}
@@ -143,7 +141,6 @@ export const InfoBlock = ({
                     </Text>
                 </TouchableOpacity>
             </View>
-            {/* )} */}
 
             {/* Блок с основной информацией */}
             <InfoStats displayData={displayData} />
@@ -159,9 +156,6 @@ export const InfoBlock = ({
                     </View>
                 ))}
             </View>
-
-            {/* Скриншоты */}
-            <ScreenshotCarousel screenshots={displayData.screenshots} />
 
             {/* Модальное окно с доп. названиями */}
             <TitlesModal

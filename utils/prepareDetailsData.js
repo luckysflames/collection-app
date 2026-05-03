@@ -71,7 +71,7 @@ export const prepareDataForSave = (formData, itemType) => {
             extendedData = {
                 year: formData.year,
                 pageCount: extractNumeric(formData.pageCount) || "", // Только цифры
-                maturityRating: formData.maturity,
+                maturityRating: formData.maturityRating,
                 authors: splitString(formData.authors),
                 publisher: formData.publisher,
             };

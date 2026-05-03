@@ -1,5 +1,12 @@
 import React, { useEffect, useRef, memo, useState } from "react";
-import { StyleSheet, View, Animated, Easing, Dimensions } from "react-native";
+import {
+    StyleSheet,
+    View,
+    Animated,
+    Easing,
+    Dimensions,
+    InteractionManager,
+} from "react-native";
 import DiamondsPattern from "./DiamondsPattern";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -19,28 +26,32 @@ export const DiamondRain = ({ isBrilliant, contentHeight = 1000 }) => {
 
     useEffect(() => {
         if (isBrilliant) {
-            setShouldRender(true);
+            const task = InteractionManager.runAfterInteractions(() => {
+                setShouldRender(true);
 
-            // Запускаем бесконечный цикл падения внутри слоев, если он еще не запущен
-            if (!loopRef.current) {
-                loopRef.current = Animated.loop(
-                    Animated.timing(animation, {
-                        toValue: 1,
-                        duration: 15000,
-                        easing: Easing.linear,
-                        useNativeDriver: true,
-                    }),
-                );
-                loopRef.current.start();
-            }
+                // Запускаем бесконечный цикл падения внутри слоев, если он еще не запущен
+                if (!loopRef.current) {
+                    loopRef.current = Animated.loop(
+                        Animated.timing(animation, {
+                            toValue: 1,
+                            duration: 15000,
+                            easing: Easing.linear,
+                            useNativeDriver: true,
+                        }),
+                    );
+                    loopRef.current.start();
+                }
 
-            // Просто проявляем слой (подхватывает текущее значение)
-            Animated.timing(fadeAnim, {
-                toValue: 1,
-                duration: 10000, // Можно настроить комфортную скорость
-                easing: Easing.linear,
-                useNativeDriver: true,
-            }).start();
+                // Просто проявляем слой (подхватывает текущее значение)
+                Animated.timing(fadeAnim, {
+                    toValue: 1,
+                    duration: 10000, // Можно настроить комфортную скорость
+                    easing: Easing.linear,
+                    useNativeDriver: true,
+                }).start();
+            });
+
+            return () => task.cancel();
         } else {
             // Просто гасим слой
             Animated.timing(fadeAnim, {
