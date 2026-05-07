@@ -67,7 +67,7 @@ export default function StatusModal({
 
                         return (
                             <TouchableOpacity
-                                key={option.label}
+                                key={option.value ?? "no-status"}
                                 onPress={() => handleSelect(option.value)}
                                 style={[
                                     styles.statusItem,

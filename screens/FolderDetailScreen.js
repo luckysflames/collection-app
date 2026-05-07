@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
     View,
     StyleSheet,
@@ -7,7 +7,7 @@ import {
     KeyboardAvoidingView,
     BackHandler,
 } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCollectionStore } from "../store/useCollectionStore";
 
@@ -21,7 +21,6 @@ import { SortModal } from "../components/screens/Main/Modals/SortModal";
 import { AddItemsToFolderModal } from "../components/screens/Main/Folder/AddItemsToFolderModal";
 import DeleteFolderModal from "../components/screens/Main/Folder/DeleteFolderModal";
 import { WarnModal } from "../components/ui/WarnModal";
-import { DiamondRain } from "../components/ui/Effects/DiamondRain";
 
 export default function FolderDetailScreen({ route, navigation }) {
     const insets = useSafeAreaInsets();
@@ -33,6 +32,7 @@ export default function FolderDetailScreen({ route, navigation }) {
     const setUserScore = useCollectionStore((state) => state.setUserScore);
     const setFavorite = useCollectionStore((state) => state.setFavorite);
     const isVibration = useCollectionStore((state) => state.isVibration);
+    const setRaining = useCollectionStore((state) => state.setRaining);
 
     // --- LOGIC & DATA (используем ваш хук) ---
     const { folder, folderItems, availableItems } = useFolderData(folderId);
@@ -138,10 +138,10 @@ export default function FolderDetailScreen({ route, navigation }) {
     const isBrilliant = folder?.isBrilliant || false;
     const isPeak = folder?.userScore === 10 || isBrilliant;
     const handleToggleBrilliant = () => {
-        updateCard(folder.id, { isBrilliant: !isBrilliant });
+        const newIsBrilliant = !isBrilliant;
+        updateCard(folder.id, { isBrilliant: newIsBrilliant });
+        setRaining(newIsBrilliant);
     };
-
-    if (!folder) return null;
 
     useFocusEffect(
         useCallback(() => {
@@ -171,10 +171,16 @@ export default function FolderDetailScreen({ route, navigation }) {
         }, [isEditing, isReordering, handleCancel]),
     );
 
+    const isFocused = useIsFocused();
+
+    useEffect(() => {
+        setRaining(folder.id, isFocused && isBrilliant);
+    }, [isFocused, isBrilliant, folder.id, setRaining]);
+
+    if (!folder) return null;
+
     return (
         <View style={styles.container}>
-            <DiamondRain isBrilliant={isBrilliant} />
-
             <KeyboardAvoidingView
                 style={styles.container}
                 behavior={Platform.OS === "ios" ? "padding" : undefined}

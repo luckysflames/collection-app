@@ -19,6 +19,7 @@ export const useDetailsData = (item, fullDetails, savedItem) => {
 
     return useMemo(() => {
         const common = {
+            id: savedItem?.id || item?.id || fullDetails?.id,
             type,
             isCustom: !!(
                 item?.isCustom ||
@@ -26,15 +27,14 @@ export const useDetailsData = (item, fullDetails, savedItem) => {
                 fullDetails?.isCustom
             ),
             title: savedItem?.title || item.title,
-            score: fullDetails?.score || item.score || "0.0",
+            score: savedItem?.score || fullDetails?.score || item.score || "0.0",
             description:
                 savedItem?.description ||
                 fullDetails?.description ||
                 item.description,
             genres:
                 savedItem?.genres || fullDetails?.genres || item.genres || [],
-            image: item.image,
-            // Для InfoStats
+            image: savedItem?.image || item.image,
             duration:
                 savedItem?.duration || fullDetails?.duration || item.duration,
         };
@@ -66,6 +66,13 @@ export const useDetailsData = (item, fullDetails, savedItem) => {
                         savedItem?.animeStatus ||
                         fullDetails?.animeStatus ||
                         savedItem?.airingStatus,
+                 
+                    name:
+                        savedItem?.name || fullDetails?.name,
+                    russian:
+                        savedItem?.russian || fullDetails?.russian,
+                    licenseNameRu:
+                        savedItem?.licenseNameRu || fullDetails?.licenseNameRu,
                     englishTitle:
                         savedItem?.englishTitle || fullDetails?.englishTitle,
                     japaneseTitle:

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback } from "react"; // Добавили useCallback
 import {
     View,
     Text,
@@ -24,82 +24,105 @@ export default function FolderSelectModal({
     folders,
     onSelect,
     onCreateNew,
-    selectedFolderIds = [], // Список ID папок, где уже есть этот айтем
+    selectedFolderIds = [],
 }) {
     const myCollection = useCollectionStore((state) => state.myCollection);
 
-    // Сортируем список: сначала закрепленные (isPinned), затем остальные
+    // 1. Быстрый подсчет: создаем объект-карту { folderId: count }
+    const folderCounts = useMemo(() => {
+        const counts = {};
+        myCollection.forEach((item) => {
+            if (item.parentFolderIds && Array.isArray(item.parentFolderIds)) {
+                item.parentFolderIds.forEach((id) => {
+                    counts[id] = (counts[id] || 0) + 1;
+                });
+            }
+        });
+        return counts;
+    }, [myCollection]);
+
+    // 2. Быстрая сортировка: закрепленные сверху, далее по дате (новые выше)
     const sortedFolders = useMemo(() => {
         if (!folders) return [];
-        return [...folders].sort((a, b) => {
-            if (a.isPinned === b.isPinned) return 0;
-            return a.isPinned ? -1 : 1;
-        });
+
+        // 1. Сначала сортируем ВЕСЬ массив по дате (новые сверху)
+        const baseSorted = [...folders].sort(
+            (a, b) => (b.createdAt || 0) - (a.createdAt || 0),
+        );
+
+        // 2. Разделяем на две группы
+        const pinned = baseSorted.filter((f) => f.isPinned);
+        const unpinned = baseSorted.filter((f) => !f.isPinned);
+
+        // 3. Склеиваем: закрепленные (уже отсортированные по дате) + остальные
+        return [...pinned, ...unpinned];
     }, [folders]);
 
-    // Считаем айтемы, у которых id этой папки есть в массиве parentFolderIds
-    const getItemCount = (folderId) => {
-        return myCollection.filter(
-            (item) =>
-                item.parentFolderIds && item.parentFolderIds.includes(folderId),
-        ).length;
-    };
+    // 3. Оптимизированный рендер строки
+    const renderFolderItem = useCallback(
+        ({ item }) => {
+            const isSelected = selectedFolderIds.includes(item.id);
+            // Берем готовое число из нашей карты (это мгновенно)
+            const count = folderCounts[item.id] || 0;
 
-    const renderFolderItem = ({ item }) => {
-        const isSelected = selectedFolderIds.includes(item.id);
-
-        return (
-            <TouchableOpacity
-                style={[
-                    styles.folderItem,
-                    isSelected && styles.folderItemActive,
-                ]}
-                onPress={() => onSelect(item.id)}
-                activeOpacity={0.7}
-            >
-                <View
+            return (
+                <TouchableOpacity
                     style={[
-                        styles.folderIconWrapper,
-                        isSelected && styles.folderIconWrapperActive,
+                        styles.folderItem,
+                        isSelected && styles.folderItemActive,
                     ]}
+                    onPress={() => onSelect(item.id)}
+                    activeOpacity={0.7}
                 >
-                    {item.isPinned ? (
-                        <FolderHeart
-                            color={isSelected ? "#7D8AFF" : "#8E94A4"}
-                            size={20}
-                        />
-                    ) : (
-                        <FolderIcon
-                            color={isSelected ? "#7D8AFF" : "#8E94A4"}
-                            size={20}
-                        />
-                    )}
-                </View>
-
-                <View style={styles.folderInfo}>
-                    <Text
+                    <View
                         style={[
-                            styles.folderText,
-                            isSelected && styles.folderTextActive,
+                            styles.folderIconWrapper,
+                            isSelected && styles.folderIconWrapperActive,
                         ]}
                     >
-                        {item.title}
-                    </Text>
-                    <Text style={styles.folderSubtext}>
-                        Элементов: {getItemCount(item.id)}
-                    </Text>
-                </View>
+                        {item.isPinned ? (
+                            <FolderHeart
+                                color="#7D8AFF"
+                                size={20}
+                            />
+                        ) : (
+                            <FolderIcon
+                                color={isSelected ? "#7D8AFF" : "#8E94A4"}
+                                size={20}
+                            />
+                        )}
+                    </View>
 
-                <View style={styles.checkWrapper}>
-                    {isSelected ? (
-                        <Check color="#7D8AFF" size={20} strokeWidth={3} />
-                    ) : (
-                        <Check color="transparent" size={20} strokeWidth={3} />
-                    )}
-                </View>
-            </TouchableOpacity>
-        );
-    };
+                    <View style={styles.folderInfo}>
+                        <Text
+                            style={[
+                                styles.folderText,
+                                isSelected && styles.folderTextActive,
+                            ]}
+                        >
+                            {item.title}
+                        </Text>
+                        <Text style={styles.folderSubtext}>
+                            Элементов: {count}
+                        </Text>
+                    </View>
+
+                    <View style={styles.checkWrapper}>
+                        {isSelected ? (
+                            <Check color="#7D8AFF" size={20} strokeWidth={3} />
+                        ) : (
+                            <Check
+                                color="transparent"
+                                size={20}
+                                strokeWidth={3}
+                            />
+                        )}
+                    </View>
+                </TouchableOpacity>
+            );
+        },
+        [selectedFolderIds, folderCounts, onSelect],
+    );
 
     return (
         <BottomSheet
@@ -112,8 +135,8 @@ export default function FolderSelectModal({
             <TouchableOpacity
                 style={styles.createBtn}
                 onPress={() => {
-                    onClose(); // Сначала закрываем текущую модалку
-                    setTimeout(() => onCreateNew(), 300); // Даем время на анимацию ухода
+                    onClose();
+                    setTimeout(() => onCreateNew(), 300);
                 }}
             >
                 <View style={styles.createIconBg}>
@@ -129,6 +152,7 @@ export default function FolderSelectModal({
                     showsVerticalScrollIndicator={false}
                     renderItem={renderFolderItem}
                     contentContainerStyle={styles.listContent}
+                    initialNumToRender={10}
                     ListEmptyComponent={
                         <Text style={styles.emptyText}>
                             У вас пока нет папок

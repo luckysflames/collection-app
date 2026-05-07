@@ -87,8 +87,13 @@ export const useFolderActions = (
 
     const deleteEverything = () => {
         if (!folder || !folderItems) return;
-        folderItems.forEach((item) => deleteCard(item.id));
-        deleteCard(folder.id);
+
+        navigation.goBack();
+
+        setTimeout(() => {
+            folderItems.forEach((item) => deleteCard(item.id));
+            deleteCard(folder.id);
+        }, 100);
     };
 
     const deleteFolderOnly = () => {

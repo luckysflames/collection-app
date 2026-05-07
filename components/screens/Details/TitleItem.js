@@ -7,7 +7,7 @@ import {
     View,
 } from "react-native";
 
-export const TitleItem = ({ label, value }) => {
+export const TitleItem = ({ label, value, onSelect }) => {
     const [copied, setCopied] = useState(false);
 
     if (!value) return null;
@@ -26,12 +26,17 @@ export const TitleItem = ({ label, value }) => {
 
     return (
         <View style={styles.modalCopyRow}>
-            <View style={{ flex: 1, marginRight: 10 }}>
+            <TouchableOpacity
+                style={{ flex: 1, marginRight: 10 }}
+                onPress={onSelect ? () => onSelect(value) : undefined}
+                activeOpacity={onSelect ? 0.5 : 1}
+                disabled={!onSelect}
+            >
                 <Text style={styles.modalLabel}>{label}</Text>
-                <Text style={styles.modalValue}>
+                <Text style={styles.modalValue} numberOfLines={3}>
                     {value}
                 </Text>
-            </View>
+            </TouchableOpacity>
 
             <TouchableOpacity
                 style={[styles.copyButton, copied && styles.copyButtonSuccess]}

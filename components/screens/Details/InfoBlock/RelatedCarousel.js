@@ -1,11 +1,11 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback, memo } from "react";
 import {
     View,
     Text,
     TouchableOpacity,
     StyleSheet,
     Dimensions,
-    FlatList, // Заменяем ScrollView на FlatList
+    FlatList,
 } from "react-native";
 import { ChevronLeft, ChevronRight } from "lucide-react-native";
 import { MediaCard } from "../../../ui/MediaCard";
@@ -16,28 +16,41 @@ const GAP = 12;
 const BASE_PADDING = 20;
 const SIDE_SPACING = (SCREEN_WIDTH - CARD_WIDTH) / 2;
 
-export const RelatedCarousel = ({ related = [], onNavigateToDetails }) => {
+// Мемоизируем элемент карточки чтобы он не ре-рендерился
+const RelatedCarouselItem = memo(({ item, onNavigateToDetails }) => (
+    <View style={styles.cardWrapper}>
+        <MediaCard
+            item={{
+                ...item,
+                type: "anime",
+                isAnime: true,
+            }}
+            onPress={() => onNavigateToDetails(item)}
+            small={true}
+        />
+        {item?.relationText && (
+            <View style={styles.relationLabel} pointerEvents="none">
+                <Text style={styles.relationText} numberOfLines={1}>
+                    {item.relationText}
+                </Text>
+            </View>
+        )}
+    </View>
+));
+
+RelatedCarouselItem.displayName = "RelatedCarouselItem";
+
+const RelatedCarouselComponent = ({ related = [], onNavigateToDetails }) => {
     if (!related || related.length === 0) return null;
 
-    const renderItem = ({ item, index }) => (
-        <View style={styles.cardWrapper}>
-            <MediaCard
-                item={{
-                    ...item,
-                    type: "anime",
-                    isAnime: true,
-                }}
-                onPress={() => onNavigateToDetails(item)}
-                small={true}
+    const renderItem = useCallback(
+        ({ item, index }) => (
+            <RelatedCarouselItem
+                item={item}
+                onNavigateToDetails={onNavigateToDetails}
             />
-            {item?.relationText && (
-                <View style={styles.relationLabel} pointerEvents="none">
-                    <Text style={styles.relationText} numberOfLines={1}>
-                        {item.relationText}
-                    </Text>
-                </View>
-            )}
-        </View>
+        ),
+        [onNavigateToDetails],
     );
 
     return (
@@ -52,12 +65,22 @@ export const RelatedCarousel = ({ related = [], onNavigateToDetails }) => {
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.flatListContent}
-                    removeClippedSubviews={false}
+                    removeClippedSubviews={true}
+                    // === ОПТИМИЗАЦИЯ ПРОИЗВОДИТЕЛЬНОСТИ ===
+                    initialNumToRender={3}
+                    maxToRenderPerBatch={5}
+                    updateCellsBatchingPeriod={50}
+                    scrollEventThrottle={16}
+                    // Предотвращаем синхронное прерывание во время скролла
+                    windowSize={5}
                 />
             </View>
         </View>
     );
 };
+
+// Мемоизируем сам компонент для предотвращения ненужных ре-рендеров
+export const RelatedCarousel = memo(RelatedCarouselComponent);
 
 const styles = StyleSheet.create({
     container: {

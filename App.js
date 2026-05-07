@@ -26,6 +26,7 @@ import { StatusManagerScreen } from "./screens/StatusManagerScreen";
 import { useCollectionStore } from "./store/useCollectionStore";
 import { DataManagementScreen } from "./screens/DataManagementScreen";
 import { SecurityAlertModal } from "./components/ui/SecurityAlertModal";
+import { DiamondRain } from "./components/ui/Effects/DiamondRain";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -83,6 +84,14 @@ export default function App() {
     const deletionPassword = useCollectionStore(
         (state) => state.deletionPassword,
     );
+    // Получаем массив ID активных экранов
+    const activeRainScreens = useCollectionStore(
+        (state) => state.activeRainScreens,
+    );
+
+    // Превращаем в честный boolean: если в массиве есть хотя бы один ID — дождь включен
+    const isRainActive = activeRainScreens.length > 0;
+
     const [showSecurityModal, setShowSecurityModal] = React.useState(false);
 
     // Ссылка на навигацию, чтобы перекинуть юзера в настройки
@@ -151,6 +160,8 @@ export default function App() {
                             component={SettingsScreen}
                         />
                     </Stack.Navigator>
+
+                    <DiamondRain isActive={isRainActive} />
 
                     <SecurityAlertModal
                         visible={showSecurityModal}

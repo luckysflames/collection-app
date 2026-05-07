@@ -162,6 +162,7 @@ export const InfoBlock = ({
                 visible={modalVisible}
                 onClose={() => setModalVisible(false)}
                 data={displayData}
+                isInCollection={isInCollection}
             />
         </View>
     );

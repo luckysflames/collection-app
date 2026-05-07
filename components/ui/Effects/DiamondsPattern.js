@@ -1,5 +1,6 @@
 import * as React from "react";
 import Svg, { Path } from "react-native-svg";
+
 const SvgComponent = (props) => (
     <Svg
         xmlns="http://www.w3.org/2000/svg"
@@ -559,4 +560,6 @@ const SvgComponent = (props) => (
         />
     </Svg>
 );
-export default SvgComponent;
+
+// Мемоизируем компонент чтобы он не ре-рендерился без необходимости
+export default React.memo(SvgComponent);

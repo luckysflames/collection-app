@@ -1,14 +1,13 @@
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useMemo, useState, useCallback, useEffect } from "react";
 import {
     View,
     StyleSheet,
-    ActivityIndicator,
-    Alert,
     Platform,
     Vibration,
     BackHandler,
+    InteractionManager,
 } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
@@ -26,36 +25,72 @@ import { ContentSection } from "../components/screens/Details/ContentSection";
 import { EditSection } from "../components/screens/Details/Edit/EditSection";
 import { HeaderSection } from "../components/screens/Details/HeaderSection";
 import { DetailsModals } from "../components/screens/Details/Modals/DetailsModals";
-import { DiamondRain } from "../components/ui/Effects/DiamondRain";
+import { DetailsSkeleton } from "../components/screens/Details/DetailsSkeleton";
 
 // Utils & Services
 import { prepareDataForSave } from "../utils/prepareDetailsData";
 import { fetchDetailsById } from "../services/apiService";
 import { WarnModal } from "../components/ui/WarnModal";
 
+// --- КОНФИГУРАЦИЯ ЗАДЕРЖЕК (Калибруй здесь) ---
+const DATA_LOAD_DELAY = 300; // Через сколько мс начать инициализацию логики и запросы
+const SKELETON_FADE_DELAY = 600; // Через сколько мс убрать скелет (когда всё уже точно готово)
+
 export default function DetailsScreen({ route, navigation }) {
     const insets = useSafeAreaInsets();
+    const isFocused = useIsFocused();
     const { item, category } = route.params;
     const { pickImage } = useImagePicker();
+
+    // Состояния для калибровки
+    const [isLogicReady, setIsLogicReady] = useState(false);
+    const [isAnimationFinished, setIsAnimationFinished] = useState(false);
+
     const [errorModal, setErrorModal] = useState({
         visible: false,
         message: "",
     });
 
-    // 1. Store
+    // === ОПТИМИЗАЦИЯ: Используем InteractionManager для отложения инициализации ===
+    useEffect(() => {
+        // InteractionManager задерживает инициализацию до завершения всех анимаций переходов
+        // Это означает что переход на экран будет плавным, а затем начнется загрузка данных
+        const interactionTask = InteractionManager.runAfterInteractions(() => {
+            const logicTimer = setTimeout(() => {
+                setIsLogicReady(true);
+            }, DATA_LOAD_DELAY);
+
+            const animationTimer = setTimeout(() => {
+                setIsAnimationFinished(true);
+            }, SKELETON_FADE_DELAY);
+
+            return () => {
+                clearTimeout(logicTimer);
+                clearTimeout(animationTimer);
+            };
+        });
+
+        return () => interactionTask.cancel();
+    }, []);
+
+    // 1. Store (Всегда в начале, но используем осторожно)
     const myCollection = useCollectionStore((state) => state.myCollection);
     const createFolder = useCollectionStore((state) => state.createFolder);
     const setUserScore = useCollectionStore((state) => state.setUserScore);
     const isVibration = useCollectionStore((state) => state.isVibration);
+    const setRaining = useCollectionStore((state) => state.setRaining);
 
     // 2. Data Fetching & Preparation
+    // Передаем null в id, пока логика не готова, чтобы хук не начинал fetch мгновенно
     const initialSavedItem = useMemo(
         () => myCollection.find((fav) => String(fav.id) === String(item.id)),
         [myCollection, item.id],
     );
+
     const { data: fullDetails, loading } = useFetchDetails(
-        initialSavedItem ? null : item.id,
+        !isLogicReady || initialSavedItem ? null : item.id,
     );
+
     const displayData = useDetailsData(item, fullDetails, initialSavedItem);
 
     // 3. Logic Hooks
@@ -88,18 +123,24 @@ export default function DetailsScreen({ route, navigation }) {
     const isBrilliant = savedItem?.isBrilliant || false;
     const isPeak = savedItem?.userScore === 10 || isBrilliant;
 
-    // 5. Handlers
-    const onSaveAction = () => {
+    // 5. Handlers (оптимизируем с useCallback для избежания ненужных ре-рендеров)
+    const onSaveAction = useCallback(() => {
         const finalData = prepareDataForSave(editForm, cardType);
         updateCard(item.id, finalData);
         setIsEditing(false);
-    };
+    }, [editForm, cardType, updateCard, item.id]);
 
-    const handleNavigateToDetails = (newItem) => {
-        navigation.push("Details", { item: newItem, category: "Аниме" });
-    };
+    const handleNavigateToDetails = useCallback(
+        (newItem) => {
+            navigation.push("Details", {
+                item: newItem,
+                category: category,
+            });
+        },
+        [navigation, category],
+    );
 
-    const handleRefresh = async () => {
+    const handleRefresh = useCallback(async () => {
         try {
             await refreshCardDetails(item, fetchDetailsById);
         } catch (error) {
@@ -109,26 +150,31 @@ export default function DetailsScreen({ route, navigation }) {
                     "Не удалось получить свежие данные. Проверьте соединение.",
             });
         }
-    };
+    }, [item, refreshCardDetails]);
 
-    const handleToggleBrilliant = () => {
-        updateCard(item.id, { isBrilliant: !isBrilliant });
-    };
+    const handleToggleBrilliant = useCallback(() => {
+        const newIsBrilliant = !isBrilliant;
+        updateCard(item.id, { isBrilliant: newIsBrilliant });
+        setRaining(newIsBrilliant);
+    }, [isBrilliant, updateCard, item.id, setRaining]);
 
-    const handleScoreWithHaptics = (score) => {
-        setUserScore(item.id, score);
-        if (isVibration && score !== 0) {
-            if (Platform.OS === "android") {
-                const pattern = [0, 0];
-                for (let i = 0; i < score; i++) {
-                    pattern.push(30, 100);
+    const handleScoreWithHaptics = useCallback(
+        (score) => {
+            setUserScore(item.id, score);
+            if (isVibration && score !== 0) {
+                if (Platform.OS === "android") {
+                    const pattern = [0, 0];
+                    for (let i = 0; i < score; i++) {
+                        pattern.push(30, 100);
+                    }
+                    Vibration.vibrate(pattern);
+                } else {
+                    Vibration.vibrate(10);
                 }
-                Vibration.vibrate(pattern);
-            } else {
-                Vibration.vibrate(10);
             }
-        }
-    };
+        },
+        [item.id, isVibration, setUserScore],
+    );
 
     // 6. UI Helpers
     const parentFolders = useMemo(() => {
@@ -151,22 +197,27 @@ export default function DetailsScreen({ route, navigation }) {
                 }
                 return false;
             };
-
-            // 1. Создаем подписку
             const subscription = BackHandler.addEventListener(
                 "hardwareBackPress",
                 onBackPress,
             );
-
-            // 2. В cleanup-функции вызываем .remove() у объекта подписки
             return () => subscription.remove();
         }, [isEditing]),
     );
 
+    useEffect(() => {
+        if (isLogicReady) {
+            setRaining(item.id, isFocused && isBrilliant);
+        }
+    }, [isFocused, isBrilliant, item.id, setRaining, isLogicReady]);
+
+    // Определяем, показывать ли скелет
+    // Мы показываем его, если время анимации не вышло ИЛИ если данные еще реально грузятся
+    const showSkeleton =
+        !isAnimationFinished || (loading && !fullDetails && !savedItem);
+
     return (
         <View style={styles.container}>
-            <DiamondRain isBrilliant={isBrilliant && !loading} />
-
             <KeyboardAwareScrollView
                 contentContainerStyle={{ flexGrow: 1 }}
                 bounces={false}
@@ -177,7 +228,11 @@ export default function DetailsScreen({ route, navigation }) {
             >
                 <HeaderSection
                     isEditing={isEditing}
-                    image={editForm.image || item.image}
+                    image={
+                        isEditing
+                            ? editForm.image
+                            : displayData.image || item.image
+                    }
                     insets={insets}
                     onLeftPress={
                         isEditing
@@ -197,8 +252,12 @@ export default function DetailsScreen({ route, navigation }) {
                         const uri = await pickImage([240, 340]);
                         if (uri) updateField("image", uri);
                     }}
-                    showEditButton={isInCollection && savedItem?.isCustom}
-                    showRefreshButton={isInCollection && !savedItem?.isCustom}
+                    showEditButton={
+                        !showSkeleton && isInCollection && savedItem?.isCustom
+                    }
+                    showRefreshButton={
+                        !showSkeleton && isInCollection && !savedItem?.isCustom
+                    }
                     isRefreshing={isRefreshing}
                     isBrilliant={isBrilliant}
                     onBrilliantPress={handleToggleBrilliant}
@@ -206,10 +265,8 @@ export default function DetailsScreen({ route, navigation }) {
                 />
 
                 <View style={styles.infoContainer}>
-                    {loading && !fullDetails && !savedItem ? (
-                        <View style={styles.loaderContainer}>
-                            <ActivityIndicator size="large" color="#7D8AFF" />
-                        </View>
+                    {showSkeleton ? (
+                        <DetailsSkeleton />
                     ) : isEditing ? (
                         <EditSection
                             form={editForm}
@@ -286,9 +343,5 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 30,
         borderTopRightRadius: 30,
         minHeight: 500,
-    },
-    loaderContainer: {
-        paddingVertical: 50,
-        alignItems: "center",
     },
 });

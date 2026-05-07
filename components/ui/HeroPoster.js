@@ -18,6 +18,7 @@ export const HeroPoster = ({
                 ]}
             >
                 <Image
+                    key={image}
                     source={{ uri: image }}
                     style={styles.image}
                     resizeMode="cover"

@@ -10,10 +10,19 @@ import {
 } from "react-native";
 import { BlurView } from "expo-blur";
 import { TitleItem } from "../TitleItem";
+import { useCollectionStore } from "../../../../store/useCollectionStore";
 
 const { width } = Dimensions.get("window");
 
-export const TitlesModal = ({ visible, onClose, data }) => {
+export const TitlesModal = ({ visible, onClose, data, isInCollection }) => {
+    const updateCard = useCollectionStore((state) => state.updateCard);
+
+    const handleSelectTitle = (newTitle) => {
+        if (!isInCollection || !data?.id) return;
+        updateCard(data.id, { title: newTitle });
+        onClose(); // Закрываем модалку после выбора
+    };
+
     return (
         <Modal
             animationType="fade"
@@ -34,28 +43,86 @@ export const TitlesModal = ({ visible, onClose, data }) => {
                 <Pressable style={styles.modalContent}>
                     <Text style={styles.title}>Варианты названия</Text>
 
-                    <View style={styles.listContainer}>
-                        <TitleItem label="Основное" value={data?.title} />
+                    {isInCollection && (
+                        <Text style={styles.hint}>
+                            Нажмите на название, чтобы сделать его основным в
+                            вашей коллекции
+                        </Text>
+                    )}
 
-                        {data?.type === "anime" && (
+                    <View style={styles.listContainer}>
+                        {data?.type === "anime" ? (
                             <>
+                                <TitleItem
+                                    label="Основное (Romaji)"
+                                    value={data?.name}
+                                    onSelect={
+                                        isInCollection
+                                            ? handleSelectTitle
+                                            : null
+                                    }
+                                />
+                                <TitleItem
+                                    label="Русское"
+                                    value={data?.russian}
+                                    onSelect={
+                                        isInCollection
+                                            ? handleSelectTitle
+                                            : null
+                                    }
+                                />
+                                <TitleItem
+                                    label="Официальное (РФ)"
+                                    value={data?.licenseNameRu}
+                                    onSelect={
+                                        isInCollection
+                                            ? handleSelectTitle
+                                            : null
+                                    }
+                                />
                                 <TitleItem
                                     label="Английское"
                                     value={data?.englishTitle}
+                                    onSelect={
+                                        isInCollection
+                                            ? handleSelectTitle
+                                            : null
+                                    }
                                 />
                                 <TitleItem
                                     label="Японское"
                                     value={data?.japaneseTitle}
+                                    onSelect={
+                                        isInCollection
+                                            ? handleSelectTitle
+                                            : null
+                                    }
                                 />
                             </>
-                        )}
-
-                        {/* Исправленное условие */}
-                        {(data?.type === "movie" || data?.type === "game") && (
-                            <TitleItem
-                                label="Оригинальное"
-                                value={data?.originalTitle}
-                            />
+                        ) : (
+                            <>
+                                <TitleItem
+                                    label="Текущее основное"
+                                    value={data?.title}
+                                    onSelect={
+                                        isInCollection
+                                            ? handleSelectTitle
+                                            : null
+                                    }
+                                />
+                                {(data?.type === "movie" ||
+                                    data?.type === "game") && (
+                                    <TitleItem
+                                        label="Оригинальное"
+                                        value={data?.originalTitle}
+                                        onSelect={
+                                            isInCollection
+                                                ? handleSelectTitle
+                                                : null
+                                        }
+                                    />
+                                )}
+                            </>
                         )}
                     </View>
 
@@ -100,6 +167,15 @@ const styles = StyleSheet.create({
         marginBottom: 24,
         textAlign: "center",
         letterSpacing: 0.5,
+    },
+    hint: {
+        color: "#8E94A4",
+        fontSize: 13,
+        textAlign: "center",
+        marginTop: -16,
+        marginBottom: 24,
+        paddingHorizontal: 10,
+        lineHeight: 18,
     },
     listContainer: {
         width: "100%",

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, memo, useCallback } from "react";
 import {
     StyleSheet,
     Text,
@@ -12,7 +12,7 @@ import { UserRating } from "../../shared/UserRating";
 import { RelatedCarousel } from "./InfoBlock/RelatedCarousel";
 import { ScreenshotCarousel } from "./InfoBlock/ScreenshotCarousel";
 
-export const ContentSection = ({
+const ContentSectionComponent = ({
     displayData,
     savedItem,
     isInCollection,
@@ -29,6 +29,48 @@ export const ContentSection = ({
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
+    // Оптимизируем обработчики с useCallback чтобы не пересоздавали их каждый раз
+    const handleDescriptionPress = useCallback(() => {
+        setIsExpanded((prev) => !prev);
+    }, []);
+
+    const handleStatusPressLocal = useCallback(() => {
+        onStatusPress?.();
+    }, [onStatusPress]);
+
+    const handleFolderPressLocal = useCallback(() => {
+        onFolderPress?.();
+    }, [onFolderPress]);
+
+    const handleToggleFavoriteLocal = useCallback(() => {
+        onToggleFavorite?.();
+    }, [onToggleFavorite]);
+
+    const handleScoreLoca = useCallback(
+        (score) => {
+            onSetScore?.(score);
+        },
+        [onSetScore],
+    );
+
+    const handleInfoPressLocal = useCallback(() => {
+        onInfoPress?.();
+    }, [onInfoPress]);
+
+    const handleNotesUpdate = useCallback(
+        (text) => {
+            onUpdateNotes?.(text);
+        },
+        [onUpdateNotes],
+    );
+
+    const handleNavigateLocal = useCallback(
+        (item) => {
+            onNavigateToDetails?.(item);
+        },
+        [onNavigateToDetails],
+    );
+
     return (
         <View>
             <InfoBlock
@@ -37,16 +79,16 @@ export const ContentSection = ({
                 isFavorite={isFavorite}
                 folderLabel={folderLabel}
                 isAnyFolderSelected={isAnyFolderSelected}
-                onStatusPress={onStatusPress}
-                onFolderPress={onFolderPress}
-                onToggleFavorite={onToggleFavorite}
+                onStatusPress={handleStatusPressLocal}
+                onFolderPress={handleFolderPressLocal}
+                onToggleFavorite={handleToggleFavoriteLocal}
                 displayData={displayData}
             />
 
             <Text style={styles.sectionTitle}>Описание</Text>
             <TouchableOpacity
                 activeOpacity={0.7}
-                onPress={() => setIsExpanded(!isExpanded)}
+                onPress={handleDescriptionPress}
             >
                 <Text
                     style={styles.description}
@@ -70,8 +112,8 @@ export const ContentSection = ({
                 <View style={styles.userSection}>
                     <UserRating
                         score={savedItem?.userScore || 0}
-                        onSetScore={onSetScore}
-                        onInfoPress={onInfoPress}
+                        onSetScore={handleScoreLoca}
+                        onInfoPress={handleInfoPressLocal}
                     />
                 </View>
             )}
@@ -80,7 +122,7 @@ export const ContentSection = ({
             {displayData.type === "anime" && (
                 <RelatedCarousel
                     related={displayData.related}
-                    onNavigateToDetails={onNavigateToDetails}
+                    onNavigateToDetails={handleNavigateLocal}
                 />
             )}
 
@@ -91,7 +133,7 @@ export const ContentSection = ({
                         style={styles.notesInput}
                         multiline
                         value={savedItem.userNotes || ""}
-                        onChangeText={onUpdateNotes}
+                        onChangeText={handleNotesUpdate}
                         placeholder="Ваши мысли..."
                         placeholderTextColor="#444"
                         textAlignVertical="top"
@@ -101,6 +143,9 @@ export const ContentSection = ({
         </View>
     );
 };
+
+// Мемоизируем компонент с правильным сравнением (shallow по умолчанию)
+export const ContentSection = memo(ContentSectionComponent);
 
 const styles = StyleSheet.create({
     sectionTitle: {

@@ -102,6 +102,7 @@ const MediaCardComponent = ({
 export const MediaCard = memo(MediaCardComponent, (prevProps, nextProps) => {
     return (
         prevProps.item.id === nextProps.item.id &&
+        prevProps.item.title === nextProps.item.title &&
         prevProps.item.isPinned === nextProps.item.isPinned &&
         prevProps.item.userScore === nextProps.item.userScore &&
         prevProps.item.isBrilliant === nextProps.item.isBrilliant &&

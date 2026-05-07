@@ -5,7 +5,7 @@ import {
     SECTION_MAPPING,
     FAVORITE_STATUS,
 } from "../constants";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 const getSectionKey = (section) => SECTION_MAPPING[section] || section;
 
@@ -19,18 +19,32 @@ export const useDetailsActions = (item, displayData, category) => {
     const isInCollection = !!savedItem;
 
     // Поиск подходящих папок для текущей секции (Фильмы/Аниме и т.д.)
-    const currentSection = category || item.appSection || "Фильмы";
+    const currentSection = useMemo(() => {
+        // Приоритет 1: Явно переданная категория (из route.params)
+        if (category) return category;
+
+        // Приоритет 2: Секция из сохраненного айтема (если он уже в базе)
+        if (savedItem?.appSection) return savedItem.appSection;
+
+        // Приоритет 3: Если это пришло из карусели аниме (проверяем поля API)
+        if (item.type === "anime" || item.episodes) return "Аниме";
+
+        // Приоритет 4: Поле самого айтема
+        return item.appSection || "Фильмы";
+    }, [category, savedItem, item]);
 
     const [isRefreshing, setIsRefreshing] = useState(false);
 
-    const existingFolders = myCollection.filter((i) => {
-        if (!i.isFolder) return false;
-        const folderSection = String(i.appSection || "")
-            .trim()
-            .toLowerCase();
-        const activeSection = String(currentSection).trim().toLowerCase();
-        return folderSection === activeSection;
-    });
+    const existingFolders = useMemo(() => {
+        return myCollection.filter((i) => {
+            if (!i.isFolder) return false;
+            const folderSection = String(i.appSection || "")
+                .trim()
+                .toLowerCase();
+            const activeSection = String(currentSection).trim().toLowerCase();
+            return folderSection === activeSection;
+        });
+    }, [myCollection, currentSection]);
 
     // Вспомогательная функция для обработки статуса перед сохранением
     const processStatus = (inputStatus) => {
@@ -100,7 +114,7 @@ export const useDetailsActions = (item, displayData, category) => {
     };
 
     const refreshCardDetails = async (item, fetchDetailsById) => {
-        const idToFetch = savedItem?.id || targetItem.id;
+        const idToFetch = savedItem?.id || item.id;
 
         if (!idToFetch) return;
         setIsRefreshing(true);

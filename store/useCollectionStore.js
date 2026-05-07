@@ -35,9 +35,30 @@ export const useCollectionStore = create(
             },
             deletionPassword: null,
             version: 0,
+            activeRainScreens: [],
 
             // --- SYSTEM ACTIONS ---
             incVersion: () => set((state) => ({ version: state.version + 1 })),
+            setRaining: (id, isActive) =>
+                set((state) => {
+                    const exists = state.activeRainScreens.includes(id);
+
+                    if (isActive && !exists) {
+                        return {
+                            activeRainScreens: [...state.activeRainScreens, id],
+                        };
+                    }
+                    if (!isActive && exists) {
+                        return {
+                            activeRainScreens: state.activeRainScreens.filter(
+                                (screenId) => screenId !== id,
+                            ),
+                        };
+                    }
+                    return state;
+                }),
+
+            isRainGlobalActive: (state) => state.activeRainScreens.length > 0,
 
             // --- GETTERS ---
             getStatusesForSection: (section) => {
@@ -182,6 +203,7 @@ export const useCollectionStore = create(
                             ? { ...item, ...updatedFields }
                             : item,
                     ),
+                    version: state.version + 1,
                 })),
 
             setUserScore: (id, score) =>
@@ -356,7 +378,10 @@ export const useCollectionStore = create(
                 set({ myCollection: [], version: get().version + 1 }),
 
             setMyCollection: (newCollection) =>
-                set({ myCollection: newCollection, version: get().version + 1 }),
+                set({
+                    myCollection: newCollection,
+                    version: get().version + 1,
+                }),
 
             resetAllStatuses: () =>
                 set((state) => ({
@@ -400,6 +425,10 @@ export const useCollectionStore = create(
         {
             name: "user-collection-storage",
             storage: createJSONStorage(() => AsyncStorage),
+            partialize: (state) => {
+                const { activeRainScreens, ...rest } = state;
+                return rest;
+            },
         },
     ),
 );
