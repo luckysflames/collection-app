@@ -14,7 +14,6 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_WIDTH = 140;
 const GAP = 12;
 const BASE_PADDING = 20;
-const SIDE_SPACING = (SCREEN_WIDTH - CARD_WIDTH) / 2;
 
 // Мемоизируем элемент карточки чтобы он не ре-рендерился
 const RelatedCarouselItem = memo(({ item, onNavigateToDetails }) => (

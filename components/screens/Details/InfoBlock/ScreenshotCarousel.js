@@ -1,119 +1,111 @@
-import React, { useRef, useState } from "react";
+import React, { useState, useCallback, memo, useMemo } from "react";
 import {
     View,
     Text,
     TouchableOpacity,
-    ScrollView,
     Image,
     StyleSheet,
     Dimensions,
+    FlatList,
+    Platform,
 } from "react-native";
-import { ChevronLeft, ChevronRight } from "lucide-react-native";
+// Используем ScrollView из gesture-handler для нативного контроля
+import { ScrollView as GestureScrollView } from "react-native-gesture-handler";
 import { ImageModal } from "../Modals/ImageModal";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const SCREENSHOT_WIDTH = 200; // Немного увеличим для красоты
+const SCREENSHOT_WIDTH = 280;
 const GAP = 12;
-// Считаем отступ, чтобы картинка была по центру
-const SIDE_SPACING = (SCREEN_WIDTH - SCREENSHOT_WIDTH) / 2;
+const BASE_PADDING = 20;
 
-export const ScreenshotCarousel = ({ screenshots = [] }) => {
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const scrollRef = useRef(null);
+const ScreenshotItem = memo(({ uri, onPress }) => (
+    <View style={styles.cardWrapper}>
+        <TouchableOpacity activeOpacity={0.8} onPress={() => onPress(uri)}>
+            <Image source={{ uri }} style={styles.image} />
+        </TouchableOpacity>
+    </View>
+));
+
+const ScreenshotCarouselComponent = ({ screenshots = [] }) => {
     const [selectedImage, setSelectedImage] = useState(null);
 
-    if (!screenshots.length) return null;
+    const snapOffsets = useMemo(() => {
+        return screenshots.map((_, index) => {
+            // Базовая позиция левого края карточки (с учетом отступа контейнера)
+            const cardLeftEdge = index * (SCREENSHOT_WIDTH + GAP);
 
-    const handleScroll = (direction) => {
-        let nextIndex =
-            direction === "next" ? currentIndex + 1 : currentIndex - 1;
-        if (nextIndex < 0 || nextIndex >= screenshots.length) return;
+            // Чтобы карточка была по центру:
+            // Нам нужно вычесть из левого края карточки половину свободного места экрана
+            // Формула: Позиция = ЛевоКарточки - (ШиринаЭкрана - ШиринаКарточки) / 2
+            const centerOffset =
+                cardLeftEdge -
+                (SCREEN_WIDTH - SCREENSHOT_WIDTH) / 2 +
+                BASE_PADDING;
 
-        setCurrentIndex(nextIndex);
+            // Для первой карточки офсет всегда 0 (прилипает к левому краю)
+            if (index === 0) return 0;
 
-        // РАСЧЕТ ЦЕНТРИРОВАНИЯ:
-        // 1. Считаем позицию левого края нужной карточки: nextIndex * (ширина + зазор)
-        // 2. Вычитаем SIDE_SPACING, чтобы карточка сместилась к центру, а не прилипла к левому краю
-        const offset = nextIndex * (SCREENSHOT_WIDTH + GAP) - SIDE_SPACING + 15;
+            // Для последней карточки вычисляем офсет так, чтобы она прилипла к правому краю
+            // Это общая ширина контента минус ширина экрана
+            const totalContentWidth =
+                screenshots.length * (SCREENSHOT_WIDTH + GAP) -
+                GAP +
+                BASE_PADDING * 2;
+            const maxScroll = totalContentWidth - SCREEN_WIDTH;
 
-        // Маленькая проверка: если offset меньше 0 (для первого скрина), скроллим в 0
-        const finalOffset = Math.max(0, offset);
+            if (index === screenshots.length - 1) return maxScroll;
 
-        scrollRef.current?.scrollTo({
-            x: finalOffset,
-            animated: true,
+            return centerOffset;
         });
-    };
+    }, [screenshots]);
 
     return (
         <View style={styles.container}>
             <Text style={styles.sectionTitle}>Кадры</Text>
 
-            <View style={styles.carouselWrapper} pointerEvents="box-none">
-                <ScrollView
-                    ref={scrollRef}
+            <GestureScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                disallowInterruption={true}
+                activeOffsetX={[-5, 5]}
+                contentContainerStyle={styles.flatListContent}
+                decelerationRate="fast"
+                // Используем наши просчитанные точки
+                snapToOffsets={snapOffsets}
+                // Ставим center, чтобы логика работала точнее при доводке
+                snapToAlignment="center"
+                disableIntervalMomentum={true}
+                scrollEventThrottle={16}
+            >
+                <FlatList
+                    data={screenshots}
+                    renderItem={({ item }) => (
+                        <ScreenshotItem uri={item} onPress={setSelectedImage} />
+                    )}
+                    keyExtractor={(item, index) => `shot-${index}`}
                     horizontal
                     scrollEnabled={false}
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{
-                        paddingHorizontal: 15,
-                        gap: GAP,
-                    }}
-                >
-                    {screenshots.map((s, i) => (
-                        <TouchableOpacity
-                            key={i}
-                            activeOpacity={0.8}
-                            onPress={() => setSelectedImage(s)}
-                        >
-                            <Image source={{ uri: s }} style={styles.image} />
-                        </TouchableOpacity>
-                    ))}
-                </ScrollView>
-
-                {/* 2. Слой с кнопками: box-none позволяет кнопкам работать, 
-                   пропуская касания мимо них к родителю */}
-                <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-                    {currentIndex > 0 && (
-                        <TouchableOpacity
-                            style={[styles.navButton, styles.leftButton]}
-                            onPress={() => handleScroll("prev")}
-                        >
-                            <ChevronLeft color="#fff" size={30} />
-                        </TouchableOpacity>
-                    )}
-
-                    {currentIndex < screenshots.length - 1 && (
-                        <TouchableOpacity
-                            style={[styles.navButton, styles.rightButton]}
-                            onPress={() => handleScroll("next")}
-                        >
-                            <ChevronRight color="#fff" size={30} />
-                        </TouchableOpacity>
-                    )}
-                </View>
-            </View>
-
-            {/* Счетчик выносим ниже, чтобы он не перекрывался абсолютным слоем кнопок */}
-            <View style={styles.counterBadge}>
-                <Text style={styles.counterText}>
-                    {currentIndex + 1} / {screenshots.length}
-                </Text>
-            </View>
+                    listKey="screenshots-list"
+                    removeClippedSubviews={Platform.OS === "android"}
+                />
+            </GestureScrollView>
 
             <ImageModal
                 visible={!!selectedImage}
-                imageUri={selectedImage}
+                images={screenshots} // Весь массив
+                initialIndex={screenshots.indexOf(selectedImage)} // Индекс нажатой картинки
                 onClose={() => setSelectedImage(null)}
             />
         </View>
     );
 };
 
+export const ScreenshotCarousel = memo(ScreenshotCarouselComponent);
+
 const styles = StyleSheet.create({
     container: {
         marginTop: 20,
-        marginHorizontal: -20,
+        marginHorizontal: -BASE_PADDING,
         backgroundColor: "rgba(255,255,255,0.05)",
         paddingVertical: 20,
     },
@@ -122,44 +114,24 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: "bold",
         marginBottom: 12,
-        marginLeft: 20,
+        marginLeft: BASE_PADDING,
     },
-    carouselWrapper: {
-        position: "relative",
+    flatListContent: {
+        // Базовый паддинг слева, а отступы между элементами
+        // регулируются через cardWrapper marginRight
+        paddingLeft: BASE_PADDING,
+        paddingRight: BASE_PADDING - GAP,
+    },
+    cardWrapper: {
+        width: SCREENSHOT_WIDTH,
+        marginRight: GAP,
     },
     image: {
-        width: SCREENSHOT_WIDTH,
+        width: "100%",
         aspectRatio: 16 / 9,
         borderRadius: 20,
-        backgroundColor: "rgba(255,255,255,0.05)",
+        backgroundColor: "#1A2232",
         borderWidth: 1,
         borderColor: "rgba(125, 138, 255, 0.2)",
-    },
-    navButton: {
-        position: "absolute",
-        top: "50%",
-        marginTop: -25,
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        justifyContent: "center",
-        alignItems: "center",
-        zIndex: 10,
-    },
-    leftButton: { left: 18 },
-    rightButton: { right: 18 },
-    counterBadge: {
-        alignSelf: "center",
-        marginTop: 10,
-        backgroundColor: "rgba(255,255,255,0.1)",
-        paddingHorizontal: 12,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    counterText: {
-        color: "#8E94A4",
-        fontSize: 11,
-        fontWeight: "bold",
     },
 });

@@ -19,6 +19,7 @@ export const useCollectionStore = create(
             myCollection: [],
             isCompactMenu: false,
             isVibration: true,
+            isDiamondRainEnabled: true,
             collectionGoal: 500,
             availableStatuses: {},
             defaultTabs: {
@@ -85,6 +86,7 @@ export const useCollectionStore = create(
             setCollectionGoal: (goal) => set({ collectionGoal: goal }),
             setIsCompactMenu: (value) => set({ isCompactMenu: value }),
             setIsVibration: (value) => set({ isVibration: value }),
+            setIsDiamondRainEnabled: (value) => set({ isDiamondRainEnabled: value }),
 
             // --- PASSWORD MANAGEMENT ---
             setDeletionPassword: (newPassword) =>

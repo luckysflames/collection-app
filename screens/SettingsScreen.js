@@ -12,6 +12,7 @@ import {
     Vibrate,
     Download,
     Upload,
+    Sparkles,
 } from "lucide-react-native";
 
 import { getBugReportTemplate } from "../utils/bugReportHelper";
@@ -31,6 +32,10 @@ export default function SettingsScreen({ navigation }) {
     );
     const isVibration = useCollectionStore((state) => state.isVibration);
     const setIsVibration = useCollectionStore((state) => state.setIsVibration);
+    const isDiamondRainEnabled = useCollectionStore((state) => state.isDiamondRainEnabled);
+    const setIsDiamondRainEnabled = useCollectionStore(
+        (state) => state.setIsDiamondRainEnabled,
+    );
 
     const { actions } = useDataManagement(store);
     const { handleExportCollection, handleImportCollection, FileModal } =
@@ -72,6 +77,14 @@ export default function SettingsScreen({ navigation }) {
                         type="switch"
                         value={isVibration}
                         onValueChange={setIsVibration}
+                    />
+                    <View style={styles.separator} />
+                    <SettingItem
+                        icon={Sparkles}
+                        label="Анимация"
+                        type="switch"
+                        value={isDiamondRainEnabled}
+                        onValueChange={setIsDiamondRainEnabled}
                     />
                     <View style={styles.separator} />
                     <SettingItem

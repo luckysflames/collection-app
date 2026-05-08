@@ -27,6 +27,7 @@ import { useCollectionStore } from "./store/useCollectionStore";
 import { DataManagementScreen } from "./screens/DataManagementScreen";
 import { SecurityAlertModal } from "./components/ui/SecurityAlertModal";
 import { DiamondRain } from "./components/ui/Effects/DiamondRain";
+import EditCardScreen from "./screens/EditCardScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -88,9 +89,13 @@ export default function App() {
     const activeRainScreens = useCollectionStore(
         (state) => state.activeRainScreens,
     );
+    // Получаем флаг, включена ли анимация в настройках
+    const isDiamondRainEnabled = useCollectionStore(
+        (state) => state.isDiamondRainEnabled,
+    );
 
-    // Превращаем в честный boolean: если в массиве есть хотя бы один ID — дождь включен
-    const isRainActive = activeRainScreens.length > 0;
+    // Превращаем в честный boolean: если в массиве есть хотя бы один ID И анимация включена — дождь активен
+    const isRainActive = isDiamondRainEnabled && activeRainScreens.length > 0;
 
     const [showSecurityModal, setShowSecurityModal] = React.useState(false);
 
@@ -124,16 +129,23 @@ export default function App() {
                             headerShown: false,
                             cardStyle: { backgroundColor: "#050B18" },
                             animationEnabled: true,
-                            gestureEnabled: true,
+                            gestureEnabled: false,
                             gestureDirection: "horizontal",
                             animation: "slide_from_right",
-                            // detachPreviousScreen: false,
                         }}
                     >
                         <Stack.Screen name="Home" component={HomeTabs} />
                         <Stack.Screen
                             name="Details"
                             component={DetailsScreen}
+                        />
+                        <Stack.Screen
+                            name="EditCard"
+                            component={EditCardScreen}
+                            options={{
+                                headerShown: false,
+                                animation: "fade",
+                            }}
                         />
                         <Stack.Screen
                             name="StatusManager"
