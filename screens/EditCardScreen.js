@@ -50,7 +50,11 @@ export default function EditCardScreen({ route, navigation }) {
                     onLeftPress={() => navigation.goBack()}
                     onRightPress={onSave}
                     onPickImage={async () => {
-                        const uri = await pickImage([240, 340]);
+                        const uri = await pickImage(
+                            [240, 340],
+                            editForm.image,
+                            item.id,
+                        );
                         if (uri) updateField("image", uri);
                     }}
                 />

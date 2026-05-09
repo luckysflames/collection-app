@@ -26,6 +26,7 @@ import { useAddCardForm } from "../hooks/useAddCardForm";
 import { useMediaCategories } from "../hooks/useMediaCategories";
 import { WarnModal } from "../components/ui/WarnModal";
 import { useCollectionStore } from "../store/useCollectionStore";
+import { useImagePicker } from "../hooks/useImagePicker";
 
 const CollapsibleHeader = ({ title, isOpen, onPress }) => (
     <TouchableOpacity
@@ -49,6 +50,7 @@ export default function AddCardScreen({ navigation }) {
 
     const { form, updateField, handleSave, errorModal, closeError } =
         useAddCardForm(navigation);
+    const { pickImage } = useImagePicker();
 
     const currentSection = SECTIONS.find(
         (s) => (s.id || s.value) === form.type,
@@ -79,7 +81,10 @@ export default function AddCardScreen({ navigation }) {
             <View style={styles.section}>
                 <ImageUploader
                     image={form.image}
-                    onImagePick={(uri) => updateField("image", uri)}
+                    onImagePick={async () => {
+                        const uri = await pickImage([2, 3], form.image);
+                        if (uri) updateField("image", uri);
+                    }}
                 />
                 {/* Передаем глобальные SECTIONS */}
                 <SectionSelector

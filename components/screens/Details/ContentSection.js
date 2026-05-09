@@ -104,9 +104,10 @@ const ContentSectionComponent = ({
 
             <View style={styles.separator} />
 
-            {displayData.type === "anime" && (
-                <ScreenshotCarousel screenshots={displayData.screenshots} />
-            )}
+            {displayData.type === "anime" &&
+                displayData.screenshots.length > 0 && (
+                    <ScreenshotCarousel screenshots={displayData.screenshots} />
+                )}
 
             {isInCollection && (
                 <View style={styles.userSection}>

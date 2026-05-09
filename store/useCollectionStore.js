@@ -8,6 +8,10 @@ import {
     FAVORITE_STATUS,
     DEFAULT_STATUS_BY_SECTION,
 } from "../constants";
+import {
+    deletePersistentImageAsync,
+    isPersistentImageUri,
+} from "../utils/imageStorage";
 
 // --- HELPERS ---
 const getSectionKey = (section) => SECTION_MAPPING[section] || section;
@@ -86,7 +90,8 @@ export const useCollectionStore = create(
             setCollectionGoal: (goal) => set({ collectionGoal: goal }),
             setIsCompactMenu: (value) => set({ isCompactMenu: value }),
             setIsVibration: (value) => set({ isVibration: value }),
-            setIsDiamondRainEnabled: (value) => set({ isDiamondRainEnabled: value }),
+            setIsDiamondRainEnabled: (value) =>
+                set({ isDiamondRainEnabled: value }),
 
             // --- PASSWORD MANAGEMENT ---
             setDeletionPassword: (newPassword) =>
@@ -229,41 +234,54 @@ export const useCollectionStore = create(
                     ),
                 })),
 
-            deleteCard: (id) =>
-                set((state) => {
-                    const itemToDelete = state.myCollection.find(
-                        (i) => String(i.id) === String(id),
-                    );
-                    if (!itemToDelete) return state;
+            deleteCard: (id) => {
+                const state = get();
+                const itemToDelete = state.myCollection.find(
+                    (i) => String(i.id) === String(id),
+                );
+                if (!itemToDelete) return;
 
-                    let nextCollection = state.myCollection.filter(
-                        (i) => String(i.id) !== String(id),
+                let nextCollection = state.myCollection.filter(
+                    (i) => String(i.id) !== String(id),
+                );
+
+                if (itemToDelete.isFolder) {
+                    nextCollection = nextCollection.map((i) => ({
+                        ...i,
+                        parentFolderIds: (i.parentFolderIds || []).filter(
+                            (fId) => String(fId) !== String(id),
+                        ),
+                    }));
+                } else {
+                    nextCollection = nextCollection.map((i) =>
+                        i.isFolder && i.itemsOrder?.includes(id)
+                            ? {
+                                  ...i,
+                                  itemsOrder: i.itemsOrder.filter(
+                                      (itemId) => String(itemId) !== String(id),
+                                  ),
+                              }
+                            : i,
+                    );
+                }
+
+                set({ myCollection: nextCollection });
+
+                if (
+                    itemToDelete.image &&
+                    isPersistentImageUri(itemToDelete.image)
+                ) {
+                    const isReferencedElsewhere = state.myCollection.some(
+                        (item) =>
+                            String(item.id) !== String(id) &&
+                            item.image === itemToDelete.image,
                     );
 
-                    if (itemToDelete.isFolder) {
-                        // Удаляем упоминание папки у вложенных элементов
-                        nextCollection = nextCollection.map((i) => ({
-                            ...i,
-                            parentFolderIds: (i.parentFolderIds || []).filter(
-                                (fId) => String(fId) !== String(id),
-                            ),
-                        }));
-                    } else {
-                        // Удаляем упоминание элемента из списков порядка внутри папок
-                        nextCollection = nextCollection.map((i) =>
-                            i.isFolder && i.itemsOrder?.includes(id)
-                                ? {
-                                      ...i,
-                                      itemsOrder: i.itemsOrder.filter(
-                                          (itemId) =>
-                                              String(itemId) !== String(id),
-                                      ),
-                                  }
-                                : i,
-                        );
+                    if (!isReferencedElsewhere) {
+                        deletePersistentImageAsync(itemToDelete.image);
                     }
-                    return { myCollection: nextCollection };
-                }),
+                }
+            },
 
             reorderCollection: (newOrder) => set({ myCollection: newOrder }),
 
@@ -376,8 +394,22 @@ export const useCollectionStore = create(
                 })),
 
             // --- RESET ACTIONS ---
-            clearCollection: () =>
-                set({ myCollection: [], version: get().version + 1 }),
+            clearCollection: async () => {
+                const state = get();
+                const imageUris = Array.from(
+                    new Set(
+                        state.myCollection
+                            .map((item) => item.image)
+                            .filter(isPersistentImageUri),
+                    ),
+                );
+
+                set({ myCollection: [], version: state.version + 1 });
+
+                await Promise.all(
+                    imageUris.map((uri) => deletePersistentImageAsync(uri)),
+                );
+            },
 
             setMyCollection: (newCollection) =>
                 set({
@@ -403,8 +435,17 @@ export const useCollectionStore = create(
                     version: state.version + 1,
                 })),
 
-            resetFullStore: () =>
-                set((state) => ({
+            resetFullStore: async () => {
+                const state = get();
+                const imageUris = Array.from(
+                    new Set(
+                        state.myCollection
+                            .map((item) => item.image)
+                            .filter(isPersistentImageUri),
+                    ),
+                );
+
+                (set({
                     myCollection: [],
                     isCompactMenu: false,
                     collectionGoal: 500,
@@ -422,7 +463,11 @@ export const useCollectionStore = create(
                         Anime: "date_desc",
                     },
                     version: 0,
-                })),
+                }),
+                    await Promise.all(
+                        imageUris.map((uri) => deletePersistentImageAsync(uri)),
+                    ));
+            },
         }),
         {
             name: "user-collection-storage",

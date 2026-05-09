@@ -1,21 +1,14 @@
 import React from "react";
 import { TouchableOpacity, View, Image, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
 
 export default function ImageUploader({ image, onImagePick }) {
-    const pickImage = async () => {
-        let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [2, 3],
-            quality: 0.7,
-        });
-        if (!result.canceled) onImagePick(result.assets[0].uri);
-    };
-
     return (
-        <TouchableOpacity onPress={pickImage} style={styles.imagePlaceholder}>
+        <TouchableOpacity
+            onPress={onImagePick}
+            style={styles.imagePlaceholder}
+            activeOpacity={0.8}
+        >
             {image ? (
                 <Image source={{ uri: image }} style={styles.fullImage} />
             ) : (

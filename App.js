@@ -48,8 +48,6 @@ function CollectionStackScreen() {
 
     return (
         <CollectionStack.Navigator
-            // Как только версия изменится, стек пересоберется с нуля
-            key={`collection-stack-v${version}`}
             screenOptions={{
                 headerShown: false,
                 cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,

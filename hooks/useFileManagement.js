@@ -4,6 +4,14 @@ import * as DocumentPicker from "expo-document-picker";
 import * as Sharing from "expo-sharing";
 import { WarnModal } from "../components/ui/WarnModal";
 import { Text, TouchableOpacity } from "react-native";
+import {
+    collectImageFilesForExport,
+    restoreLocalImagesFromBackup,
+    restoreCollectionImageUris,
+    collectImageFilesForZip,
+    moveImagesFromTemp,
+} from "../utils/imageStorage";
+import { zip } from "react-native-zip-archive";
 
 export const useFileManagement = (store) => {
     const [modalConfig, setModalConfig] = useState({
@@ -49,41 +57,65 @@ export const useFileManagement = (store) => {
                 return;
             }
 
+            // 1. Собираем данные и список путей картинок
+            const { collection: normalizedCollection, imagePathsToCopy } =
+                await collectImageFilesForZip(myCollection);
+
             const backupData = {
-                type: "GEEKLY_BACKUP",
-                version: "1.1",
+                type: "GEEKLY_BACKUP_ZIP",
+                version: "2.0",
                 exportedAt: new Date().toISOString(),
                 payload: {
-                    myCollection,
+                    myCollection: normalizedCollection,
                     availableStatuses,
                     defaultTabs,
                     collectionGoal,
                 },
             };
 
-            const jsonString = JSON.stringify(backupData);
-            const fileName = `geekly_backup_${new Date().toISOString().split("T")[0]}.json`;
-
-            // Исправляем формирование пути (убеждаемся в наличии слеша)
-            const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
-
-            // Записываем файл
-            await FileSystem.writeAsStringAsync(fileUri, jsonString, {
-                encoding: FileSystem.EncodingType.UTF8,
+            // 2. Создаем временную структуру папок в кэше
+            const exportFolder = `${FileSystem.cacheDirectory}export_${Date.now()}/`;
+            const imagesFolder = `${exportFolder}images/`;
+            await FileSystem.makeDirectoryAsync(imagesFolder, {
+                intermediates: true,
             });
 
-            if (await Sharing.isAvailableAsync()) {
-                await Sharing.shareAsync(fileUri, {
-                    mimeType: "application/json",
-                    dialogTitle: "Сохранить карточки и статусы",
-                    UTI: "public.json",
+            // 3. Записываем JSON и копируем картинки
+            await FileSystem.writeAsStringAsync(
+                `${exportFolder}data.json`,
+                JSON.stringify(backupData),
+            );
+
+            for (const img of imagePathsToCopy) {
+                await FileSystem.copyAsync({
+                    from: img.fullUri,
+                    to: `${imagesFolder}${img.fileName}`,
                 });
             }
+
+            // 4. Архивируем
+            const zipPath = `${FileSystem.cacheDirectory}geekly_backup_${new Date().toISOString().split("T")[0]}.zip`;
+            await zip(exportFolder, zipPath);
+
+            // 5. Делимся
+            if (await Sharing.isAvailableAsync()) {
+                await Sharing.shareAsync(zipPath, {
+                    mimeType: "application/zip",
+                    dialogTitle: "Сохранить коллекцию",
+                    UTI: "public.zip-archive",
+                });
+            }
+
+            // 6. ЧИСТКА (вот что я предлагал добавить)
+            // Удаляем временную папку с картинками и json
+            await FileSystem.deleteAsync(exportFolder, { idempotent: true });
+            // Удаляем сам созданный zip-файл, так как он уже не нужен
+            await FileSystem.deleteAsync(zipPath, { idempotent: true });
         } catch (error) {
-            console.error("Export Error:", error); // ВАЖНО: посмотри в консоль, что там написано
+            console.error("Export Error:", error);
             showWarn({
                 title: "Ошибка",
-                message: "Не удалось создать файл экспорта.",
+                message: "Не удалось создать архив.",
                 type: "error",
             });
         }
@@ -92,26 +124,42 @@ export const useFileManagement = (store) => {
     const handleImportCollection = async () => {
         try {
             const result = await DocumentPicker.getDocumentAsync({
-                type: "application/json",
+                type: ["application/zip", "application/x-zip-compressed"],
                 copyToCacheDirectory: true,
             });
 
             if (result.canceled) return;
 
-            const fileUri = result.assets[0].uri;
-            const jsonString = await FileSystem.readAsStringAsync(fileUri);
+            const zipUri = result.assets[0].uri;
+            const tempUnzipPath = `${FileSystem.cacheDirectory}unzip_${Date.now()}/`;
+
+            // 1. Распаковка
+            await unzip(zipUri, tempUnzipPath);
+
+            // 2. Чтение данных
+            const jsonString = await FileSystem.readAsStringAsync(
+                `${tempUnzipPath}data.json`,
+            );
             const backup = JSON.parse(jsonString);
 
-            if (backup.type !== "GEEKLY_BACKUP" || !backup.payload) {
+            if (backup.type !== "GEEKLY_BACKUP_ZIP") {
                 throw new Error("Invalid format");
             }
 
-            const newItems = backup.payload.myCollection;
+            // 3. Перенос картинок и восстановление путей
+            const restoredMap = await moveImagesFromTemp(
+                `${tempUnzipPath}images/`,
+            );
+            const newItems = restoreCollectionImageUris(
+                backup.payload.myCollection,
+                restoredMap,
+            );
             const savedStatuses = backup.payload.availableStatuses || {};
 
+            // 4. ТВОЯ ОРИГИНАЛЬНАЯ ЛОГИКА МОДАЛОК
             showWarn({
                 title: "Импорт данных",
-                message: `В файле найдено ${newItems.length} элементов. Как выполнить импорт?`,
+                message: `В архиве найдено ${newItems.length} элементов. Как выполнить импорт?`,
                 type: "warning",
                 confirmText: "Дополнить",
                 onConfirm: () => {
@@ -120,43 +168,41 @@ export const useFileManagement = (store) => {
                     const currentIds = new Set(
                         current.map((item) => String(item.id)),
                     );
-
-                    // 1. Фильтруем только уникальные карточки
                     const uniqueNewItems = newItems.filter(
                         (item) => !currentIds.has(String(item.id)),
                     );
 
                     if (uniqueNewItems.length === 0) {
-                        setTimeout(() => {
-                            showWarn({
-                                title: "Инфо",
-                                message: "Все элементы уже есть в коллекции.",
-                            });
-                        }, 500);
+                        setTimeout(
+                            () =>
+                                showWarn({
+                                    title: "Инфо",
+                                    message:
+                                        "Все элементы уже есть в коллекции.",
+                                }),
+                            500,
+                        );
                         return;
                     }
 
-                    // --- НОВАЯ ЛОГИКА: Сбор уникальных статусов ---
-                    // Проходим по всем новым карточкам и добавляем их статусы в разделы
                     uniqueNewItems.forEach((item) => {
-                        if (item.status && item.appSection) {
-                            // Используем существующий экшен стора для добавления (он проверит на дубликаты)
+                        if (item.status && item.appSection)
                             store.addCustomStatus(item.appSection, item.status);
-                        }
                     });
 
                     store.setMyCollection([...current, ...uniqueNewItems]);
-
                     if (backup.payload.collectionGoal)
                         store.setCollectionGoal(backup.payload.collectionGoal);
 
-                    setTimeout(() => {
-                        showWarn({
-                            type: "success",
-                            title: "Успех",
-                            message: `Добавлено ${uniqueNewItems.length} новых элементов и обновлены списки статусов.`,
-                        });
-                    }, 500);
+                    setTimeout(
+                        () =>
+                            showWarn({
+                                type: "success",
+                                title: "Успех",
+                                message: `Добавлено ${uniqueNewItems.length} элементов.`,
+                            }),
+                        500,
+                    );
                 },
                 children: (
                     <TouchableOpacity
@@ -170,31 +216,27 @@ export const useFileManagement = (store) => {
                         }}
                         onPress={() => {
                             hideModal();
-                            // 1. Устанавливаем коллекцию
                             store.setMyCollection(newItems);
-
-                            // 2. ИСПРАВЛЕНО: Правильная установка статусов при полной замене
-                            // Проходим по ключам объекта (Movies, Books и т.д.) и вызываем сеттер для каждого
-                            Object.keys(savedStatuses).forEach((sectionKey) => {
+                            Object.keys(savedStatuses).forEach((key) =>
                                 store.setStatusesForSection(
-                                    sectionKey,
-                                    savedStatuses[sectionKey],
-                                );
-                            });
-
+                                    key,
+                                    savedStatuses[key],
+                                ),
+                            );
                             if (backup.payload.collectionGoal)
                                 store.setCollectionGoal(
                                     backup.payload.collectionGoal,
                                 );
-
-                            setTimeout(() => {
-                                showWarn({
-                                    type: "success",
-                                    title: "Успех",
-                                    message:
-                                        "Коллекция и статусы полностью восстановлены.",
-                                });
-                            }, 500);
+                            setTimeout(
+                                () =>
+                                    showWarn({
+                                        type: "success",
+                                        title: "Успех",
+                                        message:
+                                            "Коллекция полностью заменена.",
+                                    }),
+                                500,
+                            );
                         }}
                     >
                         <Text
@@ -209,7 +251,11 @@ export const useFileManagement = (store) => {
                     </TouchableOpacity>
                 ),
             });
+
+            // Чистим временную папку распаковки
+            await FileSystem.deleteAsync(tempUnzipPath, { idempotent: true });
         } catch (error) {
+            console.error("Import Error:", error);
             showWarn({
                 title: "Ошибка",
                 message: "Файл поврежден или имеет неверный формат.",
