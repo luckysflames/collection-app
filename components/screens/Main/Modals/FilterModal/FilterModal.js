@@ -16,7 +16,7 @@ import {
 import { ChevronLeft } from "lucide-react-native";
 
 import { BottomSheet } from "../../../../ui/BottomSheet";
-import { FILTER_CONFIG } from "../../../../../constants";
+import { FILTER_CONFIG } from "../../../../../constants/index";
 import { useCollectionStore } from "../../../../../store/useCollectionStore";
 
 // Импорт компонентов страниц

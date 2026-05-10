@@ -5,7 +5,7 @@ import { formStyles } from "../styles/formStyles";
 import CommonField from "./CommonField";
 import MaskedDateInput from "./MaskedDateInput";
 import SelectField from "./SelectField";
-import { ANIME_RATINGS, ANIME_KINDS, ANIME_STATUSES } from "../../../../constants";
+import { ANIME_RATINGS, ANIME_KINDS, ANIME_STATUSES } from "../../../..//constants/index";
 
 export default function AnimeFields({ form, updateField }) {
     return (

@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { BottomSheet } from "../../ui/BottomSheet";
-import { API_SERVICES } from "../../../constants";
+import { API_SERVICES } from "../../..//constants/index";
 
 export const ApiInfoModal = ({ visible, onClose }) => {
     return (

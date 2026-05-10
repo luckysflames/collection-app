@@ -79,6 +79,7 @@ const styles = StyleSheet.create({
     headerContainer: {
         flexDirection: "row",
         alignItems: "center", // Выравнивает элементы по центральной оси
+        marginTop: 2.5,
         marginBottom: 20,
         height: 45, // Явно задаем высоту, равную высоте кнопки назад
     },

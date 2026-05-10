@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Keyboard } from "react-native";
-import { SECTION_MAPPING, SECTIONS } from "../constants";
+import { SECTION_MAPPING, SECTIONS } from "../constants/index";
 
 export const useStatusManager = (store) => {
     const {

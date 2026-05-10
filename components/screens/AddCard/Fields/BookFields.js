@@ -4,7 +4,7 @@ import { View } from "react-native";
 import { formStyles } from "../styles/formStyles";
 import CommonField from "./CommonField";
 import SelectField from "./SelectField";
-import { BOOK_MATURITY_RATINGS } from "../../../../constants";
+import { BOOK_MATURITY_RATINGS } from "../../../..//constants/index";
 
 export default function BookFields({ form, updateField }) {
     return (

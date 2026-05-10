@@ -3,7 +3,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { TabMenuItem } from "./TabMenuItem";
 import { useCollectionStore } from "../../../store/useCollectionStore";
-import { TAB_ICONS } from "../../../constants";
+import { TAB_ICONS } from "../../../constants/index";
 import { CommonActions, StackActions } from "@react-navigation/native";
 
 export default function MyCustomTabBar({ state, descriptors, navigation }) {

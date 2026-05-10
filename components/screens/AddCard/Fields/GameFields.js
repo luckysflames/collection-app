@@ -4,7 +4,7 @@ import { View } from "react-native";
 import { formStyles } from "../styles/formStyles";
 import CommonField from "./CommonField";
 import SelectField from "./SelectField";
-import { ESRB_RATINGS, GAME_PLATFORMS } from "../../../../constants";
+import { ESRB_RATINGS, GAME_PLATFORMS } from "../../../..//constants/index";
 
 export default function GameFields({ form, updateField }) {
     return (

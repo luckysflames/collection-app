@@ -12,7 +12,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 
 // --- ИМПОРТ КОНСТАНТ ---
 // Теперь используем единый источник истины
-import { SECTIONS, STATUS_SELECTION_EXCLUDE } from "../constants";
+import { SECTIONS, STATUS_SELECTION_EXCLUDE } from "../constants/index";
 
 import MovieFields from "../components/screens/AddCard/Fields/MovieFields";
 import AnimeFields from "../components/screens/AddCard/Fields/AnimeFields";
@@ -201,6 +201,7 @@ const styles = StyleSheet.create({
         color: "#fff",
         fontSize: 24,
         fontWeight: "800",
+        marginTop: 7.5,
         marginBottom: 25,
         letterSpacing: -0.5,
     },

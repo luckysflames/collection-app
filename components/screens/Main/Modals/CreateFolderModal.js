@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
-import { FAVORITE_STATUS, SYSTEM_STATUSES } from "../../../../constants";
+import { FAVORITE_STATUS, SYSTEM_STATUSES } from "../../../..//constants/index";
 
 const { width } = Dimensions.get("window");
 

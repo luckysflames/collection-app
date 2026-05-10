@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet, Switch } from "react-native";
 
-import { CATEGORY_CONFIG, SUB_CATEGORIES } from "../../../../constants";
+import { CATEGORY_CONFIG, SUB_CATEGORIES } from "../../../..//constants/index";
 import { calculateStats } from "../../../../utils/analyticsHelpers";
 import AnalyticsSection from "./AnalyticsSection";
 

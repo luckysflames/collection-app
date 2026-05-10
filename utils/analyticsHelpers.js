@@ -1,4 +1,4 @@
-import { ANIME_KINDS } from "../constants";
+import { ANIME_KINDS } from "../constants/index";
 
 /**
  * Извлекает числовое значение из строки

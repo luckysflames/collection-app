@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
-import { SUB_CATEGORIES } from "../../../../constants";
+import { SUB_CATEGORIES } from "../../../..//constants/index";
 
 export const SectionTabs = ({ sections, selectedSection, onSelect }) => {
     return (

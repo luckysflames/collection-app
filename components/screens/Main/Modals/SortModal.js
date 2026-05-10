@@ -22,7 +22,7 @@ import {
     CalendarClock,
 } from "lucide-react-native";
 import { BottomSheet } from "../../../ui/BottomSheet";
-import { SORT_TYPES, SORT_SUB_OPTIONS } from "../../../../constants";
+import { SORT_TYPES, SORT_SUB_OPTIONS } from "../../../..//constants/index";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 

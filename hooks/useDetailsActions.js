@@ -4,7 +4,7 @@ import {
     DEFAULT_STATUS_BY_SECTION,
     SECTION_MAPPING,
     FAVORITE_STATUS,
-} from "../constants";
+} from "../constants/index";
 import { useMemo, useState } from "react";
 
 const getSectionKey = (section) => SECTION_MAPPING[section] || section;

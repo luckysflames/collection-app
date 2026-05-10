@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useCollectionStore } from "../store/useCollectionStore";
-import { SECTION_MAPPING } from "../constants"; // Импортируем маппинг
+import { SECTION_MAPPING } from "../constants/index"; // Импортируем маппинг
 
 export const useMediaCategories = (sectionId) => {
     // sectionId теперь "movie"

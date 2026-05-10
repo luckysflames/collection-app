@@ -28,6 +28,7 @@ import { DataManagementScreen } from "./screens/DataManagementScreen";
 import { SecurityAlertModal } from "./components/ui/SecurityAlertModal";
 import { DiamondRain } from "./components/ui/Effects/DiamondRain";
 import EditCardScreen from "./screens/EditCardScreen";
+import AchievementsScreen from "./screens/AchievementsScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -160,6 +161,10 @@ export default function App() {
                         <Stack.Screen
                             name="FolderDetail"
                             component={FolderDetailScreen}
+                        />
+                        <Stack.Screen
+                            name="Achievments"
+                            component={AchievementsScreen}
                         />
                         <Stack.Screen
                             name="AddCard"

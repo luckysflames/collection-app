@@ -10,7 +10,7 @@ import {
 import { Check, Trash2, Circle } from "lucide-react-native";
 import { BottomSheet } from "../ui/BottomSheet";
 import { useCollectionStore } from "../../store/useCollectionStore";
-import { FAVORITE_STATUS, STATUS_SELECTION_EXCLUDE } from "../../constants";
+import { FAVORITE_STATUS, STATUS_SELECTION_EXCLUDE } from "../../constants/index";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 

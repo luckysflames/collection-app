@@ -8,7 +8,7 @@ import {
     SECTION_MAPPING,
     SECTIONS,
     FAVORITE_STATUS,
-} from "../constants";
+} from "../constants/index";
 
 export const useAddCardForm = (navigation) => {
     const addToCollection = useCollectionStore(

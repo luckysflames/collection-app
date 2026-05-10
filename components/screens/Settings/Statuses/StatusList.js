@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import { StatusItem } from "./StatusItem";
-import { PROTECTED_STATUSES } from "../../../../constants";
+import { PROTECTED_STATUSES } from "../../../../constants/index";
 
 export const StatusList = ({
     statuses,

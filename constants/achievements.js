@@ -1,0 +1,175 @@
+export const ACHIEVEMENT_GROUPS = {
+    mastery: "Мастерство",
+    organization: "Порядок",
+    content: "Контент",
+    genres: "Жанры",
+    special: "Особые заслуги",
+};
+
+export const ACHIEVEMENTS_DATA = [
+    // --- ГРУППА: МАСТЕРСТВО (Числа и оценки) ---
+    {
+        id: "collector_beginner",
+        groupId: "mastery",
+        title: "Первый экспонат",
+        description: "Добавьте свою первую карточку в коллекцию",
+        iconName: "LayersPlus",
+        target: 1,
+    },
+    {
+        id: "high_rater",
+        groupId: "mastery",
+        title: "Строгий критик",
+        description: "Поставьте оценку 10 более чем 5 тайтлам",
+        iconName: "Star",
+        target: 5,
+    },
+    {
+        id: "moment_collector",
+        groupId: "mastery",
+        title: "Ценитель мгновений",
+        description: "Накопите суммарно 100 скриншотов во всех карточках",
+        iconName: "Images",
+        target: 100,
+    },
+    {
+        id: "brilliant_collector",
+        groupId: "mastery",
+        title: "Бриллиантовая рука",
+        description: "Соберите в коллекции 3 алмаза",
+        iconName: "Gem",
+        target: 3,
+    },
+
+    // --- ГРУППА: ПОРЯДОК (Папки и структура) ---
+    {
+        id: "archivist",
+        groupId: "organization",
+        title: "Архивариус",
+        description: "Создайте 5 папок для организации своей коллекции",
+        iconName: "Library",
+        target: 5,
+    },
+    {
+        id: "shelf_master",
+        groupId: "organization",
+        title: "По полочкам",
+        description: "Поместите более 10 тайтлов внутрь одной папки",
+        iconName: "FolderTree",
+        target: 1,
+    },
+
+    // --- ГРУППА: КОНТЕНТ (Студии, OVA, Франшизы) ---
+    {
+        id: "studio_fan",
+        groupId: "content",
+        title: "Фанат Madhouse",
+        description: "Соберите 5 тайтлов от студии Madhouse",
+        iconName: "Clapperboard",
+        target: 5,
+    },
+    {
+        id: "manga_legacy",
+        groupId: "content",
+        title: "Бумажный след",
+        description: "Соберите 10 аниме, основанных на манге",
+        iconName: "BookOpenText",
+        target: 10,
+    },
+    {
+        id: "spinoff_lover",
+        groupId: "content",
+        title: "Спин-офф не помеха",
+        description: "Добавьте в коллекцию OVA или Side Story",
+        iconName: "GitBranch",
+        target: 1,
+    },
+    {
+        id: "family_tree",
+        groupId: "content",
+        title: "Родословная",
+        description: "Соберите полную цепочку: предыстория и продолжение",
+        iconName: "History",
+        target: 1,
+    },
+    {
+        id: "screenshot_master",
+        groupId: "content", // Перенес сюда, так как это про наполнение карточки
+        title: "Фотоальбом",
+        description: "Добавьте тайтл, у которого больше 30 скриншотов",
+        iconName: "Camera",
+        target: 1,
+    },
+
+    // --- ГРУППА: ЖАНРЫ ---
+    {
+        id: "genre_expert_horror",
+        groupId: "genres",
+        title: "Стальные нервы",
+        description: "Соберите 10 карточек в жанре 'Ужасы'",
+        iconName: "Ghost",
+        target: 10,
+    },
+    {
+        id: "harem_king",
+        groupId: "genres",
+        title: "Хозяин гарема",
+        description: "Соберите 5 тайтлов с жанром 'Гарем'",
+        iconName: "Heart",
+        target: 5,
+    },
+    {
+        id: "forever_young",
+        groupId: "genres",
+        title: "Вечно молодой",
+        description: "Соберите 15 тайтлов в жанре 'Сёнен'",
+        iconName: "Zap",
+        target: 15,
+    },
+
+    // --- ГРУППА: ОСОБЫЕ ЗАСЛУГИ (Время, Скрытые) ---
+    {
+        id: "night_owl",
+        groupId: "special",
+        title: "Ночной жрец",
+        description: "Добавьте карточку в период с 00:00 до 05:00",
+        iconName: "Moon",
+        target: 1,
+    },
+    {
+        id: "status_uncertain",
+        groupId: "special",
+        title: "Статус: Всё сложно",
+        description: "Добавьте тайтл, не определившись со статусом",
+        iconName: "HelpCircle",
+        target: 1,
+        hidden: true,
+    },
+    {
+        id: "no_personal_life",
+        groupId: "special",
+        title: "Никакой личной жизни",
+        description: "Добавьте 3 тайтла, связанных с учебой или экзаменами",
+        iconName: "GraduationCap",
+        target: 3,
+        hidden: true,
+    },
+    {
+        id: "fap_fap",
+        groupId: "special",
+        title: "Ага, дрочишь?",
+        description: "Добавить в коллекцию тайтл в жанре 'Этти'",
+        iconName: "Banana",
+        target: 1,
+        // hidden: true,
+    },
+    {
+        id: "more_boobies",
+        groupId: "special",
+        title: "Больше сисек",
+        description: "Добавить в коллекцию 3 тайтла в жанре 'Этти'",
+        iconName: "Cherry",
+        target: 3,
+        // hidden: true,
+    },
+];

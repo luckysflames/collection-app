@@ -7,7 +7,7 @@ import {
     ANIME_RATINGS,
     ESRB_RATINGS,
     BOOK_MATURITY_RATINGS,
-} from "../../../../constants";
+} from "../../../../constants/index";
 
 const StatSubItem = ({ label, value }) => (
     <View style={styles.subItem}>

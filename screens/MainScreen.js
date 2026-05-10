@@ -25,7 +25,7 @@ import {
     DEFAULT_STATUS_BY_SECTION,
     SECTION_MAPPING,
     FAVORITE_STATUS,
-} from "../constants";
+} from "../constants/index";
 
 export default function MainScreen({ route, navigation }) {
     const insets = useSafeAreaInsets();

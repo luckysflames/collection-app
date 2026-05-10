@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { LabelValue } from "./LabelValue";
 import { formatKind, formatRating } from "./utils";
-import { ANIME_ORIGIN_MAP } from "../../../../constants";
+import { ANIME_ORIGIN_MAP } from "../../../..//constants/index";
 
 export const AnimeQuickData = ({ data }) => {
     return (

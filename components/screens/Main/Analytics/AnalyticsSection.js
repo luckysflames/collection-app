@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { ChevronDown, ChevronUp } from "lucide-react-native";
 import { PieChart } from "react-native-gifted-charts";
-import { CATEGORY_CONFIG, SUB_CATEGORIES } from "../../../../constants";
+import { CATEGORY_CONFIG, SUB_CATEGORIES } from "../../../..//constants/index";
 
 if (
     Platform.OS === "android" &&

@@ -10,9 +10,9 @@ import {
     LayoutAnimation,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ChevronDown, ChevronUp } from "lucide-react-native";
+import { ChevronDown, ChevronUp, Trophy } from "lucide-react-native";
 
-import { SUB_CATEGORIES } from "../constants";
+import { SUB_CATEGORIES } from "../constants/index";
 import { useCollectionStore } from "../store/useCollectionStore";
 import AnalyticsPanel from "../components/screens/Main/Analytics/AnalyticsPanel";
 import CollectionProgress from "../components/screens/Main/CollectionProgress";
@@ -32,8 +32,17 @@ export default function CollectionDashboard({ navigation }) {
     };
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top - 20 }]}>
-            <Text style={styles.headerTitle}>Мои коллекции</Text>
+        <View style={[styles.container, { paddingTop: insets.top - 40 }]}>
+            <View style={styles.headerRow}>
+                <Text style={styles.headerTitle}>Мои коллекции</Text>
+                <View style={styles.headerButton}>
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate("Achievments")}
+                    >
+                        <Trophy size={22} color="#7D8AFF" />
+                    </TouchableOpacity>
+                </View>
+            </View>
 
             <ScrollView
                 showsVerticalScrollIndicator={false}
@@ -86,14 +95,29 @@ export default function CollectionDashboard({ navigation }) {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#050B18", paddingHorizontal: 20 },
+    headerRow: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        height: 75,
+    },
+    headerButton: {
+        backgroundColor: "rgba(11, 21, 52, 0.8)",
+        width: 45,
+        height: 45,
+        borderRadius: 15,
+        justifyContent: "center",
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.05)",
+    },
     headerTitle: {
         color: "#fff",
         fontSize: 24,
         fontWeight: "bold",
-        marginBottom: 20,
     },
     scrollContent: {
-        paddingBottom: 120, // Чтобы таббар не перекрывал контент
+        paddingBottom: 120,
     },
     grid: {
         flexDirection: "row",

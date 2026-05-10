@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { FAVORITE_STATUS } from "../constants";
+import { FAVORITE_STATUS } from "../constants/index";
 
 export const useFilteredCollection = ({
     data,

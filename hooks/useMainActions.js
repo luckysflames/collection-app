@@ -2,7 +2,7 @@ import { useCallback, useRef } from "react";
 import { useCollectionStore } from "../store/useCollectionStore";
 import { Platform, Vibration } from "react-native";
 import * as Haptics from "expo-haptics";
-import { FAVORITE_STATUS } from "../constants";
+import { FAVORITE_STATUS } from "../constants/index";
 
 export const useMainActions = (
     currentSection,

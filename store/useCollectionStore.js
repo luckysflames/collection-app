@@ -7,7 +7,7 @@ import {
     SECTION_MAPPING,
     FAVORITE_STATUS,
     DEFAULT_STATUS_BY_SECTION,
-} from "../constants";
+} from "../constants/index";
 import {
     deletePersistentImageAsync,
     isPersistentImageUri,

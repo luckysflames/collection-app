@@ -3,7 +3,7 @@ import StatusModal from "../../../shared/StatusModal";
 import FolderSelectModal from "./FolderSelectModal";
 import { WarnModal } from "../../../ui/WarnModal";
 import { CreateFolderModal } from "../../Main/Modals/CreateFolderModal";
-import { FAVORITE_STATUS } from "../../../../constants";
+import { FAVORITE_STATUS } from "../../../../constants/index";
 
 export const DetailsModals = ({ state, actions, data, handlers }) => {
     return (

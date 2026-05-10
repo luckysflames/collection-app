@@ -17,7 +17,7 @@ import {
     SORT_LABELS,
     SORT_TYPES,
     SORT_SUB_OPTIONS,
-} from "../constants";
+} from "../constants/index";
 import { useCollectionStore } from "../store/useCollectionStore";
 import { useStatusManager } from "../hooks/useStatusManager";
 

@@ -7,7 +7,7 @@ import {
     Dimensions,
     Image,
 } from "react-native";
-import { SUB_CATEGORIES } from "../../../constants";
+import { SUB_CATEGORIES } from "../../../constants/index";
 
 const { width } = Dimensions.get("window");
 
@@ -72,6 +72,7 @@ const styles = StyleSheet.create({
         color: "#fff",
         fontSize: 24,
         fontWeight: "bold",
+        marginTop: 7.5,
         marginBottom: 8,
     },
     subtitle: {
