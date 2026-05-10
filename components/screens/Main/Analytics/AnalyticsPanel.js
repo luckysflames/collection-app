@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, Switch } from "react-native";
 
 import { CATEGORY_CONFIG, SUB_CATEGORIES } from "../../../../constants";
 import { calculateStats } from "../../../../utils/analyticsHelpers";
-import { TopValuesList } from "./TopValuesList";
 import AnalyticsSection from "./AnalyticsSection";
 
 export default function AnalyticsPanel({ collection }) {

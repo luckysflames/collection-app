@@ -11,7 +11,7 @@ import {
     collectImageFilesForZip,
     moveImagesFromTemp,
 } from "../utils/imageStorage";
-import { zip } from "react-native-zip-archive";
+import { unzip, zip } from "react-native-zip-archive";
 
 export const useFileManagement = (store) => {
     const [modalConfig, setModalConfig] = useState({

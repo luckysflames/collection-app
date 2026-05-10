@@ -29,7 +29,7 @@ export const getTopValues = (
     items,
     extractor,
     onlyRated = false,
-    limit = 5,
+    limit = 16,
 ) => {
     const statsMap = {};
 
