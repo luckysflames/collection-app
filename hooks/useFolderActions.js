@@ -41,7 +41,7 @@ export const useFolderActions = (
     }, []);
 
     const pickImage = async () => {
-        const uri = await openPicker([cardWidth, cardHeight]);
+        const uri = await openPicker([12, 17]);
         if (uri) updateField("image", uri);
     };
 

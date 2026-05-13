@@ -8,11 +8,14 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useAudioPlayer } from "expo-audio";
+import { X } from "lucide-react-native";
 import { DynamicIcon } from "./DynamicIcon";
+import { useCollectionStore } from "../../../store/useCollectionStore";
 
 const audioSource = require("../../../assets/sounds/achivement.wav");
 
 export const AchievementToast = ({ achievement, onDismiss }) => {
+    const isSound = useCollectionStore((state) => state.isSound);
     const navigation = useNavigation();
     const translateX = useRef(new Animated.Value(-100)).current;
     const opacity = useRef(new Animated.Value(0)).current;
@@ -20,7 +23,7 @@ export const AchievementToast = ({ achievement, onDismiss }) => {
     const player = useAudioPlayer(audioSource);
 
     useEffect(() => {
-        if (player) {
+        if (player && isSound) {
             player.play();
         }
 
@@ -76,12 +79,12 @@ export const AchievementToast = ({ achievement, onDismiss }) => {
                 },
             ]}
         >
-            <TouchableOpacity
-                onPress={handlePress}
-                activeOpacity={0.8}
-                style={styles.blurWrapper}
-            >
-                <View style={styles.content}>
+            <View style={styles.blurWrapper}>
+                <TouchableOpacity
+                    onPress={handlePress}
+                    activeOpacity={0.8}
+                    style={styles.content}
+                >
                     <View style={styles.iconContainer}>
                         <DynamicIcon
                             name={
@@ -102,8 +105,17 @@ export const AchievementToast = ({ achievement, onDismiss }) => {
                                 : "Получено новое достижение!"}
                         </Text>
                     </View>
-                </View>
-            </TouchableOpacity>
+                </TouchableOpacity>
+
+                {/* Кнопка закрытия */}
+                <TouchableOpacity
+                    style={styles.closeButton}
+                    onPress={hide}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} // Увеличиваем зону нажатия
+                >
+                    <X size={20} color="rgba(255, 255, 255, 0.5)" />
+                </TouchableOpacity>
+            </View>
         </Animated.View>
     );
 };
@@ -111,11 +123,10 @@ export const AchievementToast = ({ achievement, onDismiss }) => {
 const styles = StyleSheet.create({
     container: {
         position: "absolute",
-        top: 40,
-        left: 20,
-        right: 20,
+        top: 50,
+        left: 16,
+        right: 16,
         zIndex: 9999,
-        alignItems: "center",
     },
     blurWrapper: {
         width: "100%",
@@ -123,12 +134,15 @@ const styles = StyleSheet.create({
         overflow: "hidden",
         borderWidth: 1,
         borderColor: "rgba(125, 138, 255, 0.3)",
+        backgroundColor: "rgba(11, 21, 52, 1)",
+        flexDirection: "row", // Позволяет кнопке встать в ряд
+        alignItems: "center",
     },
     content: {
+        flex: 1, // Занимает всё свободное место, кроме кнопки закрытия
         flexDirection: "row",
         alignItems: "center",
         padding: 12,
-        backgroundColor: "rgba(11, 21, 52, 1)",
     },
     iconContainer: {
         width: 44,
@@ -141,13 +155,19 @@ const styles = StyleSheet.create({
     },
     textContainer: {
         flex: 1,
+        marginRight: 8,
+    },
+    closeButton: {
+        paddingHorizontal: 16,
+        height: "100%",
+        justifyContent: "center",
+        alignItems: "center",
     },
     upperTitle: {
         color: "#7D8AFF",
         fontSize: 10,
         fontWeight: "800",
         textTransform: "uppercase",
-        letterSpacing: 1,
         marginTop: 2,
     },
     achievementTitle: {

@@ -11,14 +11,6 @@ import {
 import { ChevronDown, ChevronUp } from "lucide-react-native";
 import { useCollectionStore } from "../../../store/useCollectionStore";
 
-// Включаем LayoutAnimation для Android
-if (
-    Platform.OS === "android" &&
-    UIManager.setLayoutAnimationEnabledExperimental
-) {
-    UIManager.setLayoutAnimationEnabledExperimental(true);
-}
-
 const GOAL_OPTIONS = [100, 250, 500, 1000];
 
 const CollectionProgress = ({ totalItems }) => {

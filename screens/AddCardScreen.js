@@ -82,7 +82,7 @@ export default function AddCardScreen({ navigation }) {
                 <ImageUploader
                     image={form.image}
                     onImagePick={async () => {
-                        const uri = await pickImage([2, 3], form.image);
+                        const uri = await pickImage([12, 17], form.image);
                         if (uri) updateField("image", uri);
                     }}
                 />

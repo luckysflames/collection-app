@@ -126,7 +126,7 @@ export default function SearchScreen({ navigation, route }) {
                             !loading &&
                             !loadingMore &&
                             !isEnd &&
-                            query.length >= 3
+                            query.length > 0
                         ) {
                             handleSearch(query, activeCategory, false);
                         }

@@ -73,7 +73,7 @@ const fetchShikimoriGraphql = async (query, variables = {}) => {
 };
 
 export const searchMedia = async (text, category, page = 1) => {
-    if (!text || text.length < 3) return [];
+    if (!text || text.length < 1) return [];
 
     try {
         const isAnime = category === "Аниме" || category === "anime";

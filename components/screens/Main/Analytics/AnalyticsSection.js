@@ -13,13 +13,6 @@ import { ChevronDown, ChevronUp } from "lucide-react-native";
 import { PieChart } from "react-native-gifted-charts";
 import { CATEGORY_CONFIG, SUB_CATEGORIES } from "../../../..//constants/index";
 
-if (
-    Platform.OS === "android" &&
-    UIManager.setLayoutAnimationEnabledExperimental
-) {
-    UIManager.setLayoutAnimationEnabledExperimental(true);
-}
-
 // Вспомогательная функция для заглавной буквы
 const capitalize = (str) => {
     if (!str) return "";
@@ -177,11 +170,28 @@ export default function AnalyticsSection({ category, stats, itemCount }) {
                                     <Text style={styles.moreText}>
                                         + еще{" "}
                                         {stats[activeTab].length -
-                                            colorScale.length}
-                                        {" "}не вошли в топ...
+                                            colorScale.length}{" "}
+                                        не вошли в топ...
                                     </Text>
                                 )}
                             </ScrollView>
+                        </View>
+                    </View>
+
+                    {/* Блок общего времени */}
+                    <View style={styles.timeFooter}>
+                        <View style={styles.timeBlock}>
+                            <Text style={styles.timeValue}>
+                                ~{stats.timeStats?.completedHours || 0} ч
+                            </Text>
+                            <Text style={styles.timeLabel}>Вы потратили</Text>
+                        </View>
+                        <View style={styles.timeDivider} />
+                        <View style={styles.timeBlock}>
+                            <Text style={styles.timeValue}>
+                                ~{stats.timeStats?.totalHours || 0} ч
+                            </Text>
+                            <Text style={styles.timeLabel}>Нужно на всё</Text>
                         </View>
                     </View>
                 </View>
@@ -192,7 +202,6 @@ export default function AnalyticsSection({ category, stats, itemCount }) {
 
 const styles = StyleSheet.create({
     section: {
-        marginBottom: 16,
         backgroundColor: "#0B1534",
         borderRadius: 24,
         borderWidth: 1,
@@ -321,5 +330,34 @@ const styles = StyleSheet.create({
         textAlign: "center",
         marginTop: 4,
         fontStyle: "italic",
+    },
+    timeFooter: {
+        flexDirection: "row",
+        marginTop: 20,
+        marginHorizontal: 20,
+        padding: 15,
+        backgroundColor: "rgba(125, 138, 255, 0.05)",
+        borderRadius: 16,
+        alignItems: "center",
+    },
+    timeBlock: {
+        flex: 1,
+        alignItems: "center",
+    },
+    timeValue: {
+        color: "#FFF",
+        fontSize: 16,
+        fontWeight: "800",
+    },
+    timeLabel: {
+        color: "#8E94A4",
+        fontSize: 10,
+        textTransform: "uppercase",
+        marginTop: 2,
+    },
+    timeDivider: {
+        width: 1,
+        height: 30,
+        backgroundColor: "rgba(125, 138, 255, 0.1)",
     },
 });

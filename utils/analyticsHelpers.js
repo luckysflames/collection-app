@@ -34,7 +34,11 @@ export const getTopValues = (
     const statsMap = {};
 
     items.forEach((item) => {
-        if (onlyRated && !item.isBrilliant && (!item.userScore || item.userScore === 0)) {
+        if (
+            onlyRated &&
+            !item.isBrilliant &&
+            (!item.userScore || item.userScore === 0)
+        ) {
             return;
         }
 
@@ -46,7 +50,9 @@ export const getTopValues = (
                         statsMap[val] = { count: 0, totalScore: 0 };
                     }
                     statsMap[val].count += 1;
-                    statsMap[val].totalScore += item.isBrilliant ? 11 : (item.userScore || 0);
+                    statsMap[val].totalScore += item.isBrilliant
+                        ? 11
+                        : item.userScore || 0;
                 }
             });
         }
@@ -88,7 +94,58 @@ export const calculateStats = (items, category, onlyRated = false) => {
 
     if (filtered.length === 0) return null;
 
-    const stats = {};
+    // --- ЛОГИКА ПОДСЧЕТА ВРЕМЕНИ ---
+    const calculateItemMinutes = (item) => {
+        switch (category) {
+            case "movie":
+                // Извлекаем число из "120 min" или "120"
+                return extractNumeric(item.duration) || 0;
+
+            case "anime":
+                const episodes =
+                    extractNumeric(item.episodes) ||
+                    extractNumeric(item.episodesAired) ||
+                    0;
+                // Если duration на эпизод есть (например, 24), используем его, иначе дефолт 24
+                const durationPerEp = extractNumeric(item.duration) || 24;
+                return episodes * durationPerEp;
+
+            case "book":
+                const pages = extractNumeric(item.pageCount) || 0;
+                // Средняя скорость чтения: ~1.5 минуты на страницу
+                return Math.round(pages * 1.5);
+
+            case "game":
+                const hours = extractNumeric(item.duration) || 0;
+                return hours * 60;
+
+            default:
+                return 0;
+        }
+    };
+
+    const totalMinutesAll = filtered.reduce(
+        (acc, item) => acc + calculateItemMinutes(item),
+        0,
+    );
+
+    // Считаем только для завершенных (учитываем разные названия статусов)
+    const completedStatuses = [
+        "Просмотрено",
+        "Прочитано",
+        "Пройдено",
+    ];
+    const totalMinutesCompleted = filtered
+        .filter((i) => completedStatuses.includes(i.status))
+        .reduce((acc, item) => acc + calculateItemMinutes(item), 0);
+
+    // --- ОСТАЛЬНАЯ СТАТИСТИКА ---
+    const stats = {
+        timeStats: {
+            totalHours: Math.round(totalMinutesAll / 60),
+            completedHours: Math.round(totalMinutesCompleted / 60),
+        },
+    };
 
     const getTop = (extractor) => getTopValues(filtered, extractor, onlyRated);
 

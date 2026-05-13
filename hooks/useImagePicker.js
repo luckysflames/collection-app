@@ -8,7 +8,7 @@ import {
 
 export const useImagePicker = () => {
     const pickImage = async (
-        aspect = [3, 4],
+        aspect = [12, 17],
         oldImageUri = null,
         ignoreItemId = null,
     ) => {
@@ -23,7 +23,7 @@ export const useImagePicker = () => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images'],
             allowsEditing: true,
-            aspect,
+            aspect: aspect,
             quality: 1,
         });
 

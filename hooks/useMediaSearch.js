@@ -24,7 +24,7 @@ export const useMediaSearch = (initialCategory = "game") => {
     const handleSearch = useCallback(
         async (text, categoryOverride, isNewSearch = true) => {
             const sanitizedText = text?.trim() || "";
-            if (sanitizedText.length < 3) return;
+            if (sanitizedText.length < 1) return;
 
             const currentCategory = categoryOverride || activeCategory;
             const cacheKey = `${currentCategory}-${sanitizedText.toLowerCase()}`;

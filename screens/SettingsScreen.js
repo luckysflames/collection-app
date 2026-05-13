@@ -13,6 +13,7 @@ import {
     Download,
     Upload,
     Sparkles,
+    Volume2,
 } from "lucide-react-native";
 
 import { getBugReportTemplate } from "../utils/bugReportHelper";
@@ -32,10 +33,14 @@ export default function SettingsScreen({ navigation }) {
     );
     const isVibration = useCollectionStore((state) => state.isVibration);
     const setIsVibration = useCollectionStore((state) => state.setIsVibration);
-    const isDiamondRainEnabled = useCollectionStore((state) => state.isDiamondRainEnabled);
+    const isDiamondRainEnabled = useCollectionStore(
+        (state) => state.isDiamondRainEnabled,
+    );
     const setIsDiamondRainEnabled = useCollectionStore(
         (state) => state.setIsDiamondRainEnabled,
     );
+    const isSound = useCollectionStore((state) => state.isSound);
+    const setIsSound = useCollectionStore((state) => state.setIsSound);
 
     const { actions } = useDataManagement(store);
     const { handleExportCollection, handleImportCollection, FileModal } =
@@ -85,6 +90,14 @@ export default function SettingsScreen({ navigation }) {
                         type="switch"
                         value={isDiamondRainEnabled}
                         onValueChange={setIsDiamondRainEnabled}
+                    />
+                    <View style={styles.separator} />
+                    <SettingItem
+                        icon={Volume2}
+                        label="Звук"
+                        type="switch"
+                        value={isSound}
+                        onValueChange={setIsSound}
                     />
                     <View style={styles.separator} />
                     <SettingItem

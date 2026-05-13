@@ -52,7 +52,6 @@ export default function AchievementsScreen({ navigation, route }) {
     // Эффект для прокрутки при появлении highlightId
     useEffect(() => {
         if (highlightId && itemRefs[highlightId]) {
-            // Запускаем логику после завершения анимаций перехода
             const interactionPromise = InteractionManager.runAfterInteractions(
                 () => {
                     const timer = setTimeout(() => {
@@ -75,18 +74,22 @@ export default function AchievementsScreen({ navigation, route }) {
                 },
             );
 
-            // Таймер для очистки параметров навигации
+            // ПРАВКА ЗДЕСЬ:
+            // Вместо setTimeout, который может выстрелить "в спину" ушедшему экрану,
+            // мы просто проверяем, жив ли еще навигатор, или сбрасываем параметры только если экран в фокусе.
             const clearParamsTimer = setTimeout(() => {
-                navigation.setParams({ highlightId: undefined });
+                // Проверяем, можем ли мы менять параметры (экран не закрыт)
+                if (navigation.isFocused()) {
+                    navigation.setParams({ highlightId: undefined });
+                }
             }, 3000);
 
             return () => {
-                // Правильная очистка:
-                interactionPromise.cancel(); // Для InteractionManager
-                clearTimeout(clearParamsTimer); // Для обычного setTimeout
+                interactionPromise.cancel();
+                clearTimeout(clearParamsTimer);
             };
         }
-    }, [highlightId]);
+    }, [highlightId, navigation]);
 
     return (
         <View style={styles.container}>
