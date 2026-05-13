@@ -182,7 +182,10 @@ export const fetchDetailsById = async (id) => {
             return {
                 type: "movie",
                 budget: json.budget > 0 ? json.budget : "?",
-                genres: json.genres?.map((g) => g.name) || [],
+                genres:
+                    json.genres?.map(
+                        (g) => g.name.charAt(0).toUpperCase() + g.name.slice(1),
+                    ) || [],
                 originalTitle: json.original_title,
                 description: json.overview,
                 companies: json.production_companies?.map((c) => c.name) || [],

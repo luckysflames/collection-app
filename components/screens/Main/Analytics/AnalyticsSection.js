@@ -14,9 +14,11 @@ import { PieChart } from "react-native-gifted-charts";
 import { CATEGORY_CONFIG, SUB_CATEGORIES } from "../../../..//constants/index";
 
 // Вспомогательная функция для заглавной буквы
-const capitalize = (str) => {
+const capitalize = (str, forceLower = true) => {
     if (!str) return "";
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    return forceLower
+        ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
+        : str.charAt(0).toUpperCase() + str.slice(1);
 };
 
 const colorScale = ["#7D8AFF", "#110a8c", "#35398c", "#2b0d87", "#180255"];
@@ -158,7 +160,15 @@ export default function AnalyticsSection({ category, stats, itemCount }) {
                                             style={styles.legendName}
                                             numberOfLines={1}
                                         >
-                                            {capitalize(item.name)}
+                                            {capitalize(
+                                                item.name,
+                                                ![
+                                                    "topAuthors",
+                                                    "topStudios",
+                                                    "topDevelopers",
+                                                    "topCompanies",
+                                                ].includes(activeTab),
+                                            )}
                                         </Text>
                                         <Text style={styles.legendCount}>
                                             {item.count}

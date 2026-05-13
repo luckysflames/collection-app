@@ -37,6 +37,7 @@ export default function SearchScreen({ navigation, route }) {
         isEnd,
         getCategoryById,
         clearCache,
+        lastSearchedQuery,
     } = useMediaSearch("movie");
 
     const handlePickCategory = (catId) => {
@@ -126,7 +127,8 @@ export default function SearchScreen({ navigation, route }) {
                             !loading &&
                             !loadingMore &&
                             !isEnd &&
-                            query.length > 0
+                            query.length > 0 &&
+                            query.trim() === lastSearchedQuery.trim()
                         ) {
                             handleSearch(query, activeCategory, false);
                         }

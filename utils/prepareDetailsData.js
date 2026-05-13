@@ -1,14 +1,16 @@
-// utils/prepareDetailsData.js
-
-const splitString = (str) =>
-    Array.isArray(str)
+const splitString = (str) => {
+    const items = Array.isArray(str)
         ? str
         : typeof str === "string"
-          ? str
-                .split(",")
-                .map((s) => s.trim())
-                .filter(Boolean)
+          ? str.split(",").map((s) => s.trim())
           : [];
+
+    return items.filter(Boolean).map((s) => {
+        // Делаем первую букву заглавной, остальные не трогаем
+        // (или приводим к нижнему через .toLowerCase() если нужно полное форматирование)
+        return s.charAt(0).toUpperCase() + s.slice(1);
+    });
+};
 
 // Извлекаем только числовое значение, убираем любые единицы (мин., стр., ч., $)
 const extractNumeric = (value) => {

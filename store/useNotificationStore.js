@@ -6,13 +6,14 @@ export const useNotificationStore = create(
     persist(
         (set) => ({
             achievementQueue: [],
-            // Храним ID ачивок, которые мы уже "отпищали"
             shownAchievements: [],
+
+            _hasHydrated: false,
+            setHasHydrated: (state) => set({ _hasHydrated: state }),
 
             showAchievement: (achievement) =>
                 set((state) => ({
                     achievementQueue: [...state.achievementQueue, achievement],
-                    // Добавляем в список показанных, чтобы не спамить при перезаходе
                     shownAchievements: [
                         ...new Set([
                             ...state.shownAchievements,
@@ -26,7 +27,6 @@ export const useNotificationStore = create(
                     achievementQueue: state.achievementQueue.slice(1),
                 })),
 
-            // Метод для "сброса" ачивки (если ты откатил условие)
             resetAchievementNotification: (id) =>
                 set((state) => ({
                     shownAchievements: state.shownAchievements.filter(
@@ -37,10 +37,12 @@ export const useNotificationStore = create(
         {
             name: "notification-storage",
             storage: createJSONStorage(() => AsyncStorage),
-            // Мы сохраняем ТОЛЬКО список показанных, саму очередь сохранять не обязательно
             partialize: (state) => ({
                 shownAchievements: state.shownAchievements,
             }),
+            onRehydrateStorage: () => (state) => {
+                state.setHasHydrated(true);
+            },
         },
     ),
 );

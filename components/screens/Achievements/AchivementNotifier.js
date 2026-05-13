@@ -8,17 +8,32 @@ import { AchievementToast } from "./AchivementToast";
 
 export const AchivementNotifier = () => {
     const myCollection = useCollectionStore((state) => state.myCollection);
-    const {
-        achievementQueue,
-        showAchievement,
-        dismissAchievement,
-        shownAchievements,
-        resetAchievementNotification,
-    } = useNotificationStore();
+
+    // Подписываемся на нужные части стора уведомлений
+    const _hasHydrated = useNotificationStore((state) => state._hasHydrated);
+    const achievementQueue = useNotificationStore(
+        (state) => state.achievementQueue,
+    );
+    const shownAchievements = useNotificationStore(
+        (state) => state.shownAchievements,
+    );
+
+    const showAchievement = useNotificationStore(
+        (state) => state.showAchievement,
+    );
+    const dismissAchievement = useNotificationStore(
+        (state) => state.dismissAchievement,
+    );
+    const resetAchievementNotification = useNotificationStore(
+        (state) => state.resetAchievementNotification,
+    );
 
     const currentAchievement = achievementQueue[0] || null;
 
     React.useEffect(() => {
+        // Если AsyncStorage еще не прочитан — ничего не считаем!
+        if (!_hasHydrated) return;
+
         const achievements = calculateAchievements(myCollection);
 
         achievements.forEach((achievement) => {
@@ -28,18 +43,17 @@ export const AchivementNotifier = () => {
                 (item) => item.id === achievement.id,
             );
 
-            // СЛУЧАЙ 1: Ачивка только что выполнена и еще не была показана
+            // Кейс 1: Выполнил и не видел
             if (isCompleted && !wasShown && !isInQueue) {
                 showAchievement(achievement);
             }
 
-            // СЛУЧАЙ 2: Условие ачивки откатилось (например, удалил аниме)
-            // Мы "забываем", что показывали её, чтобы при повторном выполнении она опять вылезла
+            // Кейс 2: Потерял ачивку (удаление данных)
             if (!isCompleted && wasShown) {
                 resetAchievementNotification(achievement.id);
             }
         });
-    }, [myCollection]); // Убрали лишние зависимости, чтобы не было циклов
+    }, [myCollection, _hasHydrated]); // Добавляем _hasHydrated в зависимости
 
     if (!currentAchievement) return null;
 

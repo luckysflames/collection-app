@@ -211,6 +211,7 @@ const ACHIEVEMENT_CALCULATORS = {
             "долбаеб",
             "пидор",
             "пидорас",
+            "гей",
         ];
 
         return (
