@@ -1,6 +1,6 @@
 {
   "name": "collection-app",
-  "version": "4.8.0",
+  "version": "4.9.1",
   "main": "index.js",
   "scripts": {
     "start": "expo start",
@@ -19,6 +19,7 @@
     "axios": "^1.13.6",
     "babel-preset-expo": "~55.0.8",
     "expo": "~55.0.5",
+    "expo-audio": "~55.0.14",
     "expo-blur": "~55.0.9",
     "expo-constants": "~55.0.7",
     "expo-device": "~55.0.9",

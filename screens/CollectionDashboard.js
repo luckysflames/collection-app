@@ -37,7 +37,7 @@ export default function CollectionDashboard({ navigation }) {
                 <Text style={styles.headerTitle}>Мои коллекции</Text>
                 <View style={styles.headerButton}>
                     <TouchableOpacity
-                        onPress={() => navigation.navigate("Achievments")}
+                        onPress={() => navigation.navigate("Achievements")}
                     >
                         <Trophy size={22} color="#7D8AFF" />
                     </TouchableOpacity>

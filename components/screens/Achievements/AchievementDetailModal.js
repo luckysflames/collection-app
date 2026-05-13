@@ -26,7 +26,7 @@ export const AchievementDetailModal = ({ visible, onClose, achievement }) => {
                         name={achievement.displayIconName}
                         size={54}
                         // Меняем цвет иконки в зависимости от статуса
-                        color={isCompleted ? "#7D8AFF" : "#444E72"}
+                        color={isCompleted ? "#7D8AFF" : "#4f5670"}
                     />
                 </View>
 
@@ -81,12 +81,12 @@ const styles = StyleSheet.create({
         width: 100,
         height: 100,
         borderRadius: 50,
-        backgroundColor: "rgba(125, 138, 255, 0.15)",
+        backgroundColor: "rgba(125, 138, 255, 0.05)",
         justifyContent: "center",
         alignItems: "center",
         marginBottom: 20,
         borderWidth: 1,
-        borderColor: "rgba(125, 138, 255, 0.3)",
+        borderColor: "rgba(125, 138, 255, 0.1)",
     },
     completedGlow: {
         borderColor: "#7D8AFF",

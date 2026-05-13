@@ -34,7 +34,7 @@ export const useFolderActions = (
                 description: folder.description || "",
             });
         }
-    }, [folder?.id, isEditing]);
+    }, [folder, isEditing]);
 
     const updateField = useCallback((field, value) => {
         setEditForm((prev) => ({ ...prev, [field]: value }));
@@ -86,13 +86,18 @@ export const useFolderActions = (
     };
 
     const deleteEverything = () => {
-        if (!folder || !folderItems) return;
+        // Делаем копию ID и айтемов ДО удаления, чтобы не зависеть от состояния folder
+        const currentFolderId = folder?.id;
+        const itemsToDelete = [...folderItems];
 
-        navigation.goBack();
+        if (!currentFolderId) return;
 
+        navigation.goBack(); // Навигация должна быть первой
+
+        // Небольшая задержка, чтобы экран успел размонтироваться
         setTimeout(() => {
-            folderItems.forEach((item) => deleteCard(item.id));
-            deleteCard(folder.id);
+            itemsToDelete.forEach((item) => deleteCard(item.id));
+            deleteCard(currentFolderId);
         }, 100);
     };
 

@@ -1,21 +1,26 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
     View,
     Text,
     StyleSheet,
     ScrollView,
     TouchableOpacity,
+    InteractionManager,
 } from "react-native";
 
 import { useCollectionStore } from "../store/useCollectionStore";
 import { AchievementItem } from "../components/screens/Achievements/AchievementItem";
 import { AchievementDetailModal } from "../components/screens/Achievements/AchievementDetailModal";
-import { calculateAchievements } from "../utils/calculateAchievments";
+import { calculateAchievements } from "../utils/calculateAchievements";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChevronLeft } from "lucide-react-native";
 import { ACHIEVEMENT_GROUPS } from "../constants";
 
-export default function AchievementsScreen({ navigation }) {
+export default function AchievementsScreen({ navigation, route }) {
+    const highlightId = route.params?.highlightId;
+    const scrollRef = React.useRef(null); // Реф для скролла
+    const containerRef = React.useRef(null);
+    const itemRefs = React.useRef({}).current;
     const insets = useSafeAreaInsets();
     const myCollection = useCollectionStore((state) => state.myCollection);
     const [selectedAchiv, setSelectedAchiv] = useState(null);
@@ -39,6 +44,50 @@ export default function AchievementsScreen({ navigation }) {
         }));
     }, [myCollection]);
 
+    // Функция для записи координат элемента
+    const handleItemLayout = (id, y) => {
+        itemPositions[id] = y;
+    };
+
+    // Эффект для прокрутки при появлении highlightId
+    useEffect(() => {
+        if (highlightId && itemRefs[highlightId]) {
+            // Запускаем логику после завершения анимаций перехода
+            const interactionPromise = InteractionManager.runAfterInteractions(
+                () => {
+                    const timer = setTimeout(() => {
+                        if (itemRefs[highlightId] && containerRef.current) {
+                            itemRefs[highlightId].measureLayout(
+                                containerRef.current,
+                                (x, y) => {
+                                    scrollRef.current?.scrollTo({
+                                        y: Math.max(0, y - 150),
+                                        animated: true,
+                                    });
+                                },
+                                (error) =>
+                                    console.error("Scroll error:", error),
+                            );
+                        }
+                    }, 400);
+
+                    return () => clearTimeout(timer);
+                },
+            );
+
+            // Таймер для очистки параметров навигации
+            const clearParamsTimer = setTimeout(() => {
+                navigation.setParams({ highlightId: undefined });
+            }, 3000);
+
+            return () => {
+                // Правильная очистка:
+                interactionPromise.cancel(); // Для InteractionManager
+                clearTimeout(clearParamsTimer); // Для обычного setTimeout
+            };
+        }
+    }, [highlightId]);
+
     return (
         <View style={styles.container}>
             <View style={[styles.header, { paddingTop: insets.top - 20 }]}>
@@ -52,21 +101,32 @@ export default function AchievementsScreen({ navigation }) {
             </View>
 
             <ScrollView
+                ref={scrollRef}
                 showsVerticalScrollIndicator={false}
+                scrollEventThrottle={16} // Увеличивает частоту обработки событий скролла
+                scrollToOverflowEnabled={true}
                 contentContainerStyle={{ paddingBottom: 40 }}
             >
-                {groupedAchievements.map((group) => (
-                    <View key={group.id} style={styles.groupContainer}>
-                        <Text style={styles.groupTitle}>{group.title}</Text>
-                        {group.data.map((item) => (
-                            <AchievementItem
-                                key={item.id}
-                                achievement={item}
-                                onPress={setSelectedAchiv}
-                            />
-                        ))}
-                    </View>
-                ))}
+                {/* Обертка для измерения координат */}
+                <View ref={containerRef}>
+                    {groupedAchievements.map((group) => (
+                        <View key={group.id} style={styles.groupContainer}>
+                            <Text style={styles.groupTitle}>{group.title}</Text>
+                            {group.data.map((item) => (
+                                <View
+                                    key={item.id}
+                                    ref={(el) => (itemRefs[item.id] = el)} // Сохраняем реф на View
+                                >
+                                    <AchievementItem
+                                        achievement={item}
+                                        onPress={setSelectedAchiv}
+                                        isHighlighted={highlightId === item.id}
+                                    />
+                                </View>
+                            ))}
+                        </View>
+                    ))}
+                </View>
             </ScrollView>
 
             <AchievementDetailModal

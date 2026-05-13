@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
     CommonActions,
     DefaultTheme,
@@ -29,6 +29,7 @@ import { SecurityAlertModal } from "./components/ui/SecurityAlertModal";
 import { DiamondRain } from "./components/ui/Effects/DiamondRain";
 import EditCardScreen from "./screens/EditCardScreen";
 import AchievementsScreen from "./screens/AchievementsScreen";
+import { AchivementNotifier } from "./components/screens/Achievements/AchivementNotifier";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -101,7 +102,7 @@ export default function App() {
     // Ссылка на навигацию, чтобы перекинуть юзера в настройки
     const navigationRef = React.useRef(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
         // Если пароля нет, показываем модалку через небольшую паузу после загрузки
         if (!deletionPassword) {
             const timer = setTimeout(() => setShowSecurityModal(true), 1000);
@@ -163,7 +164,7 @@ export default function App() {
                             component={FolderDetailScreen}
                         />
                         <Stack.Screen
-                            name="Achievments"
+                            name="Achievements"
                             component={AchievementsScreen}
                         />
                         <Stack.Screen
@@ -183,6 +184,8 @@ export default function App() {
                         onCancel={() => setShowSecurityModal(false)}
                         onGoToSettings={handleGoToSettings}
                     />
+
+                    <AchivementNotifier />
                 </NavigationContainer>
             </SafeAreaView>
         </SafeAreaProvider>

@@ -174,8 +174,11 @@ export default function FolderDetailScreen({ route, navigation }) {
     const isFocused = useIsFocused();
 
     useEffect(() => {
-        setRaining(folder.id, isFocused && isBrilliant);
-    }, [isFocused, isBrilliant, folder.id, setRaining]);
+        if (folder?.id) {
+            // Добавьте проверку
+            setRaining(folder.id, isFocused && isBrilliant);
+        }
+    }, [isFocused, isBrilliant, folder?.id, setRaining]);
 
     if (!folder) return null;
 

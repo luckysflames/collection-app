@@ -6,6 +6,7 @@ import {
     Vibration,
     InteractionManager,
     ScrollView,
+    KeyboardAvoidingView,
 } from "react-native";
 import { useIsFocused } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -168,66 +169,75 @@ export default function DetailsScreen({ route, navigation }) {
 
     return (
         <View style={styles.container}>
-            <ScrollView
-                contentContainerStyle={{ flexGrow: 1 }}
-                bounces={true}
-                scrollEventThrottle={16}
-                keyboardShouldPersistTaps="handled"
-                nestedScrollEnabled={true}
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={"height"}
             >
-                <HeaderSection
-                    isEditing={false}
-                    image={displayData.image || item.image}
-                    insets={insets}
-                    onLeftPress={() => navigation.goBack()}
-                    onRightPress={
-                        isInCollection && savedItem?.isCustom
-                            ? handleEditPress
-                            : isInCollection && !savedItem?.isCustom
-                              ? handleRefresh
-                              : undefined
-                    }
-                    showEditButton={
-                        !showSkeleton && isInCollection && savedItem?.isCustom
-                    }
-                    showRefreshButton={
-                        !showSkeleton && isInCollection && !savedItem?.isCustom
-                    }
-                    isRefreshing={isRefreshing}
-                    isBrilliant={isBrilliant}
-                    onBrilliantPress={handleToggleBrilliant}
-                    showBrilliantBtn={isPeak}
-                />
+                <ScrollView
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    bounces={true}
+                    scrollEventThrottle={16}
+                    keyboardShouldPersistTaps="handled"
+                    nestedScrollEnabled={true}
+                >
+                    <HeaderSection
+                        isEditing={false}
+                        image={displayData.image || item.image}
+                        insets={insets}
+                        onLeftPress={() => navigation.goBack()}
+                        onRightPress={
+                            isInCollection && savedItem?.isCustom
+                                ? handleEditPress
+                                : isInCollection && !savedItem?.isCustom
+                                  ? handleRefresh
+                                  : undefined
+                        }
+                        showEditButton={
+                            !showSkeleton &&
+                            isInCollection &&
+                            savedItem?.isCustom
+                        }
+                        showRefreshButton={
+                            !showSkeleton &&
+                            isInCollection &&
+                            !savedItem?.isCustom
+                        }
+                        isRefreshing={isRefreshing}
+                        isBrilliant={isBrilliant}
+                        onBrilliantPress={handleToggleBrilliant}
+                        showBrilliantBtn={isPeak}
+                    />
 
-                <View style={styles.infoContainer}>
-                    {showSkeleton ? (
-                        <DetailsSkeleton />
-                    ) : (
-                        <ContentSection
-                            displayData={displayData}
-                            savedItem={savedItem}
-                            isInCollection={isInCollection}
-                            isFavorite={!!savedItem?.isFavorite}
-                            folderLabel={folderLabel}
-                            isAnyFolderSelected={parentFolders.length > 0}
-                            onStatusPress={() => openModal("status")}
-                            onFolderPress={() => openModal("folder")}
-                            onInfoPress={() => openModal("info")}
-                            onToggleFavorite={handleToggleFavorite}
-                            onUpdateNotes={(text) =>
-                                updateCard(item.id, { userNotes: text })
-                            }
-                            onSetScore={handleScoreWithHaptics}
-                            onNavigateToDetails={(newItem) =>
-                                navigation.push("Details", {
-                                    item: newItem,
-                                    category,
-                                })
-                            }
-                        />
-                    )}
-                </View>
-            </ScrollView>
+                    <View style={styles.infoContainer}>
+                        {showSkeleton ? (
+                            <DetailsSkeleton />
+                        ) : (
+                            <ContentSection
+                                displayData={displayData}
+                                savedItem={savedItem}
+                                isInCollection={isInCollection}
+                                isFavorite={!!savedItem?.isFavorite}
+                                folderLabel={folderLabel}
+                                isAnyFolderSelected={parentFolders.length > 0}
+                                onStatusPress={() => openModal("status")}
+                                onFolderPress={() => openModal("folder")}
+                                onInfoPress={() => openModal("info")}
+                                onToggleFavorite={handleToggleFavorite}
+                                onUpdateNotes={(text) =>
+                                    updateCard(item.id, { userNotes: text })
+                                }
+                                onSetScore={handleScoreWithHaptics}
+                                onNavigateToDetails={(newItem) =>
+                                    navigation.push("Details", {
+                                        item: newItem,
+                                        category,
+                                    })
+                                }
+                            />
+                        )}
+                    </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
 
             <DetailsModals
                 state={{
