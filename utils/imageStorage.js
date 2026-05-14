@@ -107,7 +107,7 @@ export const moveImagesFromTemp = async (tempFolderUri) => {
             await FileSystem.deleteAsync(to);
         }
 
-        await FileSystem.copyAsync({ from, to });
+        await FileSystem.moveAsync({ from, to });
         restoredMap.set(`${LOCAL_IMAGE_TAG}${fileName}`, to);
     }
     return restoredMap;

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { sqliteZustandStorage } from "../utils/sqliteStorage";
+
 import {
     DEFAULT_FALLBACK_STATUS,
     DEFAULT_STATUSES,
@@ -21,7 +22,8 @@ export const useCollectionStore = create(
         (set, get) => ({
             // --- STATE ---
             myCollection: [],
-            isCompactMenu: false,
+            _hasHydrated: false,
+            isCompactMenu: true,
             isVibration: true,
             isDiamondRainEnabled: true,
             isSound: true,
@@ -44,6 +46,7 @@ export const useCollectionStore = create(
             activeRainScreens: [],
 
             // --- SYSTEM ACTIONS ---
+            setHasHydrated: (state) => set({ _hasHydrated: state }),
             incVersion: () => set((state) => ({ version: state.version + 1 })),
             setRaining: (id, isActive) =>
                 set((state) => {
@@ -449,7 +452,7 @@ export const useCollectionStore = create(
 
                 (set({
                     myCollection: [],
-                    isCompactMenu: false,
+                    isCompactMenu: true,
                     collectionGoal: 500,
                     availableStatuses: {},
                     defaultTabs: {
@@ -473,10 +476,13 @@ export const useCollectionStore = create(
         }),
         {
             name: "user-collection-storage",
-            storage: createJSONStorage(() => AsyncStorage),
+            storage: createJSONStorage(() => sqliteZustandStorage),
             partialize: (state) => {
                 const { activeRainScreens, ...rest } = state;
                 return rest;
+            },
+            onRehydrateStorage: () => (state) => {
+                state.setHasHydrated(true);
             },
         },
     ),

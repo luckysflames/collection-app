@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { sqliteZustandStorage } from "../utils/sqliteStorage";
 
 export const useNotificationStore = create(
     persist(
@@ -36,7 +36,7 @@ export const useNotificationStore = create(
         }),
         {
             name: "notification-storage",
-            storage: createJSONStorage(() => AsyncStorage),
+            storage: createJSONStorage(() => sqliteZustandStorage),
             partialize: (state) => ({
                 shownAchievements: state.shownAchievements,
             }),

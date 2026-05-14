@@ -167,6 +167,7 @@ export default function AnalyticsSection({ category, stats, itemCount }) {
                                                     "topStudios",
                                                     "topDevelopers",
                                                     "topCompanies",
+                                                    "topCountries",
                                                 ].includes(activeTab),
                                             )}
                                         </Text>

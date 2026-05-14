@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
         borderColor: "rgba(125, 138, 255, 0.7)",
     },
     lockedItem: {
-        opacity: 0.8,
+        opacity: 0.3,
     },
     leftContainer: {
         flexDirection: "row",

@@ -44,6 +44,15 @@ export default function AchievementsScreen({ navigation, route }) {
         }));
     }, [myCollection]);
 
+    const stats = useMemo(() => {
+        // Получаем плоский массив всех достижений с рассчитанным прогрессом
+        const allAchivs = calculateAchievements(myCollection);
+        const total = allAchivs.length;
+        const unlocked = allAchivs.filter((a) => a.isCompleted).length;
+
+        return { total, unlocked };
+    }, [myCollection]);
+
     // Функция для записи координат элемента
     const handleItemLayout = (id, y) => {
         itemPositions[id] = y;
@@ -94,13 +103,24 @@ export default function AchievementsScreen({ navigation, route }) {
     return (
         <View style={styles.container}>
             <View style={[styles.header, { paddingTop: insets.top - 20 }]}>
-                <TouchableOpacity
-                    onPress={() => navigation.goBack()}
-                    style={styles.headerButton}
-                >
-                    <ChevronLeft size={24} color="#fff" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Достижения</Text>
+                <View style={styles.headerLeft}>
+                    <TouchableOpacity
+                        onPress={() => navigation.goBack()}
+                        style={styles.headerButton}
+                    >
+                        <ChevronLeft size={24} color="#fff" />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>Достижения</Text>
+                </View>
+
+                {/* Новый счетчик справа */}
+                <View style={styles.statsBadge}>
+                    <Text style={styles.statsText}>
+                        {stats.unlocked}
+                        <Text style={styles.statsDivider}> / </Text>
+                        {stats.total}
+                    </Text>
+                </View>
             </View>
 
             <ScrollView
@@ -150,8 +170,13 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: "row",
         alignItems: "center",
+        justifyContent: "space-between", // Расталкиваем заголовок и счетчик
         paddingBottom: 30,
         backgroundColor: "#050B18",
+    },
+    headerLeft: {
+        flexDirection: "row",
+        alignItems: "center",
     },
     headerTitle: {
         color: "#fff",
@@ -168,6 +193,25 @@ const styles = StyleSheet.create({
         alignItems: "center",
         borderWidth: 1,
         borderColor: "rgba(255,255,255,0.05)",
+    },
+    // Стили для счетчика
+    statsBadge: {
+        backgroundColor: "rgba(125, 138, 255, 0.15)", // Прозрачный акцентный фон
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: "rgba(125, 138, 255, 0.3)",
+    },
+    statsText: {
+        color: "#7D8AFF", // Цвет в тон заголовкам групп
+        fontSize: 16,
+        fontWeight: "bold",
+        fontVariant: ["tabular-nums"], // Чтобы цифры не прыгали при изменении
+    },
+    statsDivider: {
+        color: "rgba(125, 138, 255, 0.5)",
+        fontWeight: "normal",
     },
     groupContainer: {
         marginBottom: 25,

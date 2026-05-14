@@ -45,7 +45,12 @@ export const useFileManagement = (store) => {
                 myCollection,
                 availableStatuses,
                 defaultTabs,
+                defaultSorts,
                 collectionGoal,
+                isCompactMenu,
+                isVibration,
+                isSound,
+                isDiamondRainEnabled,
             } = store;
 
             if (myCollection.length === 0) {
@@ -63,13 +68,20 @@ export const useFileManagement = (store) => {
 
             const backupData = {
                 type: "GEEKLY_BACKUP_ZIP",
-                version: "2.0",
+                version: "2.1",
                 exportedAt: new Date().toISOString(),
                 payload: {
                     myCollection: normalizedCollection,
                     availableStatuses,
                     defaultTabs,
+                    defaultSorts,
                     collectionGoal,
+                    settings: {
+                        isCompactMenu,
+                        isVibration,
+                        isSound,
+                        isDiamondRainEnabled,
+                    },
                 },
             };
 
@@ -106,7 +118,7 @@ export const useFileManagement = (store) => {
                 });
             }
 
-            // 6. ЧИСТКА (вот что я предлагал добавить)
+            // 6. ЧИСТКА
             // Удаляем временную папку с картинками и json
             await FileSystem.deleteAsync(exportFolder, { idempotent: true });
             // Удаляем сам созданный zip-файл, так как он уже не нужен
@@ -154,7 +166,8 @@ export const useFileManagement = (store) => {
                 backup.payload.myCollection,
                 restoredMap,
             );
-            const savedStatuses = backup.payload.availableStatuses || {};
+            // ВАЖНО: Подготовка данных с учетом старых версий (Fallback)
+            const payload = backup.payload;
 
             // 4. ТВОЯ ОРИГИНАЛЬНАЯ ЛОГИКА МОДАЛОК
             showWarn({
@@ -164,6 +177,7 @@ export const useFileManagement = (store) => {
                 confirmText: "Дополнить",
                 onConfirm: () => {
                     hideModal();
+
                     const current = store.myCollection;
                     const currentIds = new Set(
                         current.map((item) => String(item.id)),
@@ -189,10 +203,8 @@ export const useFileManagement = (store) => {
                         if (item.status && item.appSection)
                             store.addCustomStatus(item.appSection, item.status);
                     });
-
                     store.setMyCollection([...current, ...uniqueNewItems]);
-                    if (backup.payload.collectionGoal)
-                        store.setCollectionGoal(backup.payload.collectionGoal);
+                    applySettings(payload);
 
                     setTimeout(
                         () =>
@@ -216,17 +228,19 @@ export const useFileManagement = (store) => {
                         }}
                         onPress={() => {
                             hideModal();
+
                             store.setMyCollection(newItems);
+                            // Восстанавливаем статусы (если нет в бэкапе - будет пустой объект)
+                            const savedStatuses =
+                                payload.availableStatuses || {};
                             Object.keys(savedStatuses).forEach((key) =>
                                 store.setStatusesForSection(
                                     key,
                                     savedStatuses[key],
                                 ),
                             );
-                            if (backup.payload.collectionGoal)
-                                store.setCollectionGoal(
-                                    backup.payload.collectionGoal,
-                                );
+                            applySettings(payload);
+                            
                             setTimeout(
                                 () =>
                                     showWarn({
@@ -251,6 +265,42 @@ export const useFileManagement = (store) => {
                     </TouchableOpacity>
                 ),
             });
+
+            // Функция-хелпер для наката настроек из бэкапа
+            const applySettings = (data) => {
+                // 1. Цель коллекции
+                if (data.collectionGoal)
+                    store.setCollectionGoal(data.collectionGoal);
+
+                // 2. Вкладки по умолчанию
+                if (data.defaultTabs) {
+                    Object.keys(data.defaultTabs).forEach((key) =>
+                        store.setDefaultTab(key, data.defaultTabs[key]),
+                    );
+                }
+
+                // 3. Сортировки (для старых бэкапов - пропускаем)
+                if (data.defaultSorts) {
+                    Object.keys(data.defaultSorts).forEach((key) =>
+                        store.setDefaultSort(key, data.defaultSorts[key]),
+                    );
+                }
+
+                // 4. Системные настройки (vibration, sound и т.д.)
+                // Если бэкап старый и поля settings нет, стор просто сохранит свои текущие значения
+                if (data.settings) {
+                    if (data.settings.isCompactMenu !== undefined)
+                        store.setIsCompactMenu(data.settings.isCompactMenu);
+                    if (data.settings.isVibration !== undefined)
+                        store.setIsVibration(data.settings.isVibration);
+                    if (data.settings.isSound !== undefined)
+                        store.setIsSound(data.settings.isSound);
+                    if (data.settings.isDiamondRainEnabled !== undefined)
+                        store.setIsDiamondRainEnabled(
+                            data.settings.isDiamondRainEnabled,
+                        );
+                }
+            };
 
             // Чистим временную папку распаковки
             await FileSystem.deleteAsync(tempUnzipPath, { idempotent: true });
