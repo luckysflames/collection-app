@@ -33,6 +33,12 @@ export const SUB_CATEGORIES = [
         inactive: require("../assets/icons/movie(inactive).png"),
     },
     {
+        id: "tv",
+        label: "Сериалы",
+        active: require("../assets/icons/tv(active).png"),
+        inactive: require("../assets/icons/tv(inactive).png"),
+    },
+    {
         id: "anime",
         label: "Аниме",
         active: require("../assets/icons/anime(active).png"),
@@ -46,18 +52,29 @@ export const SUB_CATEGORIES = [
     },
 ];
 
+export const DEFAULT_CATEGORY_ORDER = SUB_CATEGORIES.map((category) => category.id);
+
+export const getOrderedCategories = (categoryOrder = DEFAULT_CATEGORY_ORDER) =>
+    categoryOrder
+        .map((categoryId) =>
+            SUB_CATEGORIES.find((category) => category.id === categoryId),
+        )
+        .filter(Boolean);
+
 // Технический маппинг (id к названию коллекции)
 export const SECTION_MAPPING = {
     movie: "Movies",
     book: "Books",
     game: "Games",
     anime: "Anime",
+    tv: "TV",
 };
 
 // Список разделов
 export const SECTIONS = [
     { id: "movie", label: "Фильмы" },
     { id: "anime", label: "Аниме" },
+    { id: "tv", label: "Сериалы" },
     { id: "book", label: "Книги" },
     { id: "game", label: "Игры" },
 ];

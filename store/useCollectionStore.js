@@ -8,11 +8,10 @@ import {
     SECTION_MAPPING,
     FAVORITE_STATUS,
     DEFAULT_STATUS_BY_SECTION,
+    DEFAULT_CATEGORY_ORDER,
+    getOrderedCategories,
 } from "../constants/index";
-import {
-    deletePersistentImageAsync,
-    isPersistentImageUri,
-} from "../utils/imageStorage";
+import { deletePersistentImageAsync, isPersistentImageUri } from "../utils/imageStorage";
 
 // --- HELPERS ---
 const getSectionKey = (section) => SECTION_MAPPING[section] || section;
@@ -34,13 +33,16 @@ export const useCollectionStore = create(
                 Books: "Всё",
                 Games: "Всё",
                 Anime: "Всё",
+                TV: "Всё",
             },
             defaultSorts: {
                 Movies: "date_desc",
                 Books: "date_desc",
                 Games: "date_desc",
                 Anime: "date_desc",
+                TV: "date_desc",
             },
+            categoryOrder: DEFAULT_CATEGORY_ORDER,
             deletionPassword: null,
             version: 0,
             activeRainScreens: [],
@@ -75,9 +77,7 @@ export const useCollectionStore = create(
                 const saved = get().availableStatuses[key];
 
                 let baseList =
-                    saved && saved.length > 0
-                        ? saved
-                        : [...(DEFAULT_STATUSES[key] || [])];
+                    saved && saved.length > 0 ? saved : [...(DEFAULT_STATUSES[key] || [])];
 
                 // Принудительные статусы для обратной совместимости
                 const mandatory = ["Всё", "Папки", FAVORITE_STATUS];
@@ -94,13 +94,11 @@ export const useCollectionStore = create(
             setCollectionGoal: (goal) => set({ collectionGoal: goal }),
             setIsCompactMenu: (value) => set({ isCompactMenu: value }),
             setIsVibration: (value) => set({ isVibration: value }),
-            setIsDiamondRainEnabled: (value) =>
-                set({ isDiamondRainEnabled: value }),
+            setIsDiamondRainEnabled: (value) => set({ isDiamondRainEnabled: value }),
             setIsSound: (value) => set({ isSound: value }),
 
             // --- PASSWORD MANAGEMENT ---
-            setDeletionPassword: (newPassword) =>
-                set({ deletionPassword: newPassword }),
+            setDeletionPassword: (newPassword) => set({ deletionPassword: newPassword }),
             removePassword: () => set({ deletionPassword: null }),
             changePassword: (oldPassword, newPassword) => {
                 const current = get().deletionPassword;
@@ -127,6 +125,12 @@ export const useCollectionStore = create(
                     version: state.version + 1,
                 }));
             },
+
+            setCategoryOrder: (newCategoryOrder) =>
+                set((state) => ({
+                    categoryOrder: newCategoryOrder,
+                    version: state.version + 1,
+                })),
 
             setStatusesForSection: (section, newStatuses) => {
                 const key = getSectionKey(section);
@@ -159,9 +163,7 @@ export const useCollectionStore = create(
 
                 const key = getSectionKey(section);
                 const currentStatuses = get().getStatusesForSection(section);
-                const nextStatuses = currentStatuses.filter(
-                    (s) => s !== statusToDelete,
-                );
+                const nextStatuses = currentStatuses.filter((s) => s !== statusToDelete);
 
                 set((state) => {
                     const isDefault = state.defaultTabs[key] === statusToDelete;
@@ -176,8 +178,7 @@ export const useCollectionStore = create(
                         },
                         defaultTabs: nextDefaultTabs,
                         myCollection: state.myCollection.map((item) =>
-                            item.appSection === section &&
-                            item.status === statusToDelete
+                            item.appSection === section && item.status === statusToDelete
                                 ? {
                                       ...item,
                                       status: null,
@@ -192,9 +193,7 @@ export const useCollectionStore = create(
             // --- COLLECTION CRUD ---
             addToCollection: (item) =>
                 set((state) => {
-                    const exists = state.myCollection.some(
-                        (i) => String(i.id) === String(item.id),
-                    );
+                    const exists = state.myCollection.some((i) => String(i.id) === String(item.id));
                     if (exists) return state;
 
                     const newItem = {
@@ -211,9 +210,7 @@ export const useCollectionStore = create(
             updateCard: (id, updatedFields) =>
                 set((state) => ({
                     myCollection: state.myCollection.map((item) =>
-                        String(item.id) === String(id)
-                            ? { ...item, ...updatedFields }
-                            : item,
+                        String(item.id) === String(id) ? { ...item, ...updatedFields } : item,
                     ),
                     version: state.version + 1,
                 })),
@@ -233,22 +230,16 @@ export const useCollectionStore = create(
             setFavorite: (id, value) =>
                 set((state) => ({
                     myCollection: state.myCollection.map((item) =>
-                        String(item.id) === String(id)
-                            ? { ...item, isFavorite: value }
-                            : item,
+                        String(item.id) === String(id) ? { ...item, isFavorite: value } : item,
                     ),
                 })),
 
             deleteCard: (id) => {
                 const state = get();
-                const itemToDelete = state.myCollection.find(
-                    (i) => String(i.id) === String(id),
-                );
+                const itemToDelete = state.myCollection.find((i) => String(i.id) === String(id));
                 if (!itemToDelete) return;
 
-                let nextCollection = state.myCollection.filter(
-                    (i) => String(i.id) !== String(id),
-                );
+                let nextCollection = state.myCollection.filter((i) => String(i.id) !== String(id));
 
                 if (itemToDelete.isFolder) {
                     nextCollection = nextCollection.map((i) => ({
@@ -272,14 +263,10 @@ export const useCollectionStore = create(
 
                 set({ myCollection: nextCollection });
 
-                if (
-                    itemToDelete.image &&
-                    isPersistentImageUri(itemToDelete.image)
-                ) {
+                if (itemToDelete.image && isPersistentImageUri(itemToDelete.image)) {
                     const isReferencedElsewhere = state.myCollection.some(
                         (item) =>
-                            String(item.id) !== String(id) &&
-                            item.image === itemToDelete.image,
+                            String(item.id) !== String(id) && item.image === itemToDelete.image,
                     );
 
                     if (!isReferencedElsewhere) {
@@ -299,8 +286,7 @@ export const useCollectionStore = create(
                         (item) =>
                             item.isFolder &&
                             item.appSection === section &&
-                            item.title.trim().toLowerCase() ===
-                                folderName.trim().toLowerCase(),
+                            item.title.trim().toLowerCase() === folderName.trim().toLowerCase(),
                     );
 
                     // 2. Если дубликат найден, можно либо прервать выполнение,
@@ -336,9 +322,8 @@ export const useCollectionStore = create(
                         itemsOrder: selectedItemIds,
                         userScore: 0,
                         image:
-                            state.myCollection.find(
-                                (i) => i.id === selectedItemIds[0],
-                            )?.image || null,
+                            state.myCollection.find((i) => i.id === selectedItemIds[0])?.image ||
+                            null,
                     };
 
                     const updatedCollection = state.myCollection.map((item) =>
@@ -346,10 +331,7 @@ export const useCollectionStore = create(
                             ? {
                                   ...item,
                                   parentFolderIds: Array.from(
-                                      new Set([
-                                          ...(item.parentFolderIds || []),
-                                          folderId,
-                                      ]),
+                                      new Set([...(item.parentFolderIds || []), folderId]),
                                   ),
                               }
                             : item,
@@ -365,10 +347,7 @@ export const useCollectionStore = create(
                             ? {
                                   ...item,
                                   parentFolderIds: Array.from(
-                                      new Set([
-                                          ...(item.parentFolderIds || []),
-                                          folderId,
-                                      ]),
+                                      new Set([...(item.parentFolderIds || []), folderId]),
                                   ),
                               }
                             : item,
@@ -381,9 +360,9 @@ export const useCollectionStore = create(
                         String(item.id) === String(itemId)
                             ? {
                                   ...item,
-                                  parentFolderIds: (
-                                      item.parentFolderIds || []
-                                  ).filter((id) => id !== folderId),
+                                  parentFolderIds: (item.parentFolderIds || []).filter(
+                                      (id) => id !== folderId,
+                                  ),
                               }
                             : item,
                     ),
@@ -403,17 +382,13 @@ export const useCollectionStore = create(
                 const state = get();
                 const imageUris = Array.from(
                     new Set(
-                        state.myCollection
-                            .map((item) => item.image)
-                            .filter(isPersistentImageUri),
+                        state.myCollection.map((item) => item.image).filter(isPersistentImageUri),
                     ),
                 );
 
                 set({ myCollection: [], version: state.version + 1 });
 
-                await Promise.all(
-                    imageUris.map((uri) => deletePersistentImageAsync(uri)),
-                );
+                await Promise.all(imageUris.map((uri) => deletePersistentImageAsync(uri)));
             },
 
             setMyCollection: (newCollection) =>
@@ -437,6 +412,8 @@ export const useCollectionStore = create(
                         Games: "date_desc",
                         Anime: "date_desc",
                     },
+                    categoryOrder: DEFAULT_CATEGORY_ORDER,
+                    categoryOrder: DEFAULT_CATEGORY_ORDER,
                     version: state.version + 1,
                 })),
 
@@ -444,9 +421,7 @@ export const useCollectionStore = create(
                 const state = get();
                 const imageUris = Array.from(
                     new Set(
-                        state.myCollection
-                            .map((item) => item.image)
-                            .filter(isPersistentImageUri),
+                        state.myCollection.map((item) => item.image).filter(isPersistentImageUri),
                     ),
                 );
 
@@ -469,9 +444,7 @@ export const useCollectionStore = create(
                     },
                     version: 0,
                 }),
-                    await Promise.all(
-                        imageUris.map((uri) => deletePersistentImageAsync(uri)),
-                    ));
+                    await Promise.all(imageUris.map((uri) => deletePersistentImageAsync(uri))));
             },
         }),
         {

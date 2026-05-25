@@ -10,6 +10,7 @@ export const useDetailsData = (item, fullDetails, savedItem) => {
         // Затем проверяем boolean флаги (от API)
         if (savedItem?.isAnime || item?.isAnime || fullDetails?.isAnime)
             return "anime";
+        if (savedItem?.isTV || item?.isTV || fullDetails?.isTV) return "tv";
         if (savedItem?.isGame || item?.isGame || fullDetails?.isGame)
             return "game";
         if (savedItem?.isBook || item?.isBook || fullDetails?.isBook)
@@ -91,6 +92,36 @@ export const useDetailsData = (item, fullDetails, savedItem) => {
                         savedItem?.companies || fullDetails?.companies || [],
                     originalTitle:
                         savedItem?.originalTitle || fullDetails?.originalTitle,
+                };
+            case "tv":
+                return {
+                    ...common,
+                    first_air_date: savedItem?.first_air_date || fullDetails?.first_air_date,
+                    last_air_date:
+                        savedItem?.last_air_date || fullDetails?.last_air_date,
+                    budget: savedItem?.budget || fullDetails?.budget,
+                    movieStatus:
+                        savedItem?.movieStatus || fullDetails?.movieStatus,
+                    countries:
+                        savedItem?.countries || fullDetails?.countries || [],
+                    companies:
+                        savedItem?.companies || fullDetails?.companies || [],
+                    originalTitle:
+                        savedItem?.originalTitle || fullDetails?.originalTitle,
+                    duration:
+                        savedItem?.duration || fullDetails?.duration || item?.duration,
+                    seasons:
+                        savedItem?.seasons ||
+                        fullDetails?.seasons ||
+                        fullDetails?.seasonsCount ||
+                        item?.seasons ||
+                        item?.seasonsCount,
+                    episodes:
+                        savedItem?.episodes ||
+                        fullDetails?.episodes ||
+                        fullDetails?.episodesCount ||
+                        item?.episodes ||
+                        item?.episodesCount,
                 };
             case "game":
                 return {

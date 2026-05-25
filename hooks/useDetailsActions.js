@@ -26,8 +26,9 @@ export const useDetailsActions = (item, displayData, category) => {
         // Приоритет 2: Секция из сохраненного айтема (если он уже в базе)
         if (savedItem?.appSection) return savedItem.appSection;
 
-        // Приоритет 3: Если это пришло из карусели аниме (проверяем поля API)
+        // Приоритет 3: Если это пришло из карусели аниме или сериалов (проверяем поля API)
         if (item.type === "anime" || item.episodes) return "Аниме";
+        if (item.type === "tv" || item.isTV) return "Сериалы";
 
         // Приоритет 4: Поле самого айтема
         return item.appSection || "Фильмы";

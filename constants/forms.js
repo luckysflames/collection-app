@@ -31,6 +31,7 @@ export const INITIAL_FORM_STATE = {
     developers: "",
     platforms: "",
     duration: "",
+    seasons: "",
     userScore: 0,
 };
 
@@ -71,7 +72,7 @@ export const MOVIE_STATUSES = [
     { id: "planned", label: "Планируется" },
     { id: "in production", label: "В производстве" },
     { id: "post production", label: "Пост-продакшн" },
-    { id: "released", label: "Вышло" },
+    { id: "ended", label: "Вышло" },
     { id: "canceled", label: "Отменено" },
 ];
 

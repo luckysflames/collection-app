@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { searchMedia } from "../services/apiService";
+import { searchMedia } from "../services/index";
 import { Keyboard } from "react-native";
 
 export const useMediaSearch = (initialCategory = "game") => {
@@ -18,6 +18,7 @@ export const useMediaSearch = (initialCategory = "game") => {
         if (id.startsWith("anime-")) return "anime";
         if (id.startsWith("game-")) return "game";
         if (id.startsWith("book-")) return "book";
+        if (id.startsWith("tv-")) return "tv";
         return "movie";
     };
 

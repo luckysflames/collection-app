@@ -1,43 +1,60 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet, Switch } from "react-native";
 
-import { CATEGORY_CONFIG, SUB_CATEGORIES } from "../../../..//constants/index";
+import {
+    CATEGORY_CONFIG,
+    getOrderedCategories,
+    SUB_CATEGORIES,
+} from "../../../..//constants/index";
+import { useCollectionStore } from "../../../../store/useCollectionStore";
 import { calculateStats } from "../../../../utils/analyticsHelpers";
 import AnalyticsSection from "./AnalyticsSection";
+import { useShallow } from "zustand/react/shallow";
 
 export default function AnalyticsPanel({ collection }) {
     const [onlyRated, setOnlyRated] = useState(false);
-    const categories = ["movie", "anime", "game", "book"];
+    const orderedCategories = useCollectionStore(
+        useShallow((state) => getOrderedCategories(state.categoryOrder)),
+    );
 
     const analyticsData = useMemo(() => {
         const filteredCollection = onlyRated
             ? collection.filter((item) => item.userScore > 0 || item.isBrilliant)
             : collection;
 
-        return categories.reduce((acc, cat) => {
-            // Передаем флаг onlyRated, чтобы функция знала, какой топ строить
-            const stats = calculateStats(filteredCollection, cat, onlyRated);
+        // Защита от пустых элементов
+        const validCategories = orderedCategories.filter(Boolean);
+
+        return validCategories.reduce((acc, catObj) => {
+            // ДОСТАЕМ ID (строку) из объекта категории
+            const catId = catObj.id;
+
+            // Передаем в хелпер именно строковый ID ('movie', 'game' и т.д.)
+            const stats = calculateStats(filteredCollection, catId, onlyRated);
 
             if (stats) {
                 acc.push({
-                    id: cat,
+                    id: catId, // сохраняем строковый id
                     stats,
+                    // Считаем количество карточек для этой категории
                     count: filteredCollection.filter(
-                        (i) => i.appSection === cat && !i.isFolder,
+                        (i) =>
+                            i.appSection &&
+                            i.appSection.toLowerCase() === catId.toLowerCase() &&
+                            !i.isFolder,
                     ).length,
                 });
             }
             return acc;
         }, []);
-    }, [collection, onlyRated]);
+    }, [collection, orderedCategories, onlyRated]);
 
     if (analyticsData.length === 0 && !onlyRated) {
         return (
             <View style={styles.container}>
                 <View style={styles.section}>
                     <Text style={[styles.mainTitle, { textAlign: "center" }]}>
-                        Здесь появится аналитика, как только в коллекцию
-                        добавятся карточки
+                        Здесь появится аналитика, как только в коллекцию добавятся карточки
                     </Text>
                 </View>
             </View>
@@ -49,11 +66,7 @@ export default function AnalyticsPanel({ collection }) {
             <View style={styles.mainHeader}>
                 <View>
                     <Text style={styles.mainTitle}>Аналитика</Text>
-                    {onlyRated && (
-                        <Text style={styles.subTitleBadge}>
-                            Только оценённые
-                        </Text>
-                    )}
+                    {onlyRated && <Text style={styles.subTitleBadge}>Только оценённые</Text>}
                 </View>
 
                 {/* Блок переключателя */}

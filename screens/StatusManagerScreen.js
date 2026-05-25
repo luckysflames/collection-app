@@ -1,29 +1,17 @@
 import React, { useState } from "react";
-import {
-    View,
-    Text,
-    StyleSheet,
-    Keyboard,
-    TouchableOpacity,
-} from "react-native";
+import { View, Text, StyleSheet, Keyboard, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { ChevronRight } from "lucide-react-native";
 
-import {
-    SECTIONS,
-    PROTECTED_STATUSES,
-    DEFAULT_STATUS_BY_SECTION,
-    SORT_LABELS,
-    SORT_TYPES,
-    SORT_SUB_OPTIONS,
-} from "../constants/index";
+import { SECTIONS, PROTECTED_STATUSES, SORT_LABELS, SUB_CATEGORIES } from "../constants/index";
 import { useCollectionStore } from "../store/useCollectionStore";
 import { useStatusManager } from "../hooks/useStatusManager";
 
 import { StatusManagerHeader } from "../components/screens/Settings/Statuses/StatusManagerHeader";
 import { SectionTabs } from "../components/screens/Settings/Statuses/SectionTabs";
 import { StatusList } from "../components/screens/Settings/Statuses/StatusList";
+import { CategoryOrderList } from "../components/screens/Settings/Statuses/CategoryOrderList";
 import { StatusInput } from "../components/screens/Settings/Statuses/StatusInput";
 import { WarnModal } from "../components/ui/WarnModal";
 import { SortModal } from "../components/screens/Main/Modals/SortModal";
@@ -36,10 +24,14 @@ export const StatusManagerScreen = ({ navigation }) => {
     const [modalConfig, setModalConfig] = useState({ visible: false });
     const [isSortModalVisible, setIsSortModalVisible] = useState(false);
 
+    // Блокировщик скролла при перетаскивании элементов
+    const [isDragging, setIsDragging] = useState(false);
+
     const {
         allLocalStatuses,
         allLocalDefaults,
         allLocalSorts,
+        allLocalCategoryOrder,
         newStatus,
         isSaving,
         hasChanges,
@@ -48,12 +40,14 @@ export const StatusManagerScreen = ({ navigation }) => {
         updateSectionStatuses,
         updateSectionDefault,
         updateSectionSort,
+        updateCategoryOrder,
     } = useStatusManager(store);
 
-    // Вспомогательные переменные для текущей секции
     const currentStatuses = allLocalStatuses[selectedSection];
     const currentDefault = allLocalDefaults[selectedSection];
     const currentSort = allLocalSorts[selectedSection];
+
+    const currentSectionLabel = SECTIONS.find((s) => s.id === selectedSection)?.label || "";
 
     const onAddStatus = () => {
         const trimmed = newStatus.trim();
@@ -84,58 +78,32 @@ export const StatusManagerScreen = ({ navigation }) => {
         setModalConfig({
             visible: true,
             title: "Удалить статус?",
-            message: `Карточки, которые находятся в "${status}", можно будет найти в разделе "Всё". Чтобы не запутаться, советуем сначала перенести карточки в другой статус.`,
+            message: `Карточки, которые находятся в "${status}", можно будет найти в разделе "Всё".`,
             type: "error",
             confirmText: "Удалить",
             onConfirm: () => {
-                // 1. Если удаляемый статус был дефолтным для этой вкладки, сбрасываем локально на "Всё"
                 if (currentDefault === status) {
                     updateSectionDefault(selectedSection, "Всё");
                 }
-
-                // 2. Обновляем локальный список статусов (черновик), чтобы из списка пропала строка
                 updateSectionStatuses(
                     selectedSection,
                     currentStatuses.filter((s) => s !== status),
                 );
-
-                // 3. ВАЖНО: Вызываем метод стора, чтобы он ПРОШЕЛСЯ ПО КАРТОЧКАМ и поставил им null
-                // Мы делаем это сразу, так как это действие с данными коллекции
                 store.removeCustomStatus(selectedSection, status);
-
                 setModalConfig({ visible: false });
             },
         });
     };
 
-    const onMove = (index, direction) => {
-        const nextIndex = direction === "up" ? index - 1 : index + 1;
-        if (nextIndex < 0 || nextIndex >= currentStatuses.length) return;
-
-        const updated = [...currentStatuses];
-        [updated[index], updated[nextIndex]] = [
-            updated[nextIndex],
-            updated[index],
-        ];
-        updateSectionStatuses(selectedSection, updated);
-    };
-
     return (
-        <View
-            style={[
-                styles.container,
-                {
-                    marginBottom: insets.bottom,
-                },
-            ]}
-        >
+        <View style={[styles.container, { marginBottom: insets.bottom }]}>
             <StatusManagerHeader
                 onBack={() => navigation.goBack()}
                 onSave={handleSave}
                 isSaving={isSaving}
                 hasChanges={hasChanges}
                 insets={insets}
-                title="Настройки отображения"
+                title="Настройки интерфейса"
             />
 
             <KeyboardAwareScrollView
@@ -144,49 +112,81 @@ export const StatusManagerScreen = ({ navigation }) => {
                 extraScrollHeight={180}
                 enableOnAndroid
                 keyboardShouldPersistTaps="handled"
+                // Отключаем скролл экрана во время перетаскивания плашек
+                scrollEnabled={!isDragging}
             >
-                <View style={styles.tabWrapper}>
+                {/* === ЗОНА 1: ПОРЯДОК КАТЕГОРИЙ === */}
+                <View style={styles.globalZone}>
+                    <Text style={styles.zoneBadge}>Глобальные настройки</Text>
+                    <Text style={styles.sectionTitle}>Порядок разделов</Text>
+                    <View style={styles.card}>
+                        <CategoryOrderList
+                            categories={allLocalCategoryOrder
+                                .map((categoryId) =>
+                                    SUB_CATEGORIES.find((cat) => cat.id === categoryId),
+                                )
+                                .filter(Boolean)}
+                            onDragStateChange={setIsDragging}
+                            onOrderChange={updateCategoryOrder}
+                        />
+                    </View>
+                </View>
+
+                {/* РАЗДЕЛИТЕЛЬ */}
+                <View style={styles.divider} />
+
+                {/* === ЗОНА 2: НАСТРОЙКИ СЕКЦИИ === */}
+                <View style={styles.contextZone}>
+                    <Text style={styles.zoneBadge}>Контекстные настройки</Text>
+                    <Text style={styles.sectionTitle}>Выберите раздел для редактирования</Text>
+
                     <SectionTabs
                         sections={SECTIONS}
                         selectedSection={selectedSection}
                         onSelect={setSelectedSection}
                     />
-                </View>
 
-                <Text style={styles.sectionTitle}>Сортировка по умолчанию</Text>
-                <View style={styles.card}>
-                    <TouchableOpacity
-                        style={styles.sortButton}
-                        onPress={() => setIsSortModalVisible(true)}
-                    >
-                        <Text style={styles.sortValue}>
-                            {SORT_LABELS[currentSort] || "Не выбрана"}
-                        </Text>
-                        <ChevronRight size={20} color="#7D8AFF" />
-                    </TouchableOpacity>
-                </View>
+                    <Text style={styles.contextHeader}>
+                        Настройки раздела:{" "}
+                        <Text style={styles.highlightText}>{currentSectionLabel}</Text>
+                    </Text>
 
-                <Text style={styles.sectionTitle}>Управление статусами</Text>
-                <View style={styles.card}>
-                    <StatusList
-                        statuses={currentStatuses}
-                        section={selectedSection}
-                        onMove={onMove}
-                        onDelete={confirmDelete}
-                        defaultStatus={currentDefault}
-                        onSetDefault={(val) =>
-                            updateSectionDefault(selectedSection, val)
-                        }
-                    />
-                </View>
+                    <Text style={styles.subSectionTitle}>Сортировка по умолчанию</Text>
+                    <View style={styles.card}>
+                        <TouchableOpacity
+                            style={styles.sortButton}
+                            onPress={() => setIsSortModalVisible(true)}
+                        >
+                            <Text style={styles.sortValue}>
+                                {SORT_LABELS[currentSort] || "Не выбрана"}
+                            </Text>
+                            <ChevronRight size={20} color="#7D8AFF" />
+                        </TouchableOpacity>
+                    </View>
 
-                <Text style={styles.sectionTitle}>Добавить новый</Text>
-                <View style={styles.card}>
-                    <StatusInput
-                        value={newStatus}
-                        onChange={setNewStatus}
-                        onAdd={onAddStatus}
-                    />
+                    <Text style={styles.subSectionTitle}>Управление внутренними статусами</Text>
+                    <View style={styles.card}>
+                        <StatusList
+                            statuses={currentStatuses}
+                            section={selectedSection}
+                            onDragStateChange={setIsDragging}
+                            onStatusesChange={(updatedStatuses) =>
+                                updateSectionStatuses(selectedSection, updatedStatuses)
+                            }
+                            onDelete={confirmDelete}
+                            defaultStatus={currentDefault}
+                            onSetDefault={(val) => updateSectionDefault(selectedSection, val)}
+                        />
+                    </View>
+
+                    <Text style={styles.subSectionTitle}>Добавить новый статус</Text>
+                    <View style={styles.card}>
+                        <StatusInput
+                            value={newStatus}
+                            onChange={setNewStatus}
+                            onAdd={onAddStatus}
+                        />
+                    </View>
                 </View>
             </KeyboardAwareScrollView>
 
@@ -200,10 +200,7 @@ export const StatusManagerScreen = ({ navigation }) => {
                 }}
             />
 
-            <WarnModal
-                {...modalConfig}
-                onClose={() => setModalConfig({ visible: false })}
-            />
+            <WarnModal {...modalConfig} onClose={() => setModalConfig({ visible: false })} />
         </View>
     );
 };
@@ -216,44 +213,65 @@ const styles = StyleSheet.create({
         paddingTop: 10,
         paddingBottom: 40,
     },
-    tabWrapper: { marginBottom: 25 },
+    globalZone: { marginBottom: 10 },
+    contextZone: { marginTop: 10 },
+    divider: {
+        height: 1,
+        backgroundColor: "rgba(125, 138, 255, 0.12)",
+        marginVertical: 20,
+        borderStyle: "dashed",
+    },
+    zoneBadge: {
+        color: "#4E5564",
+        fontSize: 10,
+        fontWeight: "800",
+        textTransform: "uppercase",
+        letterSpacing: 1.5,
+        marginBottom: 8,
+        marginLeft: 4,
+    },
     sectionTitle: {
-        color: "#fff", // Более приглушенный как в subText дашборда
+        color: "#fff",
+        fontSize: 16,
+        fontWeight: "700",
+        marginBottom: 14,
+        marginLeft: 4,
+    },
+    subSectionTitle: {
+        color: "#8E94A4",
         fontSize: 12,
         fontWeight: "700",
         textTransform: "uppercase",
-        marginBottom: 12,
+        letterSpacing: 1.0,
+        marginBottom: 10,
         marginLeft: 8,
-        letterSpacing: 1.2,
     },
+    contextHeader: {
+        color: "#8E94A4",
+        fontSize: 14,
+        fontWeight: "600",
+        marginTop: 10,
+        marginBottom: 20,
+        textAlign: "center",
+        backgroundColor: "rgba(125, 138, 255, 0.05)",
+        paddingVertical: 10,
+        borderRadius: 14,
+    },
+    highlightText: { color: "#7D8AFF", fontWeight: "800" },
     card: {
         backgroundColor: "#0B1534",
-        borderRadius: 28,
-        paddingVertical: 16,
+        borderRadius: 24,
+        paddingVertical: 14,
         paddingHorizontal: 12,
         borderWidth: 1,
-        borderColor: "rgba(125, 138, 255, 0.1)",
-        marginBottom: 25,
+        borderColor: "rgba(125, 138, 255, 0.08)",
+        marginBottom: 20,
     },
     sortButton: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: 5,
-        borderRadius: 20,
+        paddingHorizontal: 6,
     },
-    sortButtonContent: {
-        flex: 1,
-    },
-    sortLabel: {
-        color: "#4E5564",
-        fontSize: 12,
-        fontWeight: "600",
-        marginBottom: 4,
-    },
-    sortValue: {
-        color: "#FFF",
-        fontSize: 16,
-        fontWeight: "700",
-    },
+    sortValue: { color: "#FFF", fontSize: 15, fontWeight: "700" },
 });

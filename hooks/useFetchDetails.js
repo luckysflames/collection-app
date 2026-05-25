@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { fetchDetailsById } from "../services/apiService";
+import { fetchDetailsById } from "../services/index";
 
 export const useFetchDetails = (id) => {
     const [data, setData] = useState(null);

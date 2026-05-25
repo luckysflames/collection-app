@@ -8,6 +8,7 @@ export const PROTECTED_STATUSES = [...SYSTEM_STATUSES, FAVORITE_STATUS];
 export const DEFAULT_STATUS_BY_SECTION = {
     Movies: "Смотрю",
     Anime: "Смотрю",
+    TV: "Смотрю",
     Books: "Читаю",
     Games: "Играю",
 };
@@ -47,6 +48,17 @@ export const DEFAULT_STATUSES = {
         "Отложено",
     ],
     Anime: [
+        "Всё",
+        "Папки",
+        FAVORITE_STATUS,
+        "Смотрю",
+        "В планах",
+        "Просмотрено",
+        "Пересматриваю",
+        "Брошено",
+        "Отложено",
+    ],
+    TV: [
         "Всё",
         "Папки",
         FAVORITE_STATUS,

@@ -25,7 +25,7 @@ import { DetailsModals } from "../components/screens/Details/Modals/DetailsModal
 import { DetailsSkeleton } from "../components/screens/Details/DetailsSkeleton";
 
 // Utils & Services
-import { fetchDetailsById } from "../services/apiService";
+import { fetchDetailsById } from "../services/index";
 import { WarnModal } from "../components/ui/WarnModal";
 
 const DATA_LOAD_DELAY = 300;

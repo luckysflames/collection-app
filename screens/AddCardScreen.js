@@ -15,6 +15,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import { SECTIONS, STATUS_SELECTION_EXCLUDE } from "../constants/index";
 
 import MovieFields from "../components/screens/AddCard/Fields/MovieFields";
+import TVFields from "../components/screens/AddCard/Fields/TVFields";
 import AnimeFields from "../components/screens/AddCard/Fields/AnimeFields";
 import BookFields from "../components/screens/AddCard/Fields/BookFields";
 import GameFields from "../components/screens/AddCard/Fields/GameFields";
@@ -135,6 +136,9 @@ export default function AddCardScreen({ navigation }) {
                                 form={form}
                                 updateField={updateField}
                             />
+                        )}
+                        {form.type === "tv" && (
+                            <TVFields form={form} updateField={updateField} />
                         )}
                         {form.type === "anime" && (
                             <AnimeFields

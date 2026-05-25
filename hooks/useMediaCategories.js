@@ -31,6 +31,9 @@ export const useMediaCategories = (sectionId) => {
             case "movie":
                 sectionName = "фильмов";
                 break;
+            case "tv":
+                sectionName = "сериалов";
+                break;
             default:
                 sectionName = "элементов";
         }

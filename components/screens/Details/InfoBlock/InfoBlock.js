@@ -18,6 +18,8 @@ import {
     GameQuickData,
     MovieExtra,
     MovieQuickData,
+    TVExtra,
+    TVQuickData,
 } from "./Sections";
 import { InfoStats } from "./InfoStats";
 import { Bookmark, Folder, Info, Star } from "lucide-react-native";
@@ -42,6 +44,8 @@ export const InfoBlock = ({
                 return <AnimeExtra data={displayData} />;
             case "movie":
                 return <MovieExtra data={displayData} />;
+            case "tv":
+                return <TVExtra data={displayData} />;
             case "game":
                 return <GameExtra data={displayData} />;
             case "book":
@@ -58,6 +62,8 @@ export const InfoBlock = ({
                 return <AnimeQuickData data={displayData} />;
             case "movie":
                 return <MovieQuickData data={displayData} />;
+            case "tv":
+                return <TVQuickData data={displayData} />;
             case "game":
                 return <GameQuickData data={displayData} />;
             case "book":

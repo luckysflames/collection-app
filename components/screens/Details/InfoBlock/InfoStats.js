@@ -36,6 +36,7 @@ export const InfoStats = ({ displayData }) => {
         if (!val || val === "?" || val === "—") return "—";
         switch (type) {
             case "movie":
+            case "tv":
                 return `${val} мин.`;
             case "anime":
                 if (isAnimeMovie) {
@@ -76,21 +77,27 @@ export const InfoStats = ({ displayData }) => {
             return `${start || "..."} — ${end || "..."}`;
         }
 
+        if (displayData.type === "tv") {
+            const start = formatDate(displayData.first_air_date);
+            const end = formatDate(displayData.last_air_date);
+            if (!start && !end) return "—";
+            return `${start || "..."} — ${end || "..."}`;
+        }
+
         // Для обычных фильмов, игр и книг
         return formatDate(displayData.year) || "—";
     };
 
     const getAirStatus = () => {
         if (displayData.type === "anime") {
-            return getLabelById(
-                displayData.animeStatus || displayData.status,
-                ANIME_STATUSES,
-            );
+            return getLabelById(displayData.animeStatus || displayData.status, ANIME_STATUSES);
         }
-        if (displayData.type === "movie") {
-            return getLabelById(
-                displayData.movieStatus || displayData.status,
-                MOVIE_STATUSES,
+        if (displayData.type === "movie" || displayData.type === "tv") {
+            return (
+                getLabelById(displayData.movieStatus || displayData.status, MOVIE_STATUSES) ||
+                displayData.movieStatus ||
+                displayData.status ||
+                "—"
             );
         }
         return displayData.status || "—";
@@ -106,7 +113,7 @@ export const InfoStats = ({ displayData }) => {
             >
                 <StatSubItem
                     label={
-                        displayData.type === "anime" && !isAnimeMovie
+                        (displayData.type === "anime" || displayData.type === "tv") && !isAnimeMovie
                             ? "Период выхода"
                             : "Дата выхода"
                     }
@@ -114,22 +121,21 @@ export const InfoStats = ({ displayData }) => {
                 />
 
                 {displayData.type === "movie" && (
-                    <StatSubItem
-                        label="Бюджет"
-                        value={formatBudget(displayData.budget)}
-                    />
+                    <StatSubItem label="Бюджет" value={formatBudget(displayData.budget)} />
                 )}
                 {displayData.type === "game" && (
-                    <StatSubItem
-                        label="Метакритик"
-                        value={displayData.metacritic}
-                    />
+                    <StatSubItem label="Метакритик" value={displayData.metacritic} />
                 )}
                 {displayData.type === "book" && (
-                    <StatSubItem
-                        label="Объем"
-                        value={formatPages(displayData.pageCount)}
-                    />
+                    <StatSubItem label="Объем" value={formatPages(displayData.pageCount)} />
+                )}
+                {displayData.type === "tv" && (
+                    <View style={{ flex: 0.5 }}>
+                        <StatSubItem
+                            label="Сезонов"
+                            value={displayData.seasons || displayData.seasonsCount || "?"}
+                        />
+                    </View>
                 )}
             </View>
 
@@ -142,18 +148,16 @@ export const InfoStats = ({ displayData }) => {
                         value={`${displayData.episodesAired || "?"} / ${displayData.episodes || "?"}`}
                     />
                 )}
-
+                {displayData.type === "tv" && (
+                    <StatSubItem
+                        label="Эпизодов"
+                        value={displayData.episodes || displayData.episodesCount || "?"}
+                    />
+                )}
                 {displayData.type !== "book" && (
                     <StatSubItem
-                        label={
-                            displayData.type === "game"
-                                ? "Время"
-                                : "Длительность"
-                        }
-                        value={formatDuration(
-                            displayData.duration,
-                            displayData.type,
-                        )}
+                        label={displayData.type === "game" ? "Время" : "Длительность"}
+                        value={formatDuration(displayData.duration, displayData.type)}
                     />
                 )}
 
@@ -163,9 +167,8 @@ export const InfoStats = ({ displayData }) => {
                     <StatSubItem
                         label="Возраст"
                         value={
-                            BOOK_MATURITY_RATINGS.find(
-                                (r) => r.id === displayData.maturityRating,
-                            )?.label || "Для всех"
+                            BOOK_MATURITY_RATINGS.find((r) => r.id === displayData.maturityRating)
+                                ?.label || "Для всех"
                         }
                     />
                 ) : (

@@ -102,7 +102,7 @@ export default function SettingsScreen({ navigation }) {
                     <View style={styles.separator} />
                     <SettingItem
                         icon={List}
-                        label="Настройки отображения"
+                        label="Настройки интерфейса"
                         onPress={() => navigation.navigate("StatusManager")}
                     />
                 </View>

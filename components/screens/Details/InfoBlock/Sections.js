@@ -30,6 +30,16 @@ export const MovieQuickData = ({ data }) => {
     );
 };
 
+export const TVQuickData = ({ data }) => {
+    if (data.isCustom) return null;
+
+    return (
+        <View style={styles.quickMeta}>
+            <Text style={styles.scoreText}>★ {data.score}</Text>
+        </View>
+    );
+};
+
 export const GameQuickData = ({ data }) => {
     if (data.isCustom) return null;
 
@@ -61,6 +71,13 @@ export const AnimeExtra = ({ data }) => (
 );
 
 export const MovieExtra = ({ data }) => (
+    <>
+        <LabelValue label="Страны" value={data.countries?.join(", ")} />
+        <LabelValue label="Компании" value={data.companies?.join(", ")} />
+    </>
+);
+
+export const TVExtra = ({ data }) => (
     <>
         <LabelValue label="Страны" value={data.countries?.join(", ")} />
         <LabelValue label="Компании" value={data.companies?.join(", ")} />

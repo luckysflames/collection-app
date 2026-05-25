@@ -17,7 +17,7 @@ export const StatusManagerHeader = ({
     title = "Настройки", // Заголовок по умолчанию
     showSave = true, // Флаг: показывать ли кнопку сохранения
 }) => (
-    <View style={[styles.header, { paddingTop: insets.top }]}>
+    <View style={[styles.header, { paddingTop: insets.top - 20 }]}>
         <TouchableOpacity onPress={onBack} style={styles.headerButton}>
             <ChevronLeft size={24} color="#fff" />
         </TouchableOpacity>

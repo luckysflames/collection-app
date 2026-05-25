@@ -25,20 +25,11 @@ export const parseCommaSeparated = (value) => {
  * Если onlyRated = true, сортируем по рейтингу.
  * Если false (обычный режим), сортируем по количеству.
  */
-export const getTopValues = (
-    items,
-    extractor,
-    onlyRated = false,
-    limit = 16,
-) => {
+export const getTopValues = (items, extractor, onlyRated = false, limit = 16) => {
     const statsMap = {};
 
     items.forEach((item) => {
-        if (
-            onlyRated &&
-            !item.isBrilliant &&
-            (!item.userScore || item.userScore === 0)
-        ) {
+        if (onlyRated && !item.isBrilliant && (!item.userScore || item.userScore === 0)) {
             return;
         }
 
@@ -50,9 +41,7 @@ export const getTopValues = (
                         statsMap[val] = { count: 0, totalScore: 0 };
                     }
                     statsMap[val].count += 1;
-                    statsMap[val].totalScore += item.isBrilliant
-                        ? 11
-                        : item.userScore || 0;
+                    statsMap[val].totalScore += item.isBrilliant ? 11 : item.userScore || 0;
                 }
             });
         }
@@ -88,24 +77,35 @@ export const getTopValues = (
  * Вычисляет статистику (теперь принимает третий аргумент sortByScore)
  */
 export const calculateStats = (items, category, onlyRated = false) => {
-    const filtered = items.filter(
-        (item) => item.appSection === category && !item.isFolder,
-    );
+    // ЗАЩИТА: Если категория не передана или пустая, прерываем выполнение
+    if (!category || typeof category !== "string") return null;
+
+    // Теперь вызов .toLowerCase() на 100% безопасен
+    const targetCategory = category.toLowerCase();
+
+    // Безопасная фильтрация с приведением к нижнему регистру
+    const filtered = items.filter((item) => {
+        const itemSection = item.appSection ? item.appSection.toLowerCase() : "";
+        return itemSection === targetCategory && !item.isFolder;
+    });
 
     if (filtered.length === 0) return null;
 
     // --- ЛОГИКА ПОДСЧЕТА ВРЕМЕНИ ---
     const calculateItemMinutes = (item) => {
-        switch (category) {
+        switch (targetCategory) {
             case "movie":
                 // Извлекаем число из "120 min" или "120"
                 return extractNumeric(item.duration) || 0;
 
+            case "tv":
+                const episodesTV = extractNumeric(item.episodesCount) || 0;
+                const durationPerEpTV = extractNumeric(item.duration) || 0;
+                return episodesTV * durationPerEpTV;
+
             case "anime":
                 const episodes =
-                    extractNumeric(item.episodes) ||
-                    extractNumeric(item.episodesAired) ||
-                    0;
+                    extractNumeric(item.episodes) || extractNumeric(item.episodesAired) || 0;
                 // Если duration на эпизод есть (например, 24), используем его, иначе дефолт 24
                 const durationPerEp = extractNumeric(item.duration) || 24;
                 return episodes * durationPerEp;
@@ -124,17 +124,10 @@ export const calculateStats = (items, category, onlyRated = false) => {
         }
     };
 
-    const totalMinutesAll = filtered.reduce(
-        (acc, item) => acc + calculateItemMinutes(item),
-        0,
-    );
+    const totalMinutesAll = filtered.reduce((acc, item) => acc + calculateItemMinutes(item), 0);
 
     // Считаем только для завершенных (учитываем разные названия статусов)
-    const completedStatuses = [
-        "Просмотрено",
-        "Прочитано",
-        "Пройдено",
-    ];
+    const completedStatuses = ["Просмотрено", "Прочитано", "Пройдено"];
     const totalMinutesCompleted = filtered
         .filter((i) => completedStatuses.includes(i.status))
         .reduce((acc, item) => acc + calculateItemMinutes(item), 0);
@@ -153,52 +146,33 @@ export const calculateStats = (items, category, onlyRated = false) => {
 
     switch (category) {
         case "movie":
+        case "tv":
             stats.topGenres = getTop((item) =>
-                (item.genres || []).map(
-                    (g) => g.charAt(0).toUpperCase() + g.slice(1),
-                ),
+                (item.genres || []).map((g) => g.charAt(0).toUpperCase() + g.slice(1)),
             );
-            stats.topCountries = getTop((item) =>
-                parseCommaSeparated(item.countries),
-            );
-            stats.topCompanies = getTop((item) =>
-                parseCommaSeparated(item.companies),
-            );
+            stats.topCountries = getTop((item) => parseCommaSeparated(item.countries));
+            stats.topCompanies = getTop((item) => parseCommaSeparated(item.companies));
             break;
 
         case "anime":
             stats.topGenres = getTop((item) => item.genres || []);
             stats.topKinds = getTop((item) => {
                 const kind = ANIME_KINDS.find((k) => k.id === item.animeKind);
-                return kind
-                    ? [kind.label]
-                    : item.animeKind
-                      ? [item.animeKind]
-                      : [];
+                return kind ? [kind.label] : item.animeKind ? [item.animeKind] : [];
             });
-            stats.topStudios = getTop((item) =>
-                parseCommaSeparated(item.studios),
-            );
+            stats.topStudios = getTop((item) => parseCommaSeparated(item.studios));
             break;
 
         case "game":
             stats.topGenres = getTop((item) => item.genres || []);
-            stats.topPlatforms = getTop((item) =>
-                parseCommaSeparated(item.platforms),
-            );
-            stats.topDevelopers = getTop((item) =>
-                parseCommaSeparated(item.developers),
-            );
+            stats.topPlatforms = getTop((item) => parseCommaSeparated(item.platforms));
+            stats.topDevelopers = getTop((item) => parseCommaSeparated(item.developers));
             break;
 
         case "book":
             stats.topGenres = getTop((item) => item.genres || []);
-            stats.topAuthors = getTop((item) =>
-                parseCommaSeparated(item.authors),
-            );
-            stats.topPublishers = getTop((item) =>
-                item.publisher ? [item.publisher] : [],
-            );
+            stats.topAuthors = getTop((item) => parseCommaSeparated(item.authors));
+            stats.topPublishers = getTop((item) => (item.publisher ? [item.publisher] : []));
             break;
     }
 

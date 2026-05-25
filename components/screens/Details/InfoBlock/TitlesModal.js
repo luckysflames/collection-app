@@ -111,7 +111,8 @@ export const TitlesModal = ({ visible, onClose, data, isInCollection }) => {
                                     }
                                 />
                                 {(data?.type === "movie" ||
-                                    data?.type === "game") && (
+                                    data?.type === "game" ||
+                                    data?.type === "tv") && (
                                     <TitleItem
                                         label="Оригинальное"
                                         value={data?.originalTitle}

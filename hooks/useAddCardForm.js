@@ -91,6 +91,19 @@ export const useAddCardForm = (navigation) => {
                     originalTitle: form.originalTitle,
                 };
                 break;
+            case "tv":
+                extendedData = {
+                    year: form.year,
+                    budget: extractNumeric(form.budget),
+                    movieStatus: form.movieStatus,
+                    countries: split(form.countries),
+                    companies: split(form.companies),
+                    duration: extractNumeric(form.duration),
+                    originalTitle: form.originalTitle,
+                    seasons: extractNumeric(form.seasons),
+                    episodes: extractNumeric(form.episodes),
+                };
+                break;
             case "anime":
                 extendedData = {
                     englishTitle: form.englishTitle,

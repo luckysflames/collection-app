@@ -213,4 +213,8 @@ export const CATEGORY_CONFIG = {
         { title: "Топ авторы", key: "topAuthors" },
         { title: "Топ издатели", key: "topPublishers" },
     ],
+    tv: [
+        { title: "Топ страны", key: "topCountries" },
+        { title: "Топ производства", key: "topCompanies" },
+    ],
 };

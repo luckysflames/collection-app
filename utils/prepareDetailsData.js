@@ -54,6 +54,19 @@ export const prepareDataForSave = (formData, itemType) => {
                 originalTitle: formData.originalTitle,
             };
             break;
+        case "tv":
+            extendedData = {
+                year: formData.year,
+                budget: extractNumeric(formData.budget) || "",
+                movieStatus: formData.movieStatus,
+                countries: splitString(formData.countries),
+                companies: splitString(formData.companies),
+                duration: extractNumeric(formData.duration) || "",
+                originalTitle: formData.originalTitle,
+                seasons: extractNumeric(formData.seasons) || "",
+                episodes: extractNumeric(formData.episodes) || "",
+            };
+            break;
         case "anime":
             extendedData = {
                 englishTitle: formData.englishTitle,
