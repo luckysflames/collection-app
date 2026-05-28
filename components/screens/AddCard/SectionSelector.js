@@ -1,32 +1,51 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions } from "react-native";
+import { SUB_CATEGORIES } from "../../../constants/index";
 
-export default function SectionSelector({ sections, currentType, onSelect }) {
+const { width } = Dimensions.get("window");
+
+// Высчитываем ширину для сетки из 2 колонок (минус горизонтальные отступы экрана и gap)
+const CHIP_WIDTH = (width - 40 - 10) / 2;
+
+export default function SectionSelector({ sections = [], currentType, onSelect }) {
     return (
         <View style={styles.container}>
             <Text style={styles.label}>Категория</Text>
-            <View style={styles.chipRow}>
-                {sections.map((s) => (
-                    <TouchableOpacity
-                        key={s.id}
-                        style={[
-                            styles.chip,
-                            currentType === s.id && styles.activeChip,
-                        ]}
-                        onPress={() => onSelect(s.id)}
-                    >
-                        <Text
+            <View style={styles.grid}>
+                {sections.map((s, index) => {
+                    const isActive = currentType === s.id;
+                    
+                    // Если элемент последний и общее количество нечетное — растягиваем на всю ширину
+                    const isLastAndOdd = index === sections.length - 1 && sections.length % 2 !== 0;
+                    
+                    // Ищем иконку для текущей категории
+                    const subCat = SUB_CATEGORIES.find((cat) => cat.id === s.id);
+
+                    return (
+                        <TouchableOpacity
+                            key={s.id}
                             style={[
-                                styles.chipText,
-                                currentType === s.id
-                                    ? styles.activeChipText
-                                    : styles.chipText,
+                                styles.chipTile,
+                                isLastAndOdd && styles.chipFullWidth,
+                                isActive && styles.activeChipTile,
                             ]}
+                            onPress={() => onSelect(s.id)}
+                            activeOpacity={0.7}
                         >
-                            {s.label}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
+                            <View style={styles.contentLayout}>
+                                {subCat && (
+                                    <Image
+                                        source={isActive ? subCat.active : subCat.inactive}
+                                        style={[styles.chipIcon, isActive && styles.activeChipIcon]}
+                                    />
+                                )}
+                                <Text style={[styles.chipText, isActive && styles.activeChipText]}>
+                                    {s.label}
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
+                    );
+                })}
             </View>
         </View>
     );
@@ -34,7 +53,7 @@ export default function SectionSelector({ sections, currentType, onSelect }) {
 
 const styles = StyleSheet.create({
     container: {
-        marginBottom: 20, // Увеличили отступ до следующей секции
+        marginBottom: 24,
     },
     label: {
         color: "#8E94A4",
@@ -45,36 +64,55 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         marginLeft: 4,
     },
-    chipRow: {
+    grid: {
         flexDirection: "row",
         flexWrap: "wrap",
-        gap: 8, // Используем gap вместо marginRight для чистоты
+        gap: 10,
     },
-    chip: {
-        backgroundColor: "rgba(255, 255, 255, 0.05)", // Полупрозрачный фон для неактивных
-        paddingVertical: 10,
-        paddingHorizontal: 16,
-        borderRadius: 14,
+    chipTile: {
+        width: CHIP_WIDTH,
+        height: 65,
+        backgroundColor: "#0B1534",
+        borderRadius: 16,
         borderWidth: 1,
-        borderColor: "rgba(255, 255, 255, 0.08)",
+        borderColor: "rgba(125, 138, 255, 0.05)",
+        justifyContent: "center",
+        paddingHorizontal: 16,
     },
-    activeChip: {
+    chipFullWidth: {
+        width: "100%",
+    },
+    activeChipTile: {
         backgroundColor: "#7D8AFF",
         borderColor: "#7D8AFF",
-        // Добавим небольшое свечение для активного элемента
+        // Фирменное свечение активной плитки
         shadowColor: "#7D8AFF",
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 4,
+        shadowOpacity: 0.2,
+        shadowRadius: 5,
+        elevation: 3,
+    },
+    contentLayout: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10, // Отступ между иконкой и текстом
     },
     chipText: {
-        color: "rgba(255, 255, 255, 0.6)", // Приглушенный текст для неактивных
-        fontSize: 13,
+        color: "#8E94A4",
+        fontSize: 14,
         fontWeight: "600",
     },
     activeChipText: {
-        color: "#fff",
+        color: "#FFF",
         fontWeight: "700",
+    },
+    chipIcon: {
+        width: 20,
+        height: 20,
+        objectFit: "contain",
+        tintColor: "#4E5564",
+    },
+    activeChipIcon: {
+        tintColor: "#FFF",
     },
 });

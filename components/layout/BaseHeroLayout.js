@@ -1,79 +1,69 @@
 import React from "react";
 import { View, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Gem } from "lucide-react-native";
 
 export const BaseHeroLayout = ({
     image,
     insets,
     leftButton,
-    centerButton,
+    centerButton, // Теперь это просто конфигурация для декоративного элемента
     rightButton,
     children,
 }) => (
     <View style={styles.heroSection}>
-        {/* ФОНОВЫЙ СЛОЙ (как в старом HeroSection) */}
-        <Image
-            source={{ uri: image }}
-            style={styles.blurBackground}
-            blurRadius={1} // Возвращаем слабую размытость
-        />
+        {/* ФОНОВЫЙ СЛОЙ */}
+        <Image source={{ uri: image }} style={styles.blurBackground} blurRadius={1} />
 
         <LinearGradient
             colors={["#050B18", "transparent", "#050B18", "#050B18"]}
             style={styles.gradient}
         />
 
-        {/* КНОПКИ (используем новые конфиги, но старые стили) */}
-        <TouchableOpacity
-            style={[
-                styles.roundButton,
-                { top: insets.top, left: 15 }, // Координаты из старой версии
-                leftButton.style,
-            ]}
-            onPress={leftButton.onPress}
-        >
-            {leftButton.icon}
-        </TouchableOpacity>
-
-        {centerButton && (
+        {/* ЛЕВАЯ КНОПКА */}
+        {leftButton && (
             <TouchableOpacity
                 style={[
-                    styles.roundButton,
-                    styles.centerButton,
-                    { top: insets.top },
+                    !leftButton?.unstyled && styles.roundButton,
+                    { top: insets.top, left: 15 },
+                    leftButton?.style,
                 ]}
-                onPress={centerButton.onPress}
+                onPress={leftButton?.onPress}
+                activeOpacity={leftButton?.unstyled ? 0.7 : 0.2}
             >
-               {centerButton.icon}
+                {leftButton?.icon}
             </TouchableOpacity>
         )}
 
+        {/* ДЕКОРАТИВНЫЙ ЦЕНТРАЛЬНЫЙ ЭЛЕМЕНТ (АЛМАЗ) */}
+        {centerButton && (
+            <View style={[styles.centerDecorationWrapper, { top: insets.top }, centerButton.style]}>
+                {centerButton.icon}
+            </View>
+        )}
+
+        {/* ПРАВАЯ КНОПКА */}
         {rightButton && (
             <TouchableOpacity
                 style={[
-                    styles.roundButton,
+                    !rightButton.unstyled && styles.roundButton,
                     { top: insets.top, right: 15 },
                     rightButton.style,
                 ]}
                 onPress={rightButton.onPress}
+                activeOpacity={rightButton.unstyled ? 0.7 : 0.2}
             >
                 {rightButton.icon}
             </TouchableOpacity>
         )}
 
-        {/* КОНТЕНТ (Постер теперь четко центрируется) */}
-        <View
-            style={[styles.mainPosterWrapper, { paddingTop: insets.top + 50 }]}
-        >
-            {children}
-        </View>
+        {/* КОНТЕНТ */}
+        <View style={[styles.mainPosterWrapper, { paddingTop: insets.top + 50 }]}>{children}</View>
     </View>
 );
 
 const styles = StyleSheet.create({
     heroSection: {
-        minHeight: 450, // Фиксированная высота из старой версии
+        minHeight: 450,
         width: "100%",
         justifyContent: "flex-start",
         backgroundColor: "#050B18",
@@ -96,25 +86,28 @@ const styles = StyleSheet.create({
     roundButton: {
         position: "absolute",
         zIndex: 10,
-        backgroundColor: "rgba(11, 21, 52, 0.8)", // Старый цвет
+        backgroundColor: "rgba(11, 21, 52, 0.8)",
         width: 45,
         height: 45,
         borderRadius: 15,
         justifyContent: "center",
         alignItems: "center",
-        // Добавим легкую рамку для стиля
         borderWidth: 1,
         borderColor: "rgba(255,255,255,0.05)",
     },
-    centerButton: {
+    // Чистый, невидимка-контейнер чисто для позиционирования Lottie по центру
+    centerDecorationWrapper: {
+        position: "absolute",
+        zIndex: 10,
         alignSelf: "center",
         left: "50%",
-        marginLeft: -22.5, // половина ширины кнопки (45/2) для точного центра
+        justifyContent: "center",
+        alignItems: "center",
     },
     mainPosterWrapper: {
         zIndex: 5,
         alignItems: "center",
         justifyContent: "center",
-        marginTop: 20, // Небольшая компенсация под кнопки
+        marginTop: 20,
     },
 });

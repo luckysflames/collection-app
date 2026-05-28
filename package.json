@@ -36,6 +36,7 @@
     "expo-sharing": "~55.0.18",
     "expo-status-bar": "~55.0.4",
     "expo-updates": "~55.0.12",
+    "lottie-react-native": "~7.3.4",
     "lucide-react-native": "^0.577.0",
     "react": "19.2.0",
     "react-native": "0.83.2",

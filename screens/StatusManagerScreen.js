@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { View, Text, StyleSheet, Keyboard, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
@@ -19,6 +19,7 @@ import { SortModal } from "../components/screens/Main/Modals/SortModal";
 export const StatusManagerScreen = ({ navigation }) => {
     const insets = useSafeAreaInsets();
     const store = useCollectionStore();
+    const isCompactMenu = useCollectionStore((state) => state.isCompactMenu)
 
     const [selectedSection, setSelectedSection] = useState(SECTIONS[0].id);
     const [modalConfig, setModalConfig] = useState({ visible: false });
@@ -42,6 +43,13 @@ export const StatusManagerScreen = ({ navigation }) => {
         updateSectionSort,
         updateCategoryOrder,
     } = useStatusManager(store);
+
+    // Сортируем секции для нижних табов на основе измененного порядка сверху
+    const orderedSections = useMemo(() => {
+        return allLocalCategoryOrder
+            .map((categoryId) => SECTIONS.find((s) => s.id === categoryId))
+            .filter(Boolean);
+    }, [allLocalCategoryOrder]);
 
     const currentStatuses = allLocalStatuses[selectedSection];
     const currentDefault = allLocalDefaults[selectedSection];
@@ -109,10 +117,9 @@ export const StatusManagerScreen = ({ navigation }) => {
             <KeyboardAwareScrollView
                 style={styles.flex1}
                 contentContainerStyle={styles.scrollContent}
-                extraScrollHeight={180}
+                extraScrollHeight={100}
                 enableOnAndroid
                 keyboardShouldPersistTaps="handled"
-                // Отключаем скролл экрана во время перетаскивания плашек
                 scrollEnabled={!isDragging}
             >
                 {/* === ЗОНА 1: ПОРЯДОК КАТЕГОРИЙ === */}
@@ -140,8 +147,9 @@ export const StatusManagerScreen = ({ navigation }) => {
                     <Text style={styles.zoneBadge}>Контекстные настройки</Text>
                     <Text style={styles.sectionTitle}>Выберите раздел для редактирования</Text>
 
+                    {/* ТЕПЕРЬ ПЕРЕДАЕМ СОРТИРОВАННЫЙ МАССИВ */}
                     <SectionTabs
-                        sections={SECTIONS}
+                        sections={orderedSections}
                         selectedSection={selectedSection}
                         onSelect={setSelectedSection}
                     />
@@ -188,6 +196,11 @@ export const StatusManagerScreen = ({ navigation }) => {
                         />
                     </View>
                 </View>
+                <View
+                    style={{
+                        height: isCompactMenu ? insets.bottom + 60 : insets.bottom + 90,
+                    }}
+                />
             </KeyboardAwareScrollView>
 
             <SortModal

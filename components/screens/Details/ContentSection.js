@@ -1,11 +1,5 @@
 import React, { useState, memo, useCallback } from "react";
-import {
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
-    TouchableOpacity,
-} from "react-native";
+import { StyleSheet, Text, TextInput, View, TouchableOpacity } from "react-native";
 import { Star } from "lucide-react-native";
 import { InfoBlock } from "./InfoBlock/InfoBlock";
 import { UserRating } from "../../shared/UserRating";
@@ -19,6 +13,8 @@ const ContentSectionComponent = ({
     isFavorite,
     folderLabel,
     isAnyFolderSelected,
+    isBrilliant,
+    onToggleBrilliant,
     onStatusPress,
     onFolderPress,
     onToggleFavorite,
@@ -71,6 +67,10 @@ const ContentSectionComponent = ({
         [onNavigateToDetails],
     );
 
+    const handleToggleBrilliantLocal = useCallback(() => {
+        onToggleBrilliant?.();
+    }, [onToggleBrilliant]);
+
     return (
         <View>
             <InfoBlock
@@ -86,16 +86,9 @@ const ContentSectionComponent = ({
             />
 
             <Text style={styles.sectionTitle}>Описание</Text>
-            <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={handleDescriptionPress}
-            >
-                <Text
-                    style={styles.description}
-                    numberOfLines={isExpanded ? 0 : 3}
-                >
-                    {displayData.description ||
-                        "Описание временно отсутствует."}
+            <TouchableOpacity activeOpacity={0.7} onPress={handleDescriptionPress}>
+                <Text style={styles.description} numberOfLines={isExpanded ? 0 : 3}>
+                    {displayData.description || "Описание временно отсутствует."}
                 </Text>
                 {!isExpanded && displayData.description?.length > 100 && (
                     <Text style={styles.moreText}>Показать полностью...</Text>
@@ -104,10 +97,9 @@ const ContentSectionComponent = ({
 
             <View style={styles.separator} />
 
-            {displayData.type === "anime" &&
-                displayData.screenshots.length > 0 && (
-                    <ScreenshotCarousel screenshots={displayData.screenshots} />
-                )}
+            {displayData.type === "anime" && displayData.screenshots.length > 0 && (
+                <ScreenshotCarousel screenshots={displayData.screenshots} />
+            )}
 
             {isInCollection && (
                 <View style={styles.userSection}>
@@ -115,6 +107,8 @@ const ContentSectionComponent = ({
                         score={savedItem?.userScore || 0}
                         onSetScore={handleScoreLoca}
                         onInfoPress={handleInfoPressLocal}
+                        isBrilliant={isBrilliant}
+                        onToggleBrilliant={handleToggleBrilliantLocal}
                     />
                 </View>
             )}

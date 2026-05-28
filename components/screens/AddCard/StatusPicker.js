@@ -1,34 +1,36 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
-export default function StatusPicker({
-    categories = [],
-    currentStatus,
-    onSelect,
-}) {
+export default function StatusPicker({ categories = [], currentStatus, onSelect }) {
     return (
         <View style={styles.container}>
-            <Text style={styles.label}>Статус в коллекции</Text>
-            <View style={styles.chipRow}>
-                {categories.map((s) => (
-                    <TouchableOpacity
-                        key={s}
-                        style={[
-                            styles.miniChip,
-                            currentStatus === s && styles.activeMiniChip,
-                        ]}
-                        onPress={() => onSelect(s)}
-                    >
-                        <Text
+            <View style={styles.listContainer}>
+                {categories.map((s, index) => {
+                    const isActive = currentStatus === s;
+                    const isLast = index === categories.length - 1;
+
+                    return (
+                        <TouchableOpacity
+                            key={s}
                             style={[
-                                styles.chipText,
-                                currentStatus === s && styles.activeChipText,
+                                styles.listItem,
+                                isActive && styles.activeListItem,
+                                !isLast && styles.borderBottom,
                             ]}
+                            onPress={() => onSelect(s)}
+                            activeOpacity={0.7}
                         >
-                            {s}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
+                            <Text style={[styles.itemText, isActive && styles.activeItemText]}>
+                                {s}
+                            </Text>
+
+                            {/* Кастомный красивый Radio-индикатор */}
+                            <View style={[styles.radioOuter, isActive && styles.radioOuterActive]}>
+                                {isActive && <View style={styles.radioInner} />}
+                            </View>
+                        </TouchableOpacity>
+                    );
+                })}
             </View>
         </View>
     );
@@ -36,7 +38,7 @@ export default function StatusPicker({
 
 const styles = StyleSheet.create({
     container: {
-        marginTop: 5,
+        marginTop: 10,
         marginBottom: 20,
     },
     label: {
@@ -48,30 +50,52 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         marginLeft: 4,
     },
-    chipRow: {
-        flexDirection: "row",
-        flexWrap: "wrap",
-        gap: 6,
-    },
-    miniChip: {
-        backgroundColor: "rgba(125, 138, 255, 0.05)", // Легкий оттенок основного цвета
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 10,
+    listContainer: {
+        backgroundColor: "#0B1534",
+        borderRadius: 16,
         borderWidth: 1,
-        borderColor: "rgba(125, 138, 255, 0.15)",
+        borderColor: "rgba(255, 255, 255, 0.03)",
+        overflow: "hidden",
     },
-    activeMiniChip: {
-        backgroundColor: "rgba(125, 138, 255, 0.2)", // Выделение цветом, но не такое яркое как основные кнопки
-        borderColor: "#7D8AFF",
+    listItem: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingVertical: 16,
+        paddingHorizontal: 18,
     },
-    chipText: {
-        color: "#8E94A4",
-        fontSize: 12,
+    activeListItem: {
+        backgroundColor: "rgba(125, 138, 255, 0.03)",
+    },
+    borderBottom: {
+        borderBottomWidth: 1,
+        borderBottomColor: "rgba(255, 255, 255, 0.04)",
+    },
+    itemText: {
+        color: "rgba(255, 255, 255, 0.8)",
+        fontSize: 15,
+        fontWeight: "500",
+    },
+    activeItemText: {
+        color: "#fff",
         fontWeight: "600",
     },
-    activeChipText: {
-        color: "#7D8AFF", // Цветной текст для активного статуса
-        fontWeight: "700",
+    radioOuter: {
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        borderWidth: 2,
+        borderColor: "rgba(255, 255, 255, 0.2)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    radioOuterActive: {
+        borderColor: "#7D8AFF",
+    },
+    radioInner: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: "#7D8AFF",
     },
 });

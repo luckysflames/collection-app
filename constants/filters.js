@@ -138,7 +138,7 @@ export const FILTER_CONFIG = {
     ],
     book: [
         {
-            id: "maturity",
+            id: "maturityRating",
             label: "Возрастной рейтинг",
             type: "select",
             options: BOOK_MATURITY_RATINGS,

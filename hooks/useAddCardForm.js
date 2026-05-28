@@ -11,9 +11,7 @@ import {
 } from "../constants/index";
 
 export const useAddCardForm = (navigation) => {
-    const addToCollection = useCollectionStore(
-        (state) => state.addToCollection,
-    );
+    const addToCollection = useCollectionStore((state) => state.addToCollection);
 
     const [form, setForm] = useState(INITIAL_FORM_STATE);
 
@@ -68,8 +66,7 @@ export const useAddCardForm = (navigation) => {
             description: form.description,
             genres: split(form.genres),
             image: form.image || "https://via.placeholder.com/300x450",
-            status:
-                form.status === FAVORITE_STATUS ? "Без статуса" : form.status,
+            status: form.status === FAVORITE_STATUS ? "Без статуса" : form.status,
             userNotes: "",
             isCustom: true,
             isFavorite: form.status === FAVORITE_STATUS,
@@ -93,7 +90,8 @@ export const useAddCardForm = (navigation) => {
                 break;
             case "tv":
                 extendedData = {
-                    year: form.year,
+                    first_air_date: form.first_air_date,
+                    last_air_date: form.last_air_date,
                     budget: extractNumeric(form.budget),
                     movieStatus: form.movieStatus,
                     countries: split(form.countries),
@@ -123,7 +121,7 @@ export const useAddCardForm = (navigation) => {
                 extendedData = {
                     year: form.year,
                     pageCount: extractNumeric(form.pageCount),
-                    maturityRating: form.maturity,
+                    maturityRating: form.maturityRating,
                     authors: split(form.authors),
                     publisher: form.publisher,
                 };

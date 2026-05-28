@@ -35,7 +35,7 @@ export const useEditForm = (isEditing, initialData) => {
                 "animeStatus",
                 "rating",
                 "movieStatus",
-                "maturity",
+                "maturityRating",
                 "esrb",
             ];
 

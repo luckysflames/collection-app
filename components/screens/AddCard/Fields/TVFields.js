@@ -3,6 +3,7 @@ import { View } from "react-native";
 
 import { formStyles } from "../styles/formStyles";
 import CommonField from "./CommonField";
+import MaskedDateInput from "./MaskedDateInput";
 import SelectField from "./SelectField";
 import { MOVIE_STATUSES } from "../../../../constants/index";
 
@@ -11,11 +12,33 @@ export default function TVFields({ form, updateField }) {
         <View>
             <CommonField
                 label="Оригинальное название"
-                placeholder="Название сериала"
+                placeholder="Supernatural"
                 form={form}
                 updateField={updateField}
                 fieldName="originalTitle"
             />
+
+            {/* Заменили одиночный год на диапазон дат как в аниме */}
+            <View style={formStyles.rowInputs}>
+                <View style={{ flex: 1 }}>
+                    <MaskedDateInput
+                        label="С (дд.мм.гггг)"
+                        placeholder="12.04.2023"
+                        form={form}
+                        updateField={updateField}
+                        fieldName="first_air_date"
+                    />
+                </View>
+                <View style={{ flex: 1 }}>
+                    <MaskedDateInput
+                        label="По (дд.мм.гггг)"
+                        placeholder="28.06.2023"
+                        form={form}
+                        updateField={updateField}
+                        fieldName="last_air_date"
+                    />
+                </View>
+            </View>
 
             <View style={formStyles.rowInputs}>
                 <View style={{ flex: 1 }}>

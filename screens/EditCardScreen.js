@@ -17,6 +17,7 @@ export default function EditCardScreen({ route, navigation }) {
     const { pickImage } = useImagePicker();
 
     const updateCard = useCollectionStore((state) => state.updateCard);
+    const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
 
     // Инициализируем форму. Передаем true, так как мы всегда в режиме редактирования
     const [editForm, updateField] = useEditForm(true, {
@@ -35,9 +36,7 @@ export default function EditCardScreen({ route, navigation }) {
         <View style={styles.container}>
             <KeyboardAwareScrollView
                 style={styles.scroll}
-                contentContainerStyle={[
-                    { paddingBottom: insets.bottom + 20, flexGrow: 1 },
-                ]}
+                contentContainerStyle={[{ paddingBottom: insets.bottom + 20, flexGrow: 1 }]}
                 enableOnAndroid={true}
                 extraScrollHeight={200}
                 keyboardShouldPersistTaps="handled"
@@ -50,11 +49,7 @@ export default function EditCardScreen({ route, navigation }) {
                     onLeftPress={() => navigation.goBack()}
                     onRightPress={onSave}
                     onPickImage={async () => {
-                        const uri = await pickImage(
-                            [12, 17],
-                            editForm.image,
-                            item.id,
-                        );
+                        const uri = await pickImage([12, 17], editForm.image, item.id);
                         if (uri) updateField("image", uri);
                     }}
                 />
@@ -65,13 +60,8 @@ export default function EditCardScreen({ route, navigation }) {
                         type={item.type || category}
                     />
 
-                    <TouchableOpacity
-                        style={styles.saveButton}
-                        onPress={onSave}
-                    >
-                        <Text style={styles.saveButtonText}>
-                            Сохранить изменения
-                        </Text>
+                    <TouchableOpacity style={styles.saveButton} onPress={onSave}>
+                        <Text style={styles.saveButtonText}>Сохранить изменения</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -81,6 +71,12 @@ export default function EditCardScreen({ route, navigation }) {
                         <Text style={styles.cancelButtonText}>Отмена</Text>
                     </TouchableOpacity>
                 </View>
+
+                <View
+                    style={{
+                        height: isCompactMenu ? insets.bottom + 100 : insets.bottom + 130,
+                    }}
+                />
             </KeyboardAwareScrollView>
         </View>
     );

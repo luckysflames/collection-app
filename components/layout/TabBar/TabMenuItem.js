@@ -10,7 +10,7 @@ export const TabMenuItem = ({
     ICON_CONTAINER_SIZE,
 }) => {
     let containerStyle = [styles.iconContainer];
-    let textIconColor = isFocused ? "#FFF" : "#8E94A4";
+    let textIconColor = "#FFF";
 
     const scaleValue = React.useRef(new Animated.Value(1)).current;
 
@@ -63,11 +63,7 @@ export const TabMenuItem = ({
                         ]}
                     />
                     {!isCompactMenu && (
-                        <Text
-                            style={[styles.tabText, { color: textIconColor }]}
-                        >
-                            {routeName}
-                        </Text>
+                        <Text style={[styles.tabText, { color: textIconColor }]}>{routeName}</Text>
                     )}
                 </View>
             </Animated.View>

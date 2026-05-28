@@ -11,7 +11,7 @@ import {
 import { ChevronDown, ChevronUp } from "lucide-react-native";
 import { useCollectionStore } from "../../../store/useCollectionStore";
 
-const GOAL_OPTIONS = [100, 500, 1000, 2500];
+const GOAL_OPTIONS = [100, 500, 1000, 2500, 5000];
 
 const CollectionProgress = ({ totalItems }) => {
     const collectionGoal = useCollectionStore((state) => state.collectionGoal);

@@ -1,12 +1,5 @@
 import React, { useState } from "react";
-import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    TextInput,
-    Keyboard,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Keyboard } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Ionicons } from "@expo/vector-icons";
@@ -24,18 +17,12 @@ const MASTER_KEY = process.env.EXPO_PUBLIC_MY_SUPER_PUPER_SECRET_KEY_WORD;
 export const DataManagementScreen = ({ navigation }) => {
     const insets = useSafeAreaInsets();
     const store = useCollectionStore();
+    const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
 
     const { state, actions } = useDataManagement(store);
 
     return (
-        <View
-            style={[
-                styles.container,
-                {
-                    marginBottom: insets.bottom,
-                },
-            ]}
-        >
+        <View style={styles.container}>
             <StatusManagerHeader
                 onBack={() => navigation.goBack()}
                 title="Сброс данных"
@@ -62,16 +49,19 @@ export const DataManagementScreen = ({ navigation }) => {
                 />
 
                 <DangerZone openConfirmModal={actions.openConfirmModal} />
+
+                <View
+                    style={{
+                        height: isCompactMenu ? insets.bottom + 60 : insets.bottom + 120,
+                    }}
+                />
             </KeyboardAwareScrollView>
 
             <WarnModal
                 {...state.modalConfig}
                 onClose={actions.closeModal}
                 // Блокируем, если нужен пароль и введено меньше 4 символов
-                confirmDisabled={
-                    state.modalConfig.needsPassword &&
-                    state.confirmInput.length < 4
-                }
+                confirmDisabled={state.modalConfig.needsPassword && state.confirmInput.length < 4}
                 onConfirm={
                     state.modalConfig.onConfirm
                         ? () => state.modalConfig.onConfirm(state.confirmInput)

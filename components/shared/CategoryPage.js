@@ -77,13 +77,7 @@ export const CategoryPage = ({
                 />
             );
         },
-        [
-            handlePress,
-            onCardLongPress,
-            isReordering,
-            reorderBuffer,
-            isInsideFolder,
-        ],
+        [handlePress, onCardLongPress, isReordering, reorderBuffer, isInsideFolder],
     );
 
     // 3. Используем стабильный объект для extraData
@@ -97,16 +91,7 @@ export const CategoryPage = ({
     );
 
     return (
-        <View
-            style={[
-                styles.pageWrapper,
-                {
-                    marginBottom: isCompactMenu
-                        ? insets.bottom
-                        : insets.bottom + 30,
-                },
-            ]}
-        >
+        <View style={styles.pageWrapper}>
             <FlatList
                 data={pageData}
                 extraData={memoizedExtraData}
@@ -124,11 +109,15 @@ export const CategoryPage = ({
                 updateCellsBatchingPeriod={100}
                 scrollEventThrottle={16}
                 ListHeaderComponent={ListHeaderComponent}
-                ListEmptyComponent={
-                    <EmptyState
-                        category={category}
-                        isInsideFolder={isInsideFolder}
+                ListFooterComponent={
+                    <View
+                        style={{
+                            height: isCompactMenu ? insets.bottom + 60 : insets.bottom + 90,
+                        }}
                     />
+                }
+                ListEmptyComponent={
+                    <EmptyState category={category} isInsideFolder={isInsideFolder} />
                 }
             />
         </View>

@@ -23,6 +23,7 @@ export default function AchievementsScreen({ navigation, route }) {
     const itemRefs = React.useRef({}).current;
     const insets = useSafeAreaInsets();
     const myCollection = useCollectionStore((state) => state.myCollection);
+    const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
     const [selectedAchiv, setSelectedAchiv] = useState(null);
 
     const groupedAchievements = useMemo(() => {
@@ -61,27 +62,24 @@ export default function AchievementsScreen({ navigation, route }) {
     // Эффект для прокрутки при появлении highlightId
     useEffect(() => {
         if (highlightId && itemRefs[highlightId]) {
-            const interactionPromise = InteractionManager.runAfterInteractions(
-                () => {
-                    const timer = setTimeout(() => {
-                        if (itemRefs[highlightId] && containerRef.current) {
-                            itemRefs[highlightId].measureLayout(
-                                containerRef.current,
-                                (x, y) => {
-                                    scrollRef.current?.scrollTo({
-                                        y: Math.max(0, y - 150),
-                                        animated: true,
-                                    });
-                                },
-                                (error) =>
-                                    console.error("Scroll error:", error),
-                            );
-                        }
-                    }, 400);
+            const interactionPromise = InteractionManager.runAfterInteractions(() => {
+                const timer = setTimeout(() => {
+                    if (itemRefs[highlightId] && containerRef.current) {
+                        itemRefs[highlightId].measureLayout(
+                            containerRef.current,
+                            (x, y) => {
+                                scrollRef.current?.scrollTo({
+                                    y: Math.max(0, y - 150),
+                                    animated: true,
+                                });
+                            },
+                            (error) => console.error("Scroll error:", error),
+                        );
+                    }
+                }, 400);
 
-                    return () => clearTimeout(timer);
-                },
-            );
+                return () => clearTimeout(timer);
+            });
 
             // ПРАВКА ЗДЕСЬ:
             // Вместо setTimeout, который может выстрелить "в спину" ушедшему экрану,
@@ -150,6 +148,12 @@ export default function AchievementsScreen({ navigation, route }) {
                         </View>
                     ))}
                 </View>
+
+                <View
+                    style={{
+                        height: isCompactMenu ? insets.bottom + 60 : insets.bottom + 90,
+                    }}
+                />
             </ScrollView>
 
             <AchievementDetailModal

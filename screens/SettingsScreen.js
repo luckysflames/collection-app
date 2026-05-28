@@ -33,12 +33,6 @@ export default function SettingsScreen({ navigation }) {
     );
     const isVibration = useCollectionStore((state) => state.isVibration);
     const setIsVibration = useCollectionStore((state) => state.setIsVibration);
-    const isDiamondRainEnabled = useCollectionStore(
-        (state) => state.isDiamondRainEnabled,
-    );
-    const setIsDiamondRainEnabled = useCollectionStore(
-        (state) => state.setIsDiamondRainEnabled,
-    );
     const isSound = useCollectionStore((state) => state.isSound);
     const setIsSound = useCollectionStore((state) => state.setIsSound);
 
@@ -82,14 +76,6 @@ export default function SettingsScreen({ navigation }) {
                         type="switch"
                         value={isVibration}
                         onValueChange={setIsVibration}
-                    />
-                    <View style={styles.separator} />
-                    <SettingItem
-                        icon={Sparkles}
-                        label="Анимация"
-                        type="switch"
-                        value={isDiamondRainEnabled}
-                        onValueChange={setIsDiamondRainEnabled}
                     />
                     <View style={styles.separator} />
                     <SettingItem
@@ -158,8 +144,8 @@ export default function SettingsScreen({ navigation }) {
                         styles.versionFooter,
                         {
                             marginBottom: isCompactMenu
-                                ? insets.bottom + 10
-                                : insets.bottom + 20,
+                                ? insets.bottom + 40
+                                : insets.bottom + 50,
                         },
                     ]}
                 >

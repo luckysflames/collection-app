@@ -24,7 +24,6 @@ export const useCollectionStore = create(
             _hasHydrated: false,
             isCompactMenu: true,
             isVibration: true,
-            isDiamondRainEnabled: true,
             isSound: true,
             collectionGoal: 500,
             availableStatuses: {},
@@ -94,7 +93,6 @@ export const useCollectionStore = create(
             setCollectionGoal: (goal) => set({ collectionGoal: goal }),
             setIsCompactMenu: (value) => set({ isCompactMenu: value }),
             setIsVibration: (value) => set({ isVibration: value }),
-            setIsDiamondRainEnabled: (value) => set({ isDiamondRainEnabled: value }),
             setIsSound: (value) => set({ isSound: value }),
 
             // --- PASSWORD MANAGEMENT ---

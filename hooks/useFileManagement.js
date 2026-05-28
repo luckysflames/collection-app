@@ -24,8 +24,7 @@ export const useFileManagement = (store) => {
         children: null,
     });
 
-    const hideModal = () =>
-        setModalConfig((prev) => ({ ...prev, visible: false }));
+    const hideModal = () => setModalConfig((prev) => ({ ...prev, visible: false }));
 
     const showWarn = (config) => {
         setModalConfig({
@@ -50,7 +49,6 @@ export const useFileManagement = (store) => {
                 isCompactMenu,
                 isVibration,
                 isSound,
-                isDiamondRainEnabled,
             } = store;
 
             if (myCollection.length === 0) {
@@ -80,7 +78,6 @@ export const useFileManagement = (store) => {
                         isCompactMenu,
                         isVibration,
                         isSound,
-                        isDiamondRainEnabled,
                     },
                 },
             };
@@ -149,9 +146,7 @@ export const useFileManagement = (store) => {
             await unzip(zipUri, tempUnzipPath);
 
             // 2. Чтение данных
-            const jsonString = await FileSystem.readAsStringAsync(
-                `${tempUnzipPath}data.json`,
-            );
+            const jsonString = await FileSystem.readAsStringAsync(`${tempUnzipPath}data.json`);
             const backup = JSON.parse(jsonString);
 
             if (backup.type !== "GEEKLY_BACKUP_ZIP") {
@@ -159,13 +154,8 @@ export const useFileManagement = (store) => {
             }
 
             // 3. Перенос картинок и восстановление путей
-            const restoredMap = await moveImagesFromTemp(
-                `${tempUnzipPath}images/`,
-            );
-            const newItems = restoreCollectionImageUris(
-                backup.payload.myCollection,
-                restoredMap,
-            );
+            const restoredMap = await moveImagesFromTemp(`${tempUnzipPath}images/`);
+            const newItems = restoreCollectionImageUris(backup.payload.myCollection, restoredMap);
             // ВАЖНО: Подготовка данных с учетом старых версий (Fallback)
             const payload = backup.payload;
 
@@ -179,9 +169,7 @@ export const useFileManagement = (store) => {
                     hideModal();
 
                     const current = store.myCollection;
-                    const currentIds = new Set(
-                        current.map((item) => String(item.id)),
-                    );
+                    const currentIds = new Set(current.map((item) => String(item.id)));
                     const uniqueNewItems = newItems.filter(
                         (item) => !currentIds.has(String(item.id)),
                     );
@@ -191,8 +179,7 @@ export const useFileManagement = (store) => {
                             () =>
                                 showWarn({
                                     title: "Инфо",
-                                    message:
-                                        "Все элементы уже есть в коллекции.",
+                                    message: "Все элементы уже есть в коллекции.",
                                 }),
                             500,
                         );
@@ -231,23 +218,18 @@ export const useFileManagement = (store) => {
 
                             store.setMyCollection(newItems);
                             // Восстанавливаем статусы (если нет в бэкапе - будет пустой объект)
-                            const savedStatuses =
-                                payload.availableStatuses || {};
+                            const savedStatuses = payload.availableStatuses || {};
                             Object.keys(savedStatuses).forEach((key) =>
-                                store.setStatusesForSection(
-                                    key,
-                                    savedStatuses[key],
-                                ),
+                                store.setStatusesForSection(key, savedStatuses[key]),
                             );
                             applySettings(payload);
-                            
+
                             setTimeout(
                                 () =>
                                     showWarn({
                                         type: "success",
                                         title: "Успех",
-                                        message:
-                                            "Коллекция полностью заменена.",
+                                        message: "Коллекция полностью заменена.",
                                     }),
                                 500,
                             );
@@ -269,8 +251,7 @@ export const useFileManagement = (store) => {
             // Функция-хелпер для наката настроек из бэкапа
             const applySettings = (data) => {
                 // 1. Цель коллекции
-                if (data.collectionGoal)
-                    store.setCollectionGoal(data.collectionGoal);
+                if (data.collectionGoal) store.setCollectionGoal(data.collectionGoal);
 
                 // 2. Вкладки по умолчанию
                 if (data.defaultTabs) {
@@ -295,10 +276,6 @@ export const useFileManagement = (store) => {
                         store.setIsVibration(data.settings.isVibration);
                     if (data.settings.isSound !== undefined)
                         store.setIsSound(data.settings.isSound);
-                    if (data.settings.isDiamondRainEnabled !== undefined)
-                        store.setIsDiamondRainEnabled(
-                            data.settings.isDiamondRainEnabled,
-                        );
                 }
             };
 

@@ -11,8 +11,7 @@ export default function MyCustomTabBar({ state, descriptors, navigation }) {
     const insets = useSafeAreaInsets();
 
     const BAR_HEIGHT = isCompactMenu ? 55 : 85;
-    const TOTAL_BAR_HEIGHT =
-        BAR_HEIGHT + (insets.bottom > 0 ? insets.bottom : 10);
+    const TOTAL_BAR_HEIGHT = BAR_HEIGHT + (insets.bottom > 0 ? insets.bottom : 10);
     const ICON_CONTAINER_SIZE = isCompactMenu ? 45 : 65;
 
     return (
@@ -76,8 +75,10 @@ export default function MyCustomTabBar({ state, descriptors, navigation }) {
 const styles = StyleSheet.create({
     wrapper: {
         position: "absolute",
-        bottom: 0,
-        width: "100%",
+        right: 20,
+        left: 20,
+        bottom: 20,
+        // width: "100%",
         alignItems: "center",
     },
     mainContainer: {
@@ -85,8 +86,12 @@ const styles = StyleSheet.create({
         backgroundColor: "#0B1534",
         alignItems: "center",
         justifyContent: "space-between",
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
+        borderWidth: 1.5,
+        // borderColor: "rgba(125, 138, 255, 0.2)",
+        borderColor: "#1b264e",
+        borderRadius: 35,
+        // borderTopLeftRadius: 30,
+        // borderTopRightRadius: 30,
         width: "100%",
         shadowColor: "#000",
         shadowOffset: { width: 0, height: -4 },

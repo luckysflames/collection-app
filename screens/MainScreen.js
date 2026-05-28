@@ -97,7 +97,7 @@ export default function MainScreen({ route, navigation }) {
     const hasActiveFilters = Object.keys(activeFilters).length > 0;
 
     return (
-        <View style={[styles.mainContainer, { paddingTop: insets.top - 40 }]}>
+        <View style={[styles.mainContainer, { paddingTop: insets.top - 40, marginBottom: 0 }]}>
             <ScreenHeader
                 title={displayTitle}
                 searchQuery={searchQuery}
@@ -147,8 +147,8 @@ export default function MainScreen({ route, navigation }) {
                     styles.folderCreateBtn,
                     {
                         bottom: isCompactMenu
-                            ? insets.bottom + 80
-                            : insets.bottom + 110,
+                            ? insets.bottom + 100
+                            : insets.bottom + 130,
                     },
                 ]}
             >
@@ -205,5 +205,7 @@ const styles = StyleSheet.create({
         right: 20,
         borderRadius: 30,
         backgroundColor: "#0B1534",
+        borderWidth: 1,
+        borderColor: "#1b264e",
     },
 });

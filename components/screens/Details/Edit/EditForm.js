@@ -33,7 +33,7 @@ export const EditForm = ({ form, updateField, type }) => {
             />
 
             {/* Поле года скрыто для аниме, так как там свои даты начала/конца */}
-            {type !== "anime" && (
+            {type !== "anime" && type !== "tv" && (
                 <CommonField
                     placeholder="Дата выхода (полная или год)"
                     form={form}
