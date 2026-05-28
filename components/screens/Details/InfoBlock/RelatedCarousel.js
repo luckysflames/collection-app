@@ -16,26 +16,42 @@ const GAP = 12;
 const BASE_PADDING = 20;
 
 // Мемоизируем элемент карточки чтобы он не ре-рендерился
-const RelatedCarouselItem = memo(({ item, onNavigateToDetails }) => (
-    <View style={styles.cardWrapper}>
-        <MediaCard
-            item={{
-                ...item,
-                type: "anime",
-                isAnime: true,
-            }}
-            onPress={() => onNavigateToDetails(item)}
-            small={true}
-        />
-        {item?.relationText && (
-            <View style={styles.relationLabel} pointerEvents="none">
-                <Text style={styles.relationText} numberOfLines={1}>
-                    {item.relationText}
-                </Text>
-            </View>
-        )}
-    </View>
-));
+const isNavigableItem = (id) =>
+    typeof id === "string" &&
+    (id.startsWith("movie-") ||
+        id.startsWith("tv-") ||
+        id.startsWith("anime-") ||
+        id.startsWith("book-") ||
+        id.startsWith("game-"));
+
+const RelatedCarouselItem = memo(({ item, onNavigateToDetails }) => {
+    const handlePress = () => {
+        if (isNavigableItem(item?.id)) {
+            onNavigateToDetails?.(item);
+        }
+    };
+
+    return (
+        <View style={styles.cardWrapper}>
+            <MediaCard
+                item={{
+                    ...item,
+                    type: "anime",
+                    isAnime: true,
+                }}
+                onPress={handlePress}
+                small={true}
+            />
+            {item?.relationText && (
+                <View style={styles.relationLabel} pointerEvents="none">
+                    <Text style={styles.relationText} numberOfLines={1}>
+                        {item.relationText}
+                    </Text>
+                </View>
+            )}
+        </View>
+    );
+});
 
 RelatedCarouselItem.displayName = "RelatedCarouselItem";
 

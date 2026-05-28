@@ -106,6 +106,8 @@ export const useDetailsData = (item, fullDetails, savedItem) => {
                         savedItem?.countries || fullDetails?.countries || [],
                     companies:
                         savedItem?.companies || fullDetails?.companies || [],
+                    createdBy:
+                        savedItem?.createdBy || fullDetails?.createdBy || [],
                     originalTitle:
                         savedItem?.originalTitle || fullDetails?.originalTitle,
                     duration:
@@ -116,6 +118,15 @@ export const useDetailsData = (item, fullDetails, savedItem) => {
                         fullDetails?.seasonsCount ||
                         item?.seasons ||
                         item?.seasonsCount,
+                    seasonsCount:
+                        savedItem?.seasonsCount || fullDetails?.seasonsCount,
+                    seasonsList:
+                        savedItem?.seasonsList || fullDetails?.seasonsList || [],
+                    related:
+                        savedItem?.related ||
+                        fullDetails?.related ||
+                        fullDetails?.seasonsList ||
+                        [],
                     episodes:
                         savedItem?.episodes ||
                         fullDetails?.episodes ||

@@ -113,8 +113,8 @@ const ContentSectionComponent = ({
                 </View>
             )}
 
-            {/* Связанное аниме */}
-            {displayData.type === "anime" && (
+            {/* Связанное аниме и сезоны сериалов */}
+            {(displayData.type === "anime" || displayData.type === "tv") && (
                 <RelatedCarousel
                     related={displayData.related}
                     onNavigateToDetails={handleNavigateLocal}

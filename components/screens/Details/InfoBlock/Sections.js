@@ -81,6 +81,9 @@ export const TVExtra = ({ data }) => (
     <>
         <LabelValue label="Страны" value={data.countries?.join(", ")} />
         <LabelValue label="Компании" value={data.companies?.join(", ")} />
+        {data.createdBy?.length > 0 && (
+            <LabelValue label="Создатели" value={data.createdBy.join(", ")} />
+        )}
     </>
 );
 

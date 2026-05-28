@@ -76,10 +76,22 @@ export const tmdbService = {
             description: json.overview,
             companies: json.production_companies?.map((c) => c.name) || [],
             countries: json.origin_country || [],
+            createdBy: json.created_by?.map((creator) => creator.name) || [],
             first_air_date: json.first_air_date,
             last_air_date: json.last_air_date,
             duration: json.episode_run_time?.[0] || null,
+            seasons: json.number_of_seasons || 0,
             seasonsCount: json.number_of_seasons || 0,
+            seasonsList:
+                json.seasons?.map((season) => ({
+                        id: `season-tv-${tvId}-${season.season_number}`,
+                    title: season.name || `Сезон ${season.season_number}`,
+                    image: season.poster_path
+                        ? `${TMDB_IMAGE_URL}${season.poster_path}`
+                        : "https://via.placeholder.com/500x750",
+                    episodeCount: season.episode_count || 0,
+                    relationText: `Сезон ${season.season_number}`,
+                })) || [],
             episodesCount: json.number_of_episodes || 0,
             movieStatus: json.status.toLowerCase(),
             score: json.vote_average?.toFixed(1) || "0.0",

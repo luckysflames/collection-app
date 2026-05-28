@@ -2,7 +2,7 @@
   "expo": {
     "name": "Geekly",
     "slug": "collection-app",
-    "version": "5.0.0",
+    "version": "5.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -23,7 +23,7 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "package": "com.luckyflame.collectionapp",
+      "package": "com.luckyflame.geekly",
       "androidStatusBar": {
         "translucent": false,
         "backgroundColor": "#050B18"
