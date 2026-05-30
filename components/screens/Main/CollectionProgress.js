@@ -1,25 +1,26 @@
-import React, { useState } from "react";
-import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    LayoutAnimation,
-    Platform,
-    UIManager,
-} from "react-native";
-import { ChevronDown, ChevronUp } from "lucide-react-native";
+import React, { useState, useMemo } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, LayoutAnimation } from "react-native";
+import { ChevronDown, ChevronUp, Clock } from "lucide-react-native";
 import { useCollectionStore } from "../../../store/useCollectionStore";
+import { calculateCollectionTime } from "../../../utils/analyticsHelpers";
 
 const GOAL_OPTIONS = [100, 500, 1000, 2500, 5000];
 
-const CollectionProgress = ({ totalItems }) => {
+const CollectionProgress = ({ collection = [] }) => {
     const collectionGoal = useCollectionStore((state) => state.collectionGoal);
-    const setCollectionGoal = useCollectionStore(
-        (state) => state.setCollectionGoal,
-    );
+    const setCollectionGoal = useCollectionStore((state) => state.setCollectionGoal);
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    // Считаем общее количество элементов (исключая папки)
+    const totalItems = useMemo(() => {
+        return collection.filter((item) => !item.isFolder).length;
+    }, [collection]);
+
+    // Считаем суммарное время по всей коллекции
+    const timeStats = useMemo(() => {
+        return calculateCollectionTime(collection);
+    }, [collection]);
 
     const progressPercent = Math.min((totalItems / collectionGoal) * 100, 100);
 
@@ -43,9 +44,7 @@ const CollectionProgress = ({ totalItems }) => {
                     onPress={toggleMenu}
                     activeOpacity={0.7}
                 >
-                    <Text style={styles.statsTitle}>
-                        Обещаю собрать {collectionGoal} карточек
-                    </Text>
+                    <Text style={styles.statsTitle}>Обещаю собрать {collectionGoal} карточек</Text>
                     {isMenuOpen ? (
                         <ChevronUp color="#7D8AFF" size={20} />
                     ) : (
@@ -55,25 +54,21 @@ const CollectionProgress = ({ totalItems }) => {
 
                 {isMenuOpen && (
                     <View style={styles.goalPicker}>
-                        <Text style={styles.pickerLabel}>
-                            Выберите новую цель:
-                        </Text>
+                        <Text style={styles.pickerLabel}>Выберите новую цель:</Text>
                         <View style={styles.optionsRow}>
                             {GOAL_OPTIONS.map((opt) => (
                                 <TouchableOpacity
                                     key={opt}
                                     style={[
                                         styles.optionBadge,
-                                        collectionGoal === opt &&
-                                            styles.activeOptionBadge,
+                                        collectionGoal === opt && styles.activeOptionBadge,
                                     ]}
                                     onPress={() => selectGoal(opt)}
                                 >
                                     <Text
                                         style={[
                                             styles.optionText,
-                                            collectionGoal === opt &&
-                                                styles.activeOptionText,
+                                            collectionGoal === opt && styles.activeOptionText,
                                         ]}
                                     >
                                         {opt}
@@ -85,22 +80,39 @@ const CollectionProgress = ({ totalItems }) => {
                 )}
 
                 <View style={styles.progressBar}>
-                    <View
-                        style={[
-                            styles.progressFill,
-                            { width: `${progressPercent}%` },
-                        ]}
-                    />
+                    <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
                 </View>
 
                 <View style={styles.statsFooter}>
-                    <Text style={styles.statsSubtitle}>
-                        Всего собрано: {totalItems}
-                    </Text>
-                    <Text style={styles.statsPercent}>
-                        {Math.round(progressPercent)}%
-                    </Text>
+                    <Text style={styles.statsSubtitle}>Всего собрано: {totalItems}</Text>
+                    <Text style={styles.statsPercent}>{Math.round(progressPercent)}%</Text>
                 </View>
+
+                {isMenuOpen && (
+                    <>
+                        <View style={styles.divider} />
+
+                        <View style={styles.timeRow}>
+                            <View style={styles.timeInfoBlock}>
+                                <Clock color="#7D8AFF" size={16} />
+                                <Text style={styles.timeLabel}>Вы потратили:</Text>
+                            </View>
+                            <Text style={styles.timeValue}>
+                                ~{timeStats?.completedDisplay || "0 ч"}
+                            </Text>
+                        </View>
+
+                        <View style={styles.timeRow}>
+                            <View style={styles.timeInfoBlock}>
+                                <Clock color="#8E94A4" size={16} />
+                                <Text style={styles.timeLabel}>Нужно на всё:</Text>
+                            </View>
+                            <Text style={[styles.timeValue, { color: "#FFF" }]}>
+                                ~{timeStats?.totalDisplay || "0 ч"}
+                            </Text>
+                        </View>
+                    </>
+                )}
             </View>
         </View>
     );
@@ -181,10 +193,6 @@ const styles = StyleSheet.create({
         height: "100%",
         backgroundColor: "#7D8AFF",
         borderRadius: 5,
-        shadowColor: "#7D8AFF",
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.5,
-        shadowRadius: 5,
     },
     statsFooter: {
         flexDirection: "row",
@@ -193,6 +201,34 @@ const styles = StyleSheet.create({
     },
     statsSubtitle: { color: "#8E94A4", fontSize: 12 },
     statsPercent: { color: "#7D8AFF", fontSize: 12, fontWeight: "700" },
+
+    // Стили для новых элементов аналитики времени
+    divider: {
+        height: 1,
+        backgroundColor: "rgba(255, 255, 255, 0.05)",
+        marginVertical: 16,
+    },
+    timeRow: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 8,
+    },
+    timeInfoBlock: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+    },
+    timeLabel: {
+        color: "#8E94A4",
+        fontSize: 13,
+        fontWeight: "500",
+    },
+    timeValue: {
+        color: "#7D8AFF",
+        fontSize: 13,
+        fontWeight: "700",
+    },
 });
 
 export default CollectionProgress;

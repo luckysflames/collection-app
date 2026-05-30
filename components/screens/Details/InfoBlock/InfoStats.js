@@ -53,10 +53,17 @@ export const InfoStats = ({ displayData }) => {
 
     const formatBudget = (val) => {
         if (!val || val === "?" || val === "—") return "—";
-        // Убираем пробелы и запятые (могут быть от toLocaleString)
-        const cleaned = val.toString().replace(/[\s,]/g, "");
-        // Если уже есть знак $, оставляем, если нет — добавляем
-        return cleaned.includes("$") ? cleaned : `$${cleaned}`;
+
+        // 1. Очищаем строку от старых разделителей и знака $, оставляя только цифры
+        const onlyNumbers = val.toString().replace(/[^0-9]/g, "");
+
+        if (!onlyNumbers) return "—";
+
+        // 2. Форматируем число с разделением точек (через немецкую локаль 'de-DE')
+        const formattedNumber = new Intl.NumberFormat("de-DE").format(Number(onlyNumbers));
+
+        // 3. Возвращаем с красивым префиксом доллара
+        return `$${formattedNumber}`;
     };
 
     const formatPages = (val) => {

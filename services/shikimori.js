@@ -1,4 +1,4 @@
-import { cleanHtml, getCleanId } from "./helpers";
+import { cleanHtml, extractCreator, getCleanId } from "./helpers";
 
 const SHIKIMORI_GRAPHQL_URL = "https://shikimori.io/api/graphql";
 
@@ -66,6 +66,13 @@ export const shikimoriService = {
             studios { name }
             origin
             screenshots { x332Url }
+            personRoles {
+                rolesEn
+                rolesRu
+                person {
+                    name
+                }
+            }
             related {
                 id
                 relationKind
@@ -106,6 +113,7 @@ export const shikimoriService = {
             studios: data.studios?.map((s) => s.name) || [],
             origin: data.origin || null,
             screenshots: data.screenshots?.map((s) => s.x332Url) || [],
+            creator: extractCreator(data.personRoles),
             related:
                 data.related
                     ?.filter((r) => r.anime !== null)

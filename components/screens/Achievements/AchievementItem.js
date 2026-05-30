@@ -1,18 +1,15 @@
 import React, { useEffect, useRef } from "react";
-import {
-    TouchableOpacity,
-    View,
-    Text,
-    StyleSheet,
-    Animated,
-} from "react-native";
+import { TouchableOpacity, View, Text, StyleSheet, Animated } from "react-native";
 import { ChevronRight, CheckCircle2 } from "lucide-react-native";
 import { DynamicIcon } from "./DynamicIcon";
 
 export const AchievementItem = ({ achievement, onPress, isHighlighted }) => {
-    const isCompleted = achievement.current >= achievement.target;
-    const progress = Math.min(achievement.current / achievement.target, 1);
-    const isLockedSecret = achievement.hidden && !achievement.isCompleted;
+    const isCompleted = achievement.isCompleted;
+
+    // Прогрессбар выкручиваем на 100%, если ачивка зафиксирована
+    const progress = isCompleted ? 1 : Math.min(achievement.current / achievement.target, 1);
+
+    const isLockedSecret = achievement.hidden && !isCompleted;
     const isUnlockedSecret = achievement.hidden && isCompleted;
 
     // Реф для анимации пульсации
@@ -43,10 +40,7 @@ export const AchievementItem = ({ achievement, onPress, isHighlighted }) => {
     const highlightStyles = {
         borderColor: pulseAnim.interpolate({
             inputRange: [0, 1],
-            outputRange: [
-                "rgba(125, 138, 255, 0.08)",
-                "rgba(125, 138, 255, 0.8)",
-            ],
+            outputRange: ["rgba(125, 138, 255, 0.08)", "rgba(125, 138, 255, 0.8)"],
         }),
         backgroundColor: pulseAnim.interpolate({
             inputRange: [0, 1],
@@ -60,7 +54,7 @@ export const AchievementItem = ({ achievement, onPress, isHighlighted }) => {
                 styles.item,
                 !isCompleted && styles.lockedItem,
                 isUnlockedSecret && styles.secretUnlocked,
-                isHighlighted && highlightStyles, // Применяем анимированные стили
+                isHighlighted && highlightStyles,
             ]}
         >
             <TouchableOpacity
@@ -69,12 +63,7 @@ export const AchievementItem = ({ achievement, onPress, isHighlighted }) => {
                 style={styles.touchableArea}
             >
                 <View style={styles.leftContainer}>
-                    <View
-                        style={[
-                            styles.iconWrapper,
-                            isCompleted && styles.completedIcon,
-                        ]}
-                    >
+                    <View style={[styles.iconWrapper, isCompleted && styles.completedIcon]}>
                         <DynamicIcon
                             name={achievement.displayIconName}
                             size={22}
@@ -84,10 +73,7 @@ export const AchievementItem = ({ achievement, onPress, isHighlighted }) => {
 
                     <View style={styles.textInfo}>
                         <Text
-                            style={[
-                                styles.label,
-                                !isLockedSecret && { marginBottom: 6 },
-                            ]}
+                            style={[styles.label, !isLockedSecret && { marginBottom: 6 }]}
                             numberOfLines={1}
                         >
                             {achievement.displayTitle}
@@ -116,11 +102,7 @@ export const AchievementItem = ({ achievement, onPress, isHighlighted }) => {
                                 : `${achievement.current}/${achievement.target}`}
                         </Text>
                     )}
-                    <ChevronRight
-                        size={18}
-                        color="#444E72"
-                        style={{ marginLeft: 8 }}
-                    />
+                    <ChevronRight size={18} color="#444E72" style={{ marginLeft: 8 }} />
                 </View>
             </TouchableOpacity>
         </Animated.View>

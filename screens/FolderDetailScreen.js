@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import {
     View,
     StyleSheet,
@@ -24,18 +24,22 @@ import { WarnModal } from "../components/ui/WarnModal";
 
 export default function FolderDetailScreen({ route, navigation }) {
     const insets = useSafeAreaInsets();
+    const isFocused = useIsFocused();
     const { folderId } = route.params;
-    const addItemsToFolder = useCollectionStore(
-        (state) => state.addItemsToFolder,
-    );
+
+    // --- UI & ANIMATION FLAGS ---
+    const [isDeleting, setIsDeleting] = useState(false); // 1. Флаг удаления для предотвращения моргания
+
+    const addItemsToFolder = useCollectionStore((state) => state.addItemsToFolder);
     const updateCard = useCollectionStore((state) => state.updateCard);
     const setUserScore = useCollectionStore((state) => state.setUserScore);
     const setFavorite = useCollectionStore((state) => state.setFavorite);
     const isVibration = useCollectionStore((state) => state.isVibration);
     const setRaining = useCollectionStore((state) => state.setRaining);
 
-    // --- LOGIC & DATA (используем ваш хук) ---
-    const { folder, folderItems, availableItems } = useFolderData(folderId);
+    // --- LOGIC & DATA ---
+    // 2. Если папка удаляется, передаем null во избежание реактивных ошибок рендеринга
+    const { folder, folderItems, availableItems } = useFolderData(isDeleting ? null : folderId);
 
     // --- UI STATE ---
     const [sortType, setSortType] = useState("manual");
@@ -44,7 +48,6 @@ export default function FolderDetailScreen({ route, navigation }) {
     const [reorderBuffer, setReorderBuffer] = useState([]);
     const [isInfoModalVisible, setInfoModalVisible] = useState(false);
 
-    // Группируем видимость модалок для чистоты
     const [modals, setModals] = useState({
         delete: false,
         add: false,
@@ -75,14 +78,12 @@ export default function FolderDetailScreen({ route, navigation }) {
     const handleCardPress = (item) => {
         if (isReordering) {
             setReorderBuffer((prev) =>
-                prev.includes(item.id)
-                    ? prev.filter((id) => id !== item.id)
-                    : [...prev, item.id],
+                prev.includes(item.id) ? prev.filter((id) => id !== item.id) : [...prev, item.id],
             );
             return;
         }
 
-        if (isEditing) return; // Блокируем переходы при редактировании
+        if (isEditing) return;
 
         if (item.isFolder) {
             navigation.push("FolderDetail", {
@@ -99,7 +100,7 @@ export default function FolderDetailScreen({ route, navigation }) {
 
     const handleToggleReorder = () => {
         if (isReordering) {
-            handleSave(true); // Сохраняем только порядок
+            handleSave(true);
         } else {
             setIsReordering(true);
         }
@@ -114,22 +115,23 @@ export default function FolderDetailScreen({ route, navigation }) {
     };
 
     const handleRatingUpdate = (newScore) => {
-        // 1. Сохраняем оценку в стор
         setUserScore(folder.id, newScore);
 
+        // Если оценка не 10, забираем бриллиант и выключаем дождь
+        if (newScore !== 10 && isBrilliant) {
+            updateCard(folder.id, { isBrilliant: false });
+            setRaining(false);
+        }
+
         if (isVibration && newScore !== 0) {
-            // 2. Логика вибрации
             if (Platform.OS === "android") {
-                // Создаем паттерн: [пауза, удар, пауза, удар...]
                 const pattern = [0, 1];
                 for (let i = 0; i < newScore; i++) {
-                    pattern.push(30); // Длительность вибрации
-                    pattern.push(100); // Пауза перед следующим ударом
+                    pattern.push(30);
+                    pattern.push(100);
                 }
                 Vibration.vibrate(pattern);
             } else {
-                // На iOS для оценок хорошо подходит Success или Medium
-                // Но если хочешь именно по количеству звезд:
                 Vibration.vibrate(10);
             }
         }
@@ -137,6 +139,7 @@ export default function FolderDetailScreen({ route, navigation }) {
 
     const isBrilliant = folder?.isBrilliant || false;
     const isPeak = folder?.userScore === 10 || isBrilliant;
+
     const handleToggleBrilliant = () => {
         const newIsBrilliant = !isBrilliant;
         updateCard(folder.id, { isBrilliant: newIsBrilliant });
@@ -146,48 +149,49 @@ export default function FolderDetailScreen({ route, navigation }) {
     useFocusEffect(
         useCallback(() => {
             const onBackPress = () => {
-                // Если мы в режиме редактирования обложки/названия
                 if (isEditing) {
-                    handleCancel(); // Используем вашу функцию отмены из useFolderActions
-                    return true; // Блокируем стандартный переход назад
+                    handleCancel();
+                    return true;
                 }
-                // Если мы в режиме изменения порядка (сортировки)
                 if (isReordering) {
                     setIsReordering(false);
                     setReorderBuffer([]);
-                    return true; // Блокируем стандартный переход назад
+                    return true;
                 }
-                return false; // В обычном режиме кнопка работает как обычно
+                return false;
             };
 
-            // Подписываемся на событие
-            const subscription = BackHandler.addEventListener(
-                "hardwareBackPress",
-                onBackPress,
-            );
+            const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
 
-            // Удаляем подписку при уходе с экрана или изменении состояний
             return () => subscription.remove();
         }, [isEditing, isReordering, handleCancel]),
     );
 
-    const isFocused = useIsFocused();
-
+    // Эффект контроля эффекта "дождя"
     useEffect(() => {
-        if (folder?.id) {
-            // Добавьте проверку
+        if (folder?.id && !isDeleting) {
             setRaining(folder.id, isFocused && isBrilliant);
         }
-    }, [isFocused, isBrilliant, folder?.id, setRaining]);
+    }, [isFocused, isBrilliant, folder?.id, setRaining, isDeleting]);
 
-    if (!folder) return null;
+    // Безопасный выход из экрана при удалении
+    const safeNavigateBackAfterDelete = (deleteCallback) => {
+        setIsDeleting(true); // Включаем флаг, чтобы закоммитить пустой рендер
+        setModals((p) => ({ ...p, delete: false }));
+        navigation.goBack(); // Сначала плавно уходим назад
+
+        setTimeout(() => {
+            deleteCallback(); // И только после этого стираем данные из Zustand
+        }, 150);
+    };
+
+    if (!folder || isDeleting) return null;
 
     return (
         <View style={styles.container}>
             <KeyboardAvoidingView
                 style={styles.container}
                 behavior={Platform.OS === "ios" ? "padding" : undefined}
-                // Это важно: смещение, чтобы не перекрыть инпуты
                 keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
             >
                 <CategoryPage
@@ -207,37 +211,28 @@ export default function FolderDetailScreen({ route, navigation }) {
                             folder={folder}
                             folderItems={folderItems}
                             editForm={editForm}
-                            displayImage={
-                                isEditing ? editForm.image : folder.image
-                            }
+                            displayImage={isEditing ? editForm.image : folder.image}
                             insets={insets}
-                            toggleFavorite={() =>
-                                setFavorite(folder.id, !folder.isFavorite)
-                            }
+                            toggleFavorite={() => setFavorite(folder.id, !folder.isFavorite)}
                             isEditing={isEditing}
                             isReordering={isReordering}
+                            isFocused={isFocused}
                             setIsEditing={setIsEditing}
-                            onSave={() => handleSave(false)} // Полное сохранение
+                            onSave={() => handleSave(false)}
                             onCancel={handleCancel}
                             onBack={() => navigation.goBack()}
                             pickImage={pickImage}
                             updateField={updateField}
                             onRatingUpdate={handleRatingUpdate}
                             onInfoPress={() => setInfoModalVisible(true)}
-                            onDeletePress={() =>
-                                setModals((p) => ({ ...p, delete: true }))
-                            }
+                            onDeletePress={() => setModals((p) => ({ ...p, delete: true }))}
                             onToggleReorder={handleToggleReorder}
-                            onStatusPress={() =>
-                                setModals((p) => ({ ...p, status: true }))
-                            }
-                            onAddPress={() =>
-                                setModals((p) => ({ ...p, add: true }))
-                            }
+                            onStatusPress={() => setModals((p) => ({ ...p, status: true }))}
+                            onAddPress={() => setModals((p) => ({ ...p, add: true }))}
                             onSortPress={() => setIsSortModalVisible(true)}
                             isBrilliant={isBrilliant}
                             onBrilliantPress={handleToggleBrilliant}
-                            showBrilliantBtn={isPeak}
+                            showBrilliantBtn={isBrilliant}
                         />
                     }
                 />
@@ -271,14 +266,8 @@ export default function FolderDetailScreen({ route, navigation }) {
                 visible={modals.delete}
                 isEmpty={folderItems.length === 0}
                 onClose={() => setModals((p) => ({ ...p, delete: false }))}
-                onDeleteAll={() => {
-                    deleteEverything();
-                    navigation.goBack();
-                }}
-                onDeleteOnlyFolder={() => {
-                    deleteFolderOnly();
-                    navigation.goBack();
-                }}
+                onDeleteAll={() => safeNavigateBackAfterDelete(deleteEverything)}
+                onDeleteOnlyFolder={() => safeNavigateBackAfterDelete(deleteFolderOnly)}
             />
 
             <SortModal

@@ -3,7 +3,17 @@ export const DEFAULT_FALLBACK_STATUS = "В планах";
 
 export const SYSTEM_STATUSES = ["Всё", "Папки"];
 export const STATUS_SELECTION_EXCLUDE = [...SYSTEM_STATUSES];
-export const PROTECTED_STATUSES = [...SYSTEM_STATUSES, FAVORITE_STATUS];
+export const PROTECTED_STATUSES = [
+    ...SYSTEM_STATUSES,
+    FAVORITE_STATUS,
+    "Просмотрено",
+    "Прочитано",
+    "Пройдено",
+    "Смотрю",
+    "Читаю",
+    "Играю",
+    "В планах",
+];
 
 export const DEFAULT_STATUS_BY_SECTION = {
     Movies: "Смотрю",

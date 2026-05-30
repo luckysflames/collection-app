@@ -73,6 +73,7 @@ export const MOVIE_STATUSES = [
     { id: "in production", label: "В производстве" },
     { id: "post production", label: "Пост-продакшн" },
     { id: "ended", label: "Вышло" },
+    { id: "released", label: "Вышло" },
     { id: "canceled", label: "Отменено" },
 ];
 

@@ -21,9 +21,92 @@ export const parseCommaSeparated = (value) => {
 };
 
 /**
+ * Переводит часы в строку формата "X дн Y ч" или "Y ч"
+ */
+export const formatHoursToDaysAndHours = (totalHours) => {
+    if (!totalHours || totalHours <= 0) return "0 ч";
+
+    const days = Math.floor(totalHours / 24);
+    const hours = totalHours % 24;
+
+    const parts = [];
+    if (days > 0) parts.push(`${days} дн`);
+    if (hours > 0 || days === 0) parts.push(`${hours} ч`);
+
+    return parts.join(" ");
+};
+
+/**
+ * Вычисляет количество минут для одной карточки на основе её категории.
+ */
+export const calculateItemMinutes = (item) => {
+    if (!item || !item.appSection) return 0;
+
+    const targetCategory = item.appSection.toLowerCase();
+
+    switch (targetCategory) {
+        case "movie":
+            return extractNumeric(item.duration) || 0;
+
+        case "tv":
+            const episodesTV = extractNumeric(item.episodesCount) || 0;
+            const durationPerEpTV = extractNumeric(item.duration) || 40;
+            return episodesTV * durationPerEpTV;
+
+        case "anime":
+            const episodes =
+                extractNumeric(item.episodes) || extractNumeric(item.episodesAired) || 0;
+            const durationPerEp = extractNumeric(item.duration) || 24;
+            return episodes * durationPerEp;
+
+        case "book":
+            const pages = extractNumeric(item.pageCount) || 0;
+            return Math.round(pages * 1.5);
+
+        case "game":
+            const hours = extractNumeric(item.duration) || 0;
+            return hours * 60;
+
+        default:
+            return 0;
+    }
+};
+
+/**
+ * Считает суммарное время для всей переданной коллекции (с форматированием)
+ */
+export const calculateCollectionTime = (items) => {
+    if (!Array.isArray(items))
+        return { totalHours: 0, completedHours: 0, totalDisplay: "0 ч", completedDisplay: "0 ч" };
+
+    const filtered = items.filter((item) => !item.isFolder);
+    const completedStatuses = ["Просмотрено", "Прочитано", "Пройдено"];
+
+    let totalMinutesAll = 0;
+    let totalMinutesCompleted = 0;
+
+    filtered.forEach((item) => {
+        const minutes = calculateItemMinutes(item);
+        totalMinutesAll += minutes;
+
+        if (completedStatuses.includes(item.status)) {
+            totalMinutesCompleted += minutes;
+        }
+    });
+
+    const totalHours = Math.round(totalMinutesAll / 60);
+    const completedHours = Math.round(totalMinutesCompleted / 60);
+
+    return {
+        totalHours,
+        completedHours,
+        totalDisplay: formatHoursToDaysAndHours(totalHours),
+        completedDisplay: formatHoursToDaysAndHours(completedHours),
+    };
+};
+
+/**
  * Вычисляет топ-N значений на основе среднего балла.
- * Если onlyRated = true, сортируем по рейтингу.
- * Если false (обычный режим), сортируем по количеству.
  */
 export const getTopValues = (items, extractor, onlyRated = false, limit = 16) => {
     const statsMap = {};
@@ -55,35 +138,27 @@ export const getTopValues = (items, extractor, onlyRated = false, limit = 16) =>
         }))
         .sort((a, b) => {
             if (onlyRated) {
-                // СОРТИРОВКА ПО СРЕДНЕМУ БАЛЛУ
-                // Если баллы равны, смотрим на количество
                 return b.avgScore - a.avgScore || b.realCount - a.realCount;
             }
-            // ОБЫЧНАЯ СОРТИРОВКА ПО КОЛИЧЕСТВУ
             return b.realCount - a.realCount;
         })
         .slice(0, limit)
         .map((item) => ({
             name: item.name,
-            // ВАЖНО: всегда возвращаем количество для отображения справа
             count: item.realCount,
-            // Доп. инфо для отладки или будущих фич
             avgScore: parseFloat(item.avgScore.toFixed(1)),
             isScoreBased: onlyRated,
         }));
 };
 
 /**
- * Вычисляет статистику (теперь принимает третий аргумент sortByScore)
+ * Вычисляет статистику категории
  */
 export const calculateStats = (items, category, onlyRated = false) => {
-    // ЗАЩИТА: Если категория не передана или пустая, прерываем выполнение
     if (!category || typeof category !== "string") return null;
 
-    // Теперь вызов .toLowerCase() на 100% безопасен
     const targetCategory = category.toLowerCase();
 
-    // Безопасная фильтрация с приведением к нижнему регистру
     const filtered = items.filter((item) => {
         const itemSection = item.appSection ? item.appSection.toLowerCase() : "";
         return itemSection === targetCategory && !item.isFolder;
@@ -91,52 +166,22 @@ export const calculateStats = (items, category, onlyRated = false) => {
 
     if (filtered.length === 0) return null;
 
-    // --- ЛОГИКА ПОДСЧЕТА ВРЕМЕНИ ---
-    const calculateItemMinutes = (item) => {
-        switch (targetCategory) {
-            case "movie":
-                // Извлекаем число из "120 min" или "120"
-                return extractNumeric(item.duration) || 0;
-
-            case "tv":
-                const episodesTV = extractNumeric(item.episodesCount) || 0;
-                const durationPerEpTV = extractNumeric(item.duration) || 0;
-                return episodesTV * durationPerEpTV;
-
-            case "anime":
-                const episodes =
-                    extractNumeric(item.episodes) || extractNumeric(item.episodesAired) || 0;
-                // Если duration на эпизод есть (например, 24), используем его, иначе дефолт 24
-                const durationPerEp = extractNumeric(item.duration) || 24;
-                return episodes * durationPerEp;
-
-            case "book":
-                const pages = extractNumeric(item.pageCount) || 0;
-                // Средняя скорость чтения: ~1.5 минуты на страницу
-                return Math.round(pages * 1.5);
-
-            case "game":
-                const hours = extractNumeric(item.duration) || 0;
-                return hours * 60;
-
-            default:
-                return 0;
-        }
-    };
-
     const totalMinutesAll = filtered.reduce((acc, item) => acc + calculateItemMinutes(item), 0);
 
-    // Считаем только для завершенных (учитываем разные названия статусов)
     const completedStatuses = ["Просмотрено", "Прочитано", "Пройдено"];
     const totalMinutesCompleted = filtered
         .filter((i) => completedStatuses.includes(i.status))
         .reduce((acc, item) => acc + calculateItemMinutes(item), 0);
 
-    // --- ОСТАЛЬНАЯ СТАТИСТИКА ---
+    const totalHours = Math.round(totalMinutesAll / 60);
+    const completedHours = Math.round(totalMinutesCompleted / 60);
+
     const stats = {
         timeStats: {
-            totalHours: Math.round(totalMinutesAll / 60),
-            completedHours: Math.round(totalMinutesCompleted / 60),
+            totalHours,
+            completedHours,
+            totalDisplay: formatHoursToDaysAndHours(totalHours),
+            completedDisplay: formatHoursToDaysAndHours(completedHours),
         },
     };
 
@@ -144,7 +189,7 @@ export const calculateStats = (items, category, onlyRated = false) => {
 
     stats.topStatuses = getTop((item) => (item.status ? [item.status] : []));
 
-    switch (category) {
+    switch (targetCategory) {
         case "movie":
         case "tv":
             stats.topGenres = getTop((item) =>

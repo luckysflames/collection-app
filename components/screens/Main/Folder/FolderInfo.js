@@ -1,11 +1,5 @@
 import React from "react";
-import {
-    ArrowUpDown,
-    Bookmark,
-    ChevronDown,
-    ListFilter,
-    Zap,
-} from "lucide-react-native";
+import { ArrowUpDown, Bookmark, ChevronDown, ListFilter, Zap } from "lucide-react-native";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { UserRating } from "../../../shared/UserRating";
 import { AverageRatingBlock } from "./AverageRatingBlock";
@@ -20,13 +14,14 @@ export const FolderInfo = ({
     folderItems,
     onRatingUpdate,
     onInfoPress,
+    // Принимаем экшены бриллианта от FolderHeader
+    isBrilliant,
+    onBrilliantPress,
 }) => {
     const getPlural = (number, titles) => {
         const cases = [2, 0, 1, 1, 1, 2];
         return titles[
-            number % 100 > 4 && number % 100 < 20
-                ? 2
-                : cases[number % 10 < 5 ? number % 10 : 5]
+            number % 100 > 4 && number % 100 < 20 ? 2 : cases[number % 10 < 5 ? number % 10 : 5]
         ];
     };
 
@@ -37,42 +32,27 @@ export const FolderInfo = ({
             {/* Название и описание */}
             <Text style={styles.folderTitle}>{folder.title}</Text>
             {folder.description ? (
-                <Text style={styles.folderDescription}>
-                    {folder.description}
-                </Text>
+                <Text style={styles.folderDescription}>{folder.description}</Text>
             ) : null}
+
+            {/* Блок кнопок управления */}
             <View style={styles.controlsRow}>
                 {/* Кнопка статуса */}
-                <TouchableOpacity
-                    onPress={onStatusPress}
-                    style={styles.folderStatusBtn}
-                >
-                    <Text style={styles.folderStatusText}>
-                        {folder.status || "Без статуса"}
-                    </Text>
-                    <ChevronDown
-                        color="#fff"
-                        size={16}
-                        style={{ marginLeft: 6 }}
-                    />
+                <TouchableOpacity onPress={onStatusPress} style={styles.folderStatusBtn}>
+                    <Text style={styles.folderStatusText}>{folder.status || "Без статуса"}</Text>
+                    <ChevronDown color="#fff" size={16} style={{ marginLeft: 6 }} />
                 </TouchableOpacity>
 
                 <View style={styles.underControlsRow}>
                     {/* Кнопка добавления карточек */}
-                    <TouchableOpacity
-                        onPress={onAddPress}
-                        style={styles.addCardsBtn}
-                    >
+                    <TouchableOpacity onPress={onAddPress} style={styles.addCardsBtn}>
                         <Text style={styles.addCardsText}>+ Карточки</Text>
                     </TouchableOpacity>
 
                     {/* Кнопка избранного */}
                     <TouchableOpacity
                         onPress={toggleFavorite}
-                        style={[
-                            styles.favoriteBtn,
-                            folder.isFavorite && styles.favoriteBtnActive,
-                        ]}
+                        style={[styles.favoriteBtn, folder.isFavorite && styles.favoriteBtnActive]}
                     >
                         <Bookmark
                             size={22}
@@ -83,12 +63,14 @@ export const FolderInfo = ({
                 </View>
             </View>
 
-            {/* ПОЛНОЦЕННЫЙ РЕЙТИНГ */}
+            {/* ПОЛНОЦЕННЫЙ РЕЙТИНГ С ПЕРЕДАЧЕЙ ФЛАГОВ БРИЛЛИАНТА */}
             <View style={styles.ratingSection}>
                 <UserRating
                     score={folder.userScore || 0}
-                    onSetScore={onRatingUpdate} // Теперь это рабочая функция обновления
+                    onSetScore={onRatingUpdate}
                     onInfoPress={onInfoPress}
+                    isBrilliant={isBrilliant}
+                    onToggleBrilliant={onBrilliantPress}
                 />
             </View>
 
@@ -135,59 +117,20 @@ const styles = StyleSheet.create({
     },
     ratingSection: {
         width: "100%",
-        // У UserRating внутри уже есть marginTop: 25,
-        // так что здесь дополнительные отступы могут не понадобиться
-    },
-
-    avgContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginTop: 12,
-        backgroundColor: "rgba(255, 255, 255, 0.05)",
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 20,
-    },
-    avgLabel: {
-        color: "#8E94A4",
-        fontSize: 12,
-    },
-    avgBadge: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "rgba(125, 138, 255, 0.15)",
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        borderRadius: 6,
-        marginLeft: 4,
-        borderWidth: 1,
-        borderColor: "rgba(125, 138, 255, 0.3)",
-    },
-    avgValue: {
-        color: "#fff",
-        fontWeight: "bold",
-        fontSize: 12,
-        marginLeft: 4,
-    },
-    avgApplyText: {
-        color: "#7D8AFF",
-        fontSize: 10,
-        fontWeight: "700",
-        textTransform: "uppercase",
-        marginLeft: 8,
     },
     controlsRow: {
         width: "100%",
-        alignItems: "stretch",
+        flexDirection: "column",
         gap: 12,
         marginTop: 20,
     },
     underControlsRow: {
         flexDirection: "row",
+        width: "100%",
         gap: 12,
     },
     folderStatusBtn: {
-        flex: 1,
+        width: "100%",
         flexDirection: "row",
         borderColor: "#7D8AFF",
         paddingVertical: 12,
@@ -215,19 +158,19 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     favoriteBtn: {
-        aspectRatio: 1 / 1,
+        width: 48,
+        height: 48,
         alignItems: "center",
         justifyContent: "center",
         backgroundColor: "rgba(255, 255, 255, 0.05)",
-        paddingVertical: 10,
         borderRadius: 12,
-        gap: 8,
     },
     favoriteBtnActive: {
         backgroundColor: "rgba(255, 215, 0, 0.08)",
     },
     underRaitingRow: {
         flexDirection: "row",
+        width: "100%",
         marginTop: 20,
     },
     sortBtn: {

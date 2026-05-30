@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { FAVORITE_STATUS } from "../constants/index";
+import { matchesFilterValue } from "../utils/filterUtils";
 
 export const useCollectionCounter = (
     myCollection,
@@ -30,45 +31,8 @@ export const useCollectionCounter = (
                 for (const [filterKey, filterValue] of Object.entries(
                     activeFilters,
                 )) {
-                    // Select фильтр
-                    if (typeof filterValue === "string") {
-                        const itemValue = item[filterKey];
-                        if (itemValue === undefined || itemValue === null) {
-                            return false;
-                        }
-
-                        // Для динамических полей (genres, studios и т.д.) проверяем вхождение
-                        const isDynamicField = ['genres', 'studios', 'developers', 'platforms', 'authors', 'companies', 'countries'].includes(filterKey);
-                        if (isDynamicField) {
-                            // Если значение - строка, разделяем по запятым
-                            let values = [];
-                            if (typeof itemValue === 'string') {
-                                values = itemValue.split(',').map(v => v.trim());
-                            } else if (Array.isArray(itemValue)) {
-                                values = itemValue;
-                            }
-                            // Проверяем, содержит ли массив значение
-                            if (!values.includes(filterValue)) {
-                                return false;
-                            }
-                        } else {
-                            // Для статических полей строгое равенство
-                            if (itemValue !== filterValue) {
-                                return false;
-                            }
-                        }
-                    }
-                    // Range фильтр
-                    if (Array.isArray(filterValue)) {
-                        const [min, max] = filterValue;
-                        const val = item[filterKey];
-                        if (
-                            val === undefined ||
-                            val === null ||
-                            val < min ||
-                            val > max
-                        )
-                            return false;
+                    if (!matchesFilterValue(item, filterKey, filterValue)) {
+                        return false;
                     }
                 }
             }

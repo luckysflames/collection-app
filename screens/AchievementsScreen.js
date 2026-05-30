@@ -1,161 +1,114 @@
-import React, { useEffect, useMemo, useState } from "react";
-import {
-    View,
-    Text,
-    StyleSheet,
-    ScrollView,
-    TouchableOpacity,
-    InteractionManager,
-} from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useCollectionStore } from "../store/useCollectionStore";
+import { useAchievements } from "../hooks/useAchievements";
+
+// Components
+import { ScreenHeader } from "../components/screens/Achievements/ScreenHeader";
+import { AchievementTabs } from "../components/screens/Achievements/AchievementTabs";
 import { AchievementItem } from "../components/screens/Achievements/AchievementItem";
 import { AchievementDetailModal } from "../components/screens/Achievements/AchievementDetailModal";
-import { calculateAchievements } from "../utils/calculateAchievements";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ChevronLeft } from "lucide-react-native";
-import { ACHIEVEMENT_GROUPS } from "../constants";
 
 export default function AchievementsScreen({ navigation, route }) {
     const highlightId = route.params?.highlightId;
-    const scrollRef = React.useRef(null); // Реф для скролла
-    const containerRef = React.useRef(null);
-    const itemRefs = React.useRef({}).current;
     const insets = useSafeAreaInsets();
+
     const myCollection = useCollectionStore((state) => state.myCollection);
     const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
-    const [selectedAchiv, setSelectedAchiv] = useState(null);
 
-    const groupedAchievements = useMemo(() => {
-        const withProgress = calculateAchievements(myCollection);
+    // Подключаем наш кастомный хук
+    const {
+        groupedCategories,
+        totalStats,
+        tabs,
+        selectedAchiv,
+        setSelectedAchiv,
+        scrollRef,
+        containerRef,
+        itemRefs,
+    } = useAchievements(myCollection, highlightId, navigation);
 
-        // Создаем объект, где ключи — это groupId
-        const groups = withProgress.reduce((acc, achiv) => {
-            const groupId = achiv.groupId || "other";
-            if (!acc[groupId]) acc[groupId] = [];
-            acc[groupId].push(achiv);
-            return acc;
-        }, {});
+    // Локальный стейт под активный таб
+    const [activeTab, setActiveTab] = useState("common");
 
-        // Превращаем в массив для отрисовки
-        return Object.keys(groups).map((groupId) => ({
-            id: groupId,
-            title: ACHIEVEMENT_GROUPS[groupId] || "Прочее",
-            data: groups[groupId],
-        }));
-    }, [myCollection]);
-
-    const stats = useMemo(() => {
-        // Получаем плоский массив всех достижений с рассчитанным прогрессом
-        const allAchivs = calculateAchievements(myCollection);
-        const total = allAchivs.length;
-        const unlocked = allAchivs.filter((a) => a.isCompleted).length;
-
-        return { total, unlocked };
-    }, [myCollection]);
-
-    // Функция для записи координат элемента
-    const handleItemLayout = (id, y) => {
-        itemPositions[id] = y;
-    };
-
-    // Эффект для прокрутки при появлении highlightId
+    // Если пришли по пушу/ссылке с конкретной ачивкой (highlightId) – автоматически переключаем таб на нужный
     useEffect(() => {
-        if (highlightId && itemRefs[highlightId]) {
-            const interactionPromise = InteractionManager.runAfterInteractions(() => {
-                const timer = setTimeout(() => {
-                    if (itemRefs[highlightId] && containerRef.current) {
-                        itemRefs[highlightId].measureLayout(
-                            containerRef.current,
-                            (x, y) => {
-                                scrollRef.current?.scrollTo({
-                                    y: Math.max(0, y - 150),
-                                    animated: true,
-                                });
-                            },
-                            (error) => console.error("Scroll error:", error),
-                        );
-                    }
-                }, 400);
-
-                return () => clearTimeout(timer);
-            });
-
-            // ПРАВКА ЗДЕСЬ:
-            // Вместо setTimeout, который может выстрелить "в спину" ушедшему экрану,
-            // мы просто проверяем, жив ли еще навигатор, или сбрасываем параметры только если экран в фокусе.
-            const clearParamsTimer = setTimeout(() => {
-                // Проверяем, можем ли мы менять параметры (экран не закрыт)
-                if (navigation.isFocused()) {
-                    navigation.setParams({ highlightId: undefined });
-                }
-            }, 3000);
-
-            return () => {
-                interactionPromise.cancel();
-                clearTimeout(clearParamsTimer);
-            };
+        if (highlightId) {
+            const targetSection = groupedCategories.find((sec) =>
+                sec.groups.some((g) => g.data.some((item) => item.id === highlightId)),
+            );
+            if (targetSection) {
+                setActiveTab(targetSection.id);
+            }
         }
-    }, [highlightId, navigation]);
+    }, [highlightId, groupedCategories]);
+
+    // Получаем данные текущей активной секции
+    const currentSection = groupedCategories.find((cat) => cat.id === activeTab);
 
     return (
         <View style={styles.container}>
+            {/* Header */}
             <View style={[styles.header, { paddingTop: insets.top - 20 }]}>
-                <View style={styles.headerLeft}>
-                    <TouchableOpacity
-                        onPress={() => navigation.goBack()}
-                        style={styles.headerButton}
-                    >
-                        <ChevronLeft size={24} color="#fff" />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Достижения</Text>
-                </View>
-
-                {/* Новый счетчик справа */}
-                <View style={styles.statsBadge}>
-                    <Text style={styles.statsText}>
-                        {stats.unlocked}
-                        <Text style={styles.statsDivider}> / </Text>
-                        {stats.total}
-                    </Text>
-                </View>
+                <ScreenHeader
+                    title="Достижения"
+                    onBack={() => navigation.goBack()}
+                    unlocked={totalStats.unlocked}
+                    total={totalStats.total}
+                />
             </View>
 
+            {/* Горизонтальный переключатель категорий */}
+            {tabs.length > 0 && (
+                <View style={styles.tabsWrapper}>
+                    <AchievementTabs tabs={tabs} activeTab={activeTab} onTabPress={setActiveTab} />
+                </View>
+            )}
+
+            {/* Основной список достижений */}
             <ScrollView
                 ref={scrollRef}
                 showsVerticalScrollIndicator={false}
-                scrollEventThrottle={16} // Увеличивает частоту обработки событий скролла
-                scrollToOverflowEnabled={true}
-                contentContainerStyle={{ paddingBottom: 40 }}
+                contentContainerStyle={styles.scrollContent}
             >
-                {/* Обертка для измерения координат */}
-                <View ref={containerRef}>
-                    {groupedAchievements.map((group) => (
-                        <View key={group.id} style={styles.groupContainer}>
-                            <Text style={styles.groupTitle}>{group.title}</Text>
-                            {group.data.map((item) => (
-                                <View
-                                    key={item.id}
-                                    ref={(el) => (itemRefs[item.id] = el)} // Сохраняем реф на View
-                                >
-                                    <AchievementItem
-                                        achievement={item}
-                                        onPress={setSelectedAchiv}
-                                        isHighlighted={highlightId === item.id}
-                                    />
-                                </View>
-                            ))}
+                {currentSection && (
+                    <View ref={containerRef} style={styles.sectionBlock}>
+                        {/* Мини-статистика по текущей секции */}
+                        <View style={styles.sectionMeta}>
+                            <Text style={styles.sectionStatsText}>
+                                Выполнено: {currentSection.stats.unlocked} из{" "}
+                                {currentSection.stats.total}
+                            </Text>
                         </View>
-                    ))}
-                </View>
 
-                <View
-                    style={{
-                        height: isCompactMenu ? insets.bottom + 60 : insets.bottom + 90,
-                    }}
-                />
+                        {/* Группы внутри выбранной категории */}
+                        {currentSection.groups.map((group) => (
+                            <View key={group.id} style={styles.groupContainer}>
+                                {currentSection.groups.length > 1 && (
+                                    <Text style={styles.groupTitle}>{group.title}</Text>
+                                )}
+
+                                {group.data.map((item) => (
+                                    <View key={item.id} ref={(el) => (itemRefs[item.id] = el)}>
+                                        <AchievementItem
+                                            achievement={item}
+                                            onPress={setSelectedAchiv}
+                                            isHighlighted={highlightId === item.id}
+                                        />
+                                    </View>
+                                ))}
+                            </View>
+                        ))}
+                    </View>
+                )}
+
+                {/* Безопасный отступ снизу с учетом меню */}
+                <View style={{ height: isCompactMenu ? insets.bottom + 60 : insets.bottom + 90 }} />
             </ScrollView>
 
+            {/* Модалка детальной информации */}
             <AchievementDetailModal
                 visible={!!selectedAchiv}
                 achievement={selectedAchiv}
@@ -169,64 +122,44 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#050B18",
-        paddingHorizontal: 20,
     },
     header: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between", // Расталкиваем заголовок и счетчик
-        paddingBottom: 30,
+        paddingHorizontal: 20,
+        paddingBottom: 15,
         backgroundColor: "#050B18",
     },
-    headerLeft: {
-        flexDirection: "row",
-        alignItems: "center",
+    tabsWrapper: {
+        backgroundColor: "#050B18",
+        borderBottomWidth: 1,
+        borderColor: "rgba(255, 255, 255, 0.04)",
     },
-    headerTitle: {
-        color: "#fff",
-        fontSize: 24,
-        fontWeight: "bold",
-        marginLeft: 15,
+    scrollContent: {
+        paddingHorizontal: 20,
+        paddingTop: 20,
     },
-    headerButton: {
-        backgroundColor: "rgba(11, 21, 52, 0.8)",
-        width: 45,
-        height: 45,
-        borderRadius: 15,
-        justifyContent: "center",
-        alignItems: "center",
-        borderWidth: 1,
-        borderColor: "rgba(255,255,255,0.05)",
+    sectionBlock: {
+        marginBottom: 20,
     },
-    // Стили для счетчика
-    statsBadge: {
-        backgroundColor: "rgba(125, 138, 255, 0.15)", // Прозрачный акцентный фон
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: "rgba(125, 138, 255, 0.3)",
+    sectionMeta: {
+        marginBottom: 16,
+        paddingHorizontal: 4,
     },
-    statsText: {
-        color: "#7D8AFF", // Цвет в тон заголовкам групп
-        fontSize: 16,
-        fontWeight: "bold",
-        fontVariant: ["tabular-nums"], // Чтобы цифры не прыгали при изменении
-    },
-    statsDivider: {
-        color: "rgba(125, 138, 255, 0.5)",
-        fontWeight: "normal",
+    sectionStatsText: {
+        color: "rgba(255, 255, 255, 0.4)",
+        fontSize: 13,
+        fontWeight: "600",
     },
     groupContainer: {
-        marginBottom: 25,
+        marginBottom: 20,
     },
     groupTitle: {
-        color: "#7D8AFF", // Акцентный цвет для заголовка группы
-        fontSize: 14,
-        fontWeight: "bold",
+        color: "#7D8AFF",
+        fontSize: 11,
+        fontWeight: "800",
         textTransform: "uppercase",
-        letterSpacing: 1.5,
-        marginBottom: 15,
-        marginLeft: 5,
+        letterSpacing: 1.6,
+        marginBottom: 12,
+        marginLeft: 4,
+        opacity: 0.9,
     },
 });

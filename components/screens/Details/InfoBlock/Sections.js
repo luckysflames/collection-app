@@ -62,6 +62,7 @@ export const BookQuickData = ({ data }) => {
 
 export const AnimeExtra = ({ data }) => (
     <>
+        {data.creator && <LabelValue label="Автор" value={data.creator} />}
         <LabelValue label="Студия" value={data.studios?.join(", ")} />
         <LabelValue
             label="Первоисточник"

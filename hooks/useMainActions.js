@@ -3,6 +3,7 @@ import { useCollectionStore } from "../store/useCollectionStore";
 import { Platform, Vibration } from "react-native";
 import * as Haptics from "expo-haptics";
 import { FAVORITE_STATUS } from "../constants/index";
+import { matchesFilterValue } from "../utils/filterUtils";
 
 export const useMainActions = (
     currentSection,
@@ -50,19 +51,8 @@ export const useMainActions = (
             for (const [filterKey, filterValue] of Object.entries(
                 activeFilters,
             )) {
-                if (typeof filterValue === "string") {
-                    if (item[filterKey] !== filterValue) return false;
-                }
-                if (Array.isArray(filterValue)) {
-                    const [min, max] = filterValue;
-                    const val = item[filterKey];
-                    if (
-                        val === undefined ||
-                        val === null ||
-                        val < min ||
-                        val > max
-                    )
-                        return false;
+                if (!matchesFilterValue(item, filterKey, filterValue)) {
+                    return false;
                 }
             }
             return true;

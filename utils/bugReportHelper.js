@@ -9,7 +9,7 @@ export const getBugReportTemplate = () => {
     const version = Constants.expoConfig?.version || "3.2.0";
 
     const techInfo = [
-        "=== Technical information:",
+        "= = = Technical information:",
         `= App: ${version} (${Constants.expoConfig?.android?.versionCode || "build"})`,
         `= Device: ${Device.brand} ${Device.modelName}`,
         `= Android: ${Device.osVersion} (SDK ${Device.platformApiLevel})`,
@@ -17,13 +17,14 @@ export const getBugReportTemplate = () => {
         `= Processor: ${Device.supportedCpuArchitectures?.join(", ") || "unknown"}`,
         `= Memory: ${Math.round(Device.totalMemory / 1024 ** 3)} GB total`,
         `= Language: ${Localization.getLocales()[0].languageCode}`,
-        "==========================",
+        "= = = = = = = = = = = = = = = = = = ",
     ].join("\n");
 
     const instruction = [
-        "\nИнструкция:",
-        "1. Предоставьте максимально подробное описание проблемы;",
-        "2. Опишите последовательность действий...",
+        "\nИнструкция:\n",
+        "1. Предоставьте максимально подробное описание проблемы.\n",
+        "2. Опишите последовательность действий, которые привели к ошибке, например: 1) Открыл приложение; 2) Перешёл в раздел А и нажал на кнопку Б; 3) Приложение вылетело.\n",
+        "3. Приложите скриншоты или запись экрана, чтобы наглядно продемонстрировать проблему.\n",
         "НИЖЕ ВВЕДИТЕ ТЕКСТ СВОЕГО СООБЩЕНИЯ:",
     ].join("\n");
 

@@ -124,7 +124,7 @@ export default function CollectionDashboard({ navigation }) {
                     })}
                 </View>
 
-                <CollectionProgress totalItems={totalItems} />
+                <CollectionProgress collection={myCollection} />
                 <AnalyticsPanel collection={myCollection} />
             </ScrollView>
         </View>

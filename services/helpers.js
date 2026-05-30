@@ -46,3 +46,16 @@ export const cleanHtml = (text) => {
 
 // Вспомогательная функция для получения чистого ID без префикса и номера страницы
 export const getCleanId = (complexId, prefix) => complexId.replace(prefix, "").split("-")[0];
+
+export const extractCreator = (personRoles) => {
+    if (!Array.isArray(personRoles)) return null;
+
+    const originalCreator = personRoles.find(
+        (pr) => pr.rolesEn?.includes("Original Creator") || pr.rolesRu?.includes("Автор оригинала"),
+    );
+    if (originalCreator?.person?.name) {
+        return originalCreator.person.name;
+    }
+
+    return null;
+};

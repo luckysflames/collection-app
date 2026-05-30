@@ -195,14 +195,14 @@ export default function AnalyticsSection({ category, stats, itemCount }) {
                     <View style={styles.timeFooter}>
                         <View style={styles.timeBlock}>
                             <Text style={styles.timeValue}>
-                                ~{stats.timeStats?.completedHours || 0} ч
+                                ~{stats.timeStats?.completedDisplay || "0 ч"}
                             </Text>
                             <Text style={styles.timeLabel}>Вы потратили</Text>
                         </View>
                         <View style={styles.timeDivider} />
                         <View style={styles.timeBlock}>
                             <Text style={styles.timeValue}>
-                                ~{stats.timeStats?.totalHours || 0} ч
+                                ~{stats.timeStats?.totalDisplay || "0 ч"}
                             </Text>
                             <Text style={styles.timeLabel}>Нужно на всё</Text>
                         </View>

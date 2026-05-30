@@ -1,84 +1,4 @@
-export const ACHIEVEMENT_GROUPS = {
-    mastery: "Общие",
-    organization: "Порядок",
-    content: "Контент",
-    studio: "Студии",
-    genres: "Жанры",
-    bingo: "Бинго",
-    special: "Особые",
-};
-
-export const ACHIEVEMENTS_DATA = [
-    // -------------------------- ГРУППА: МАСТЕРСТВО (Числа и оценки) -------------------------
-    {
-        id: "collector_beginner",
-        groupId: "mastery",
-        title: "Ты у меня первая",
-        description: "Добавьте в коллекцию свою первую карточку",
-        iconName: "LayersPlus",
-        target: 1,
-    },
-    {
-        id: "creator_beginner",
-        groupId: "mastery",
-        title: "Я здесь власть",
-        description: "Создайте свою первую карточку",
-        iconName: "Pencil",
-        target: 1,
-    },
-    {
-        id: "low_rater",
-        groupId: "mastery",
-        title: "С пола не ем",
-        description: "Поставьте оценку 1 более чем 5 карточкам",
-        iconName: "StarOff",
-        target: 5,
-    },
-    {
-        id: "high_rater",
-        groupId: "mastery",
-        title: "Прям заслужили?",
-        description: "Поставьте оценку 10 более чем 5 карточкам",
-        iconName: "Star",
-        target: 30,
-    },
-    {
-        id: "moment_collector",
-        groupId: "mastery",
-        title: "Ценитель мгновений",
-        description: "Накопите суммарно 1000 кадров во всех карточках",
-        iconName: "Images",
-        target: 1000,
-    },
-    {
-        id: "brilliant_collector",
-        groupId: "mastery",
-        title: "Бриллиантовая рука",
-        description: "Соберите в коллекции 10 алмазов",
-        iconName: "Gem",
-        target: 10,
-    },
-    // ----------------------------------------------------------------------------------------
-
-    // -------------------------- ГРУППА: ПОРЯДОК (Папки и структура) -------------------------
-    {
-        id: "archivist",
-        groupId: "organization",
-        title: "Архивариус",
-        description: "Создайте 5 папок для организации своей коллекции",
-        iconName: "Library",
-        target: 30,
-    },
-    {
-        id: "shelf_master",
-        groupId: "organization",
-        title: "По полочкам",
-        description: "Поместите более 10 карточек внутрь одной папки",
-        iconName: "FolderTree",
-        target: 1,
-    },
-    // ----------------------------------------------------------------------------------------
-
+const RAW_ANIME_ACHIEVEMENTS = [
     // ------------------------------------ ГРУППА: СТУДИИ ------------------------------------
     {
         id: "madhouse_fan",
@@ -280,8 +200,7 @@ export const ACHIEVEMENTS_DATA = [
         id: "pawn",
         groupId: "bingo",
         title: "Манипулятор",
-        description:
-            'Посмотрите "Класс превосходства", "Безумный азарт" и "Игра друзей"',
+        description: 'Посмотрите "Класс превосходства", "Безумный азарт" и "Игра друзей"',
         iconName: "ChessPawn",
         target: 8,
         requiredIds: [
@@ -347,8 +266,7 @@ export const ACHIEVEMENTS_DATA = [
         id: "survivor",
         groupId: "bingo",
         title: "Выживший",
-        description:
-            'Посмотрите "Созданный в бездне", "Обещанный Неверленд" и "Иллюзия рая"',
+        description: 'Посмотрите "Созданный в бездне", "Обещанный Неверленд" и "Иллюзия рая"',
         iconName: "Skull",
         target: 9,
         requiredIds: [
@@ -392,8 +310,7 @@ export const ACHIEVEMENTS_DATA = [
         id: "half_monster",
         groupId: "bingo",
         title: "Полумонстр",
-        description:
-            'Посмотрите "Токийский гуль", "Паразит: Учение о жизни" и "Кайдзю №8"',
+        description: 'Посмотрите "Токийский гуль", "Паразит: Учение о жизни" и "Кайдзю №8"',
         iconName: "Dna",
         target: 8,
         requiredIds: [
@@ -416,8 +333,7 @@ export const ACHIEVEMENTS_DATA = [
         id: "trigger_soul",
         groupId: "bingo",
         title: "Много пафоса",
-        description:
-            'Посмотрите "Милый во Франксе", "Гуррен-Лаганн" и "Убей или умри"',
+        description: 'Посмотрите "Милый во Франксе", "Гуррен-Лаганн" и "Убей или умри"',
         iconName: "Zap",
         target: 5,
         requiredIds: [
@@ -436,8 +352,7 @@ export const ACHIEVEMENTS_DATA = [
         id: "harem_victim",
         groupId: "bingo",
         title: "Жертва гарема",
-        description:
-            'Посмотрите "Пять невест", "Мы не можем учиться!" и "Притворная любовь"',
+        description: 'Посмотрите "Пять невест", "Мы не можем учиться!" и "Притворная любовь"',
         iconName: "Heart",
         target: 7,
         requiredIds: [
@@ -458,8 +373,7 @@ export const ACHIEVEMENTS_DATA = [
         id: "aesthetic_ghibli",
         groupId: "bingo",
         title: "Эстет",
-        description:
-            'Посмотрите "Унесённые призраками", "Ходячий замок" и "Принцесса Мононоке"',
+        description: 'Посмотрите "Унесённые призраками", "Ходячий замок" и "Принцесса Мононоке"',
         iconName: "Brush",
         target: 3,
         requiredIds: [
@@ -512,8 +426,7 @@ export const ACHIEVEMENTS_DATA = [
         id: "dreamer_shinkai",
         groupId: "bingo",
         title: "Мечтатель",
-        description:
-            'Посмотрите "Твоё имя", "Дитя погоды" и "Судзумэ, закрывающая двери"',
+        description: 'Посмотрите "Твоё имя", "Дитя погоды" и "Судзумэ, закрывающая двери"',
         iconName: "CloudSun",
         target: 3,
         requiredIds: [
@@ -555,8 +468,7 @@ export const ACHIEVEMENTS_DATA = [
         id: "brutal_seinen",
         groupId: "bingo",
         title: "Брутал",
-        description:
-            'Посмотрите "Хеллсинг", "Пираты «Чёрной лагуны»" и "Гангрейв"',
+        description: 'Посмотрите "Хеллсинг", "Пираты «Чёрной лагуны»" и "Гангрейв"',
         iconName: "Sword",
         target: 4,
         requiredIds: [
@@ -593,8 +505,7 @@ export const ACHIEVEMENTS_DATA = [
         id: "clear_world",
         groupId: "bingo",
         title: "Мир понятен",
-        description:
-            'Посмотрите "Первородный грех Такопи", "Созданный в бездне" и "Нарутару"',
+        description: 'Посмотрите "Первородный грех Такопи", "Созданный в бездне" и "Нарутару"',
         iconName: "Brain",
         target: 8,
         requiredIds: [
@@ -666,34 +577,9 @@ export const ACHIEVEMENTS_DATA = [
         hidden: true,
     },
     // ----------------------------------------------------------------------------------------
-
-    // ------------------------------ ГРУППА: ОСОБЫЕ (Секретные) ------------------------------
-    {
-        id: "night_owl",
-        groupId: "special",
-        title: "Ночной жрец",
-        description: "Добавьте карточку в период с 00:00 до 05:00",
-        iconName: "Moon",
-        target: 1,
-        hidden: true,
-    },
-    {
-        id: "status_uncertain",
-        groupId: "special",
-        title: "Потом как-нибудь",
-        description: "Добавьте карточку, не определившись со статусом",
-        iconName: "HelpCircle",
-        target: 1,
-        hidden: true,
-    },
-    {
-        id: "ban",
-        groupId: "special",
-        title: "Да, ещё",
-        description: "Оскорбите разработчика",
-        iconName: "Ban",
-        target: 1,
-        hidden: true,
-    },
-    // ----------------------------------------------------------------------------------------
 ];
+
+export const ANIME_ACHIEVEMENTS = RAW_ANIME_ACHIEVEMENTS.map((achievement) => ({
+    section: "anime",
+    ...achievement,
+}));

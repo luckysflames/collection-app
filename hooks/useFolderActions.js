@@ -86,19 +86,13 @@ export const useFolderActions = (
     };
 
     const deleteEverything = () => {
-        // Делаем копию ID и айтемов ДО удаления, чтобы не зависеть от состояния folder
         const currentFolderId = folder?.id;
         const itemsToDelete = [...folderItems];
 
         if (!currentFolderId) return;
 
-        navigation.goBack(); // Навигация должна быть первой
-
-        // Небольшая задержка, чтобы экран успел размонтироваться
-        setTimeout(() => {
-            itemsToDelete.forEach((item) => deleteCard(item.id));
-            deleteCard(currentFolderId);
-        }, 100);
+        itemsToDelete.forEach((item) => deleteCard(item.id));
+        deleteCard(currentFolderId);
     };
 
     const deleteFolderOnly = () => {

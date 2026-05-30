@@ -80,7 +80,6 @@ export const tmdbService = {
             first_air_date: json.first_air_date,
             last_air_date: json.last_air_date,
             duration: json.episode_run_time?.[0] || null,
-            seasons: json.number_of_seasons || 0,
             seasonsCount: json.number_of_seasons || 0,
             seasonsList:
                 json.seasons?.map((season) => ({

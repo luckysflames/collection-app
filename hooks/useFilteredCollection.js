@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { FAVORITE_STATUS } from "../constants/index";
+import { matchesFilterValue } from "../utils/filterUtils";
 
 export const useFilteredCollection = ({
     data,
@@ -91,60 +92,11 @@ export const useFilteredCollection = ({
                 // Папки не фильтруются
                 if (item.isFolder) return true;
 
-                // Проверяем каждый активный фильтр
                 for (const [filterKey, filterValue] of Object.entries(
                     activeFilters,
                 )) {
-                    // Фильтр select
-                    if (typeof filterValue === "string") {
-                        const itemValue = item[filterKey];
-                        if (itemValue === undefined || itemValue === null) {
-                            return false;
-                        }
-
-                        // Для динамических полей (genres, studios и т.д.) проверяем вхождение
-                        const isDynamicField = [
-                            "genres",
-                            "studios",
-                            "developers",
-                            "platforms",
-                            "authors",
-                            "companies",
-                            "countries",
-                        ].includes(filterKey);
-                        if (isDynamicField) {
-                            // Если значение - строка, разделяем по запятым
-                            let values = [];
-                            if (typeof itemValue === "string") {
-                                values = itemValue
-                                    .split(",")
-                                    .map((v) => v.trim());
-                            } else if (Array.isArray(itemValue)) {
-                                values = itemValue;
-                            }
-                            // Проверяем, содержит ли массив значение
-                            if (!values.includes(filterValue)) {
-                                return false;
-                            }
-                        } else {
-                            // Для статических полей строгое равенство
-                            if (itemValue !== filterValue) {
-                                return false;
-                            }
-                        }
-                    }
-                    // Фильтр range
-                    if (Array.isArray(filterValue)) {
-                        const [min, max] = filterValue;
-                        const itemValue = item[filterKey];
-                        if (
-                            itemValue === undefined ||
-                            itemValue === null ||
-                            itemValue < min ||
-                            itemValue > max
-                        ) {
-                            return false;
-                        }
+                    if (!matchesFilterValue(item, filterKey, filterValue)) {
+                        return false;
                     }
                 }
 

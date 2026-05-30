@@ -14,24 +14,12 @@ export const useNotificationStore = create(
             showAchievement: (achievement) =>
                 set((state) => ({
                     achievementQueue: [...state.achievementQueue, achievement],
-                    shownAchievements: [
-                        ...new Set([
-                            ...state.shownAchievements,
-                            achievement.id,
-                        ]),
-                    ],
+                    shownAchievements: [...new Set([...state.shownAchievements, achievement.id])],
                 })),
 
             dismissAchievement: () =>
                 set((state) => ({
                     achievementQueue: state.achievementQueue.slice(1),
-                })),
-
-            resetAchievementNotification: (id) =>
-                set((state) => ({
-                    shownAchievements: state.shownAchievements.filter(
-                        (aid) => aid !== id,
-                    ),
                 })),
         }),
         {

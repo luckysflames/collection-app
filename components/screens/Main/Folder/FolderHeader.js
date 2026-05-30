@@ -1,6 +1,7 @@
-import React, { memo } from "react";
+import React, { memo, useRef, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
-import { ChevronLeft, Check, Pen, X, Gem } from "lucide-react-native";
+import { ChevronLeft, Check, Pen, X } from "lucide-react-native";
+import LottieView from "lottie-react-native";
 
 import { BaseHeroLayout } from "../../../layout/BaseHeroLayout";
 import { FolderEditForm } from "./FolderEditForm";
@@ -33,7 +34,19 @@ export const FolderHeader = memo((props) => {
         showBrilliantBtn,
         isBrilliant,
         onBrilliantPress,
+        isFocused, // Принимаем проп фокуса для Lottie-анимаций
     } = props;
+
+    const headerLottieRef = useRef(null);
+
+    // Контроль воспроизведения Lottie-анимации шедевра
+    useEffect(() => {
+        if (isBrilliant && isFocused) {
+            headerLottieRef.current?.play();
+        } else {
+            headerLottieRef.current?.pause();
+        }
+    }, [isFocused, isBrilliant]);
 
     return (
         <BaseHeroLayout
@@ -47,14 +60,22 @@ export const FolderHeader = memo((props) => {
                     <ChevronLeft size={24} color="#fff" />
                 ),
             }}
+            // Заменяем статическую иконку Lucide на кастомный интерактивный Lottie-алмаз из примера
             centerButton={
                 showBrilliantBtn
                     ? {
+                          unstyled: true,
+                          style: styles.lottieContainer,
                           onPress: onBrilliantPress,
-                          icon: isBrilliant ? (
-                              <Gem size={22} color="#7D8AFF" />
-                          ) : (
-                              <Gem size={22} color="#fff" />
+                          icon: (
+                              <LottieView
+                                  ref={headerLottieRef}
+                                  source={require("../../../../assets/diamond.json")}
+                                  style={styles.headerLottie}
+                                  autoPlay={isFocused && isBrilliant}
+                                  loop={true}
+                                  resizeMode="contain"
+                              />
                           ),
                       }
                     : null
@@ -70,11 +91,7 @@ export const FolderHeader = memo((props) => {
         >
             {/* Обертка для всего внутреннего контента */}
             <View style={styles.container}>
-                <HeroPoster
-                    image={displayImage}
-                    isEditing={isEditing}
-                    onPickImage={pickImage}
-                />
+                <HeroPoster image={displayImage} isEditing={isEditing} onPickImage={pickImage} />
 
                 <View style={styles.contentWrapper}>
                     {isEditing ? (
@@ -97,6 +114,8 @@ export const FolderHeader = memo((props) => {
                             folderItems={folderItems}
                             onRatingUpdate={onRatingUpdate}
                             onInfoPress={onInfoPress}
+                            isBrilliant={isBrilliant}
+                            onBrilliantPress={onBrilliantPress}
                         />
                     )}
                 </View>
@@ -113,6 +132,18 @@ const styles = StyleSheet.create({
     contentWrapper: {
         width: "100%",
         marginTop: 10, // Отступ между постером и текстом
+    },
+    lottieContainer: {
+        width: 100,
+        height: 100,
+        marginLeft: -50,
+        marginTop: -15,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    headerLottie: {
+        width: "100%",
+        height: "100%",
     },
     saveButton: { backgroundColor: "#7D8AFF", borderRadius: 15 },
     cancelButton: {
