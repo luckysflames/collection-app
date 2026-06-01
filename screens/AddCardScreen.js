@@ -44,11 +44,22 @@ export default function AddCardScreen({ navigation }) {
     const [isStatusVisible, setIsStatusVisible] = useState(false); // Для статусов
     const [isOptionalVisible, setIsOptionalVisible] = useState(false); // Для доп. инфо
 
+    // 1. Получаем кастомный порядок категорий из стора
+    const categoryOrder = useCollectionStore((state) => state.categoryOrder);
+
+    // 2. Вычисляем последний элемент в пользовательском порядке категорий
+    const lastCategoryType =
+        categoryOrder && categoryOrder.length > 0 ? categoryOrder[categoryOrder.length - 1] : null;
+
     const orderedSections = useCollectionStore(
         useShallow((state) => getOrderedCategories(state.categoryOrder)),
     );
 
-    const { form, updateField, handleSave, errorModal, closeError } = useAddCardForm(navigation);
+    // 3. Передаем вычисленный тип по умолчанию в ваш хук формы
+    const { form, updateField, handleSave, errorModal, closeError } = useAddCardForm(
+        navigation,
+        lastCategoryType,
+    );
     const { pickImage } = useImagePicker();
 
     const currentSection = SECTIONS.find((s) => (s.id || s.value) === form.type);
@@ -212,7 +223,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        paddingVertical: 12, // Слегка увеличил для удобства тапа
+        paddingVertical: 12,
         borderBottomWidth: 1,
         borderBottomColor: "rgba(142, 148, 164, 0.2)",
         marginBottom: 15,

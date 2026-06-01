@@ -71,7 +71,7 @@ export const prepareDataForSave = (formData, itemType) => {
             extendedData = {
                 englishTitle: formData.englishTitle,
                 japaneseTitle: formData.japaneseTitle,
-                kind: formData.animeKind || formData.kind,
+                animeKind: formData.animeKind || formData.kind,
                 rating: formData.rating,
                 airedOn: formData.airedOn,
                 releasedOn: formData.releasedOn,

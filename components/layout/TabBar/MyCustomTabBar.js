@@ -40,17 +40,17 @@ export default function MyCustomTabBar({ state, descriptors, navigation }) {
                             navigation.navigate(route.name);
                         } else {
                             if (route.name === "Коллекция") {
-                                // Мы просто явно переходим на самый первый экран этого стека.
-                                // React Navigation поймет, что экран "Дашборд" уже в стеке,
-                                // и сделает возврат к нему автоматически.
                                 navigation.navigate("Коллекция", {
                                     screen: "Дашборд",
                                 });
                             }
 
                             if (route.name === "Поиск") {
-                                // Отправляем параметр 'reset', который мы поймаем внутри SearchScreen
-                                navigation.setParams({ reset: Date.now() });
+                                // Явно направляем навигацию на корень стека Поиска и передаем параметр
+                                navigation.navigate("Поиск", {
+                                    screen: "SearchMain", // Имя экрана из SearchStack.Screen в App.js
+                                    params: { reset: Date.now() }, // Передаем таймстамп для гарантированного триггера useEffect
+                                });
                             }
                         }
                     };
@@ -63,7 +63,7 @@ export default function MyCustomTabBar({ state, descriptors, navigation }) {
                             isCompactMenu={isCompactMenu}
                             iconSet={TAB_ICONS[route.name]}
                             ICON_CONTAINER_SIZE={ICON_CONTAINER_SIZE}
-                            onPress={onPress} // Используем обновленный onPress
+                            onPress={onPress}
                         />
                     );
                 })}
@@ -78,7 +78,6 @@ const styles = StyleSheet.create({
         right: 20,
         left: 20,
         bottom: 20,
-        // width: "100%",
         alignItems: "center",
     },
     mainContainer: {
@@ -87,11 +86,8 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "space-between",
         borderWidth: 1.5,
-        // borderColor: "rgba(125, 138, 255, 0.2)",
         borderColor: "#1b264e",
         borderRadius: 35,
-        // borderTopLeftRadius: 30,
-        // borderTopRightRadius: 30,
         width: "100%",
         shadowColor: "#000",
         shadowOffset: { width: 0, height: -4 },

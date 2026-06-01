@@ -94,7 +94,7 @@ export const shikimoriService = {
 
         return {
             type: "anime",
-            kind: data.kind,
+            animeKind: data.kind,
             score: data.score || "0.0",
             animeStatus: data.status,
             episodes: data.episodes,

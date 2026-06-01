@@ -1,4 +1,4 @@
-import { Alert } from "react-native";
+import { Alert, Keyboard } from "react-native";
 import { useCollectionStore } from "../store/useCollectionStore";
 import { useEffect, useState } from "react";
 import {
@@ -10,26 +10,33 @@ import {
     FAVORITE_STATUS,
 } from "../constants/index";
 
-export const useAddCardForm = (navigation) => {
+// Передаем в хук вторым аргументом initialType (тип по умолчанию)
+export const useAddCardForm = (navigation, initialType) => {
     const addToCollection = useCollectionStore((state) => state.addToCollection);
 
-    const [form, setForm] = useState(INITIAL_FORM_STATE);
+    // Инициализируем форму: если передан initialType, подставляем его в type
+    const [form, setForm] = useState(() => ({
+        ...INITIAL_FORM_STATE,
+        type: initialType || INITIAL_FORM_STATE.type,
+    }));
 
     const [errorModal, setErrorModal] = useState({
         visible: false,
         message: "",
     });
 
-    // При смене типа карточки статус остается "Избранное"
+    // Исправленный useEffect: следим ТОЛЬКО за изменением form.type,
+    // чтобы принудительно переключать статус в FAVORITE_STATUS
+    const currentType = form.type;
     useEffect(() => {
         setForm((prev) => ({
             ...prev,
             status: FAVORITE_STATUS,
         }));
-    }, [form.type]);
+    }, [currentType]); // Следим за конкретной строкой, а не за всем объектом формы
 
     const split = (str) => {
-        if (Array.isArray(str)) return str; // Если уже массив (от мультивыбора), возвращаем как есть
+        if (Array.isArray(str)) return str;
         return str
             ? str
                   .split(",")
@@ -38,7 +45,6 @@ export const useAddCardForm = (navigation) => {
             : [];
     };
 
-    // Извлекаем числовое значение и поддерживаем дробную часть с точкой или запятой
     const extractNumeric = (value) => {
         if (!value) return "";
         const normalized = String(value).replace(",", ".").trim();
@@ -106,7 +112,7 @@ export const useAddCardForm = (navigation) => {
                 extendedData = {
                     englishTitle: form.englishTitle,
                     japaneseTitle: form.japaneseTitle,
-                    kind: form.animeKind,
+                    animeKind: form.animeKind,
                     rating: form.rating,
                     airedOn: form.airedOn,
                     releasedOn: form.releasedOn,
@@ -141,8 +147,14 @@ export const useAddCardForm = (navigation) => {
         const finalCard = { ...baseCard, ...extendedData };
         addToCollection(finalCard);
 
-        // Сброс и навигация
-        setForm(INITIAL_FORM_STATE);
+        Keyboard.dismiss();
+
+        // После сохранения сбрасываем в дефолтный стейт, сохраняя кастомный тип
+        setForm({
+            ...INITIAL_FORM_STATE,
+            type: initialType || INITIAL_FORM_STATE.type,
+        });
+
         if (onSuccess) onSuccess();
         navigation.navigate("Коллекция", { screen: "Дашборд" });
     };

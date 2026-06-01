@@ -1,11 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import {
-    Animated,
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-} from "react-native";
+import { Animated, View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useAudioPlayer } from "expo-audio";
 import { X } from "lucide-react-native";
@@ -66,8 +60,12 @@ export const AchievementToast = ({ achievement, onDismiss }) => {
 
     const handlePress = () => {
         hide();
-        navigation.navigate("Achievements", { highlightId: achievement.id });
+        navigation.navigate("Achievements", { highlightId: achievement?.id });
     };
+
+    // БЕЗОПАСНЫЙ СБОР ДАННЫХ (Защита от undefined и пустых полей display*)
+    const actualTitle = achievement?.title || achievement?.displayTitle || "Достижение";
+    const actualIcon = achievement?.iconName || achievement?.displayIconName || "Award";
 
     return (
         <Animated.View
@@ -80,16 +78,14 @@ export const AchievementToast = ({ achievement, onDismiss }) => {
             ]}
         >
             <View style={styles.blurWrapper}>
-                <TouchableOpacity
-                    onPress={handlePress}
-                    activeOpacity={0.8}
-                    style={styles.content}
-                >
+                <TouchableOpacity onPress={handlePress} activeOpacity={0.8} style={styles.content}>
                     <View style={styles.iconContainer}>
                         <DynamicIcon
+                            // Защищаем иконку от значения "Lock", ведь ачивка уже получена!
                             name={
-                                achievement?.displayIconName ||
-                                achievement?.iconName
+                                actualIcon === "Lock" && achievement?.iconName
+                                    ? achievement.iconName
+                                    : actualIcon
                             }
                             size={24}
                             color="#7D8AFF"
@@ -97,7 +93,10 @@ export const AchievementToast = ({ achievement, onDismiss }) => {
                     </View>
                     <View style={styles.textContainer}>
                         <Text style={styles.achievementTitle} numberOfLines={1}>
-                            {achievement?.displayTitle}
+                            {/* Если прилетело "Секретное достижение", но есть реальный title — берем реальный */}
+                            {actualTitle === "Секретное достижение" && achievement?.title
+                                ? achievement.title
+                                : actualTitle}
                         </Text>
                         <Text style={styles.upperTitle}>
                             {achievement?.hidden
@@ -111,7 +110,7 @@ export const AchievementToast = ({ achievement, onDismiss }) => {
                 <TouchableOpacity
                     style={styles.closeButton}
                     onPress={hide}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} // Увеличиваем зону нажатия
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
                     <X size={20} color="rgba(255, 255, 255, 0.5)" />
                 </TouchableOpacity>
@@ -135,11 +134,11 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: "rgba(125, 138, 255, 0.3)",
         backgroundColor: "rgba(11, 21, 52, 1)",
-        flexDirection: "row", // Позволяет кнопке встать в ряд
+        flexDirection: "row",
         alignItems: "center",
     },
     content: {
-        flex: 1, // Занимает всё свободное место, кроме кнопки закрытия
+        flex: 1,
         flexDirection: "row",
         alignItems: "center",
         padding: 12,

@@ -51,15 +51,6 @@ function SearchStackScreen() {
         <SearchStack.Navigator screenOptions={DEFAULT_STACK_OPTIONS}>
             <SearchStack.Screen name="SearchMain" component={SearchScreen} />
             <SearchStack.Screen name="Details" component={DetailsScreen} />
-            <SearchStack.Screen name="FolderDetail" component={FolderDetailScreen} />
-            <SearchStack.Screen
-                name="EditCard"
-                component={EditCardScreen}
-                options={{
-                    animationEnabled: true,
-                    cardStyleInterpolator: CardStyleInterpolators.forFadeFromBottomAndroid,
-                }}
-            />
         </SearchStack.Navigator>
     );
 }

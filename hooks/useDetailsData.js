@@ -32,7 +32,7 @@ export const useDetailsData = (item, fullDetails, savedItem) => {
             case "anime":
                 return {
                     ...common,
-                    animeKind: savedItem?.kind || item?.kind || fullDetails?.kind,
+                    animeKind: savedItem?.animeKind || item?.animeKind || fullDetails?.animeKind,
                     episodes: savedItem?.episodes || item?.episodes || fullDetails?.episodes || "?",
                     episodesAired:
                         savedItem?.episodesAired ||
