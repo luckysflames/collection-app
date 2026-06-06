@@ -4,6 +4,19 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { UserRating } from "../../../shared/UserRating";
 import { AverageRatingBlock } from "./AverageRatingBlock";
 
+const FOLDER_SORT_LABELS = {
+    manual: "Вручную (↓)",
+    manual_desc: "Вручную (↑)",
+    date_desc: "По дате (↓)",
+    date_asc: "По дате (↑)",
+    rating_desc: "По рейтингу (↓)",
+    rating_asc: "По рейтингу (↑)",
+    alphabet_asc: "По алфавиту (А-Я)",
+    alphabet_desc: "По алфавиту (Я-А)",
+    status_change_desc: "По изменениям (↓)",
+    status_change_asc: "По изменениям (↑)",
+};
+
 export const FolderInfo = ({
     folder,
     count,
@@ -14,9 +27,9 @@ export const FolderInfo = ({
     folderItems,
     onRatingUpdate,
     onInfoPress,
-    // Принимаем экшены бриллианта от FolderHeader
     isBrilliant,
     onBrilliantPress,
+    sortType,
 }) => {
     const getPlural = (number, titles) => {
         const cases = [2, 0, 1, 1, 1, 2];
@@ -26,6 +39,7 @@ export const FolderInfo = ({
     };
 
     const cardsLabel = getPlural(count, ["карточка", "карточки", "карточек"]);
+    const currentSortLabel = FOLDER_SORT_LABELS[sortType] || "Неизвестно";
 
     return (
         <View style={styles.container}>
@@ -80,8 +94,9 @@ export const FolderInfo = ({
             {/* Кнопка сортировки */}
             <View style={styles.underRaitingRow}>
                 <TouchableOpacity onPress={onSortPress} style={styles.sortBtn}>
-                    <ListFilter size={18} color="#7D8AFF" />
-                    <Text style={styles.sortText}>Сортировка</Text>
+                    <ListFilter size={16} color="#7D8AFF" />
+                    <Text style={styles.sortText}>Сортировка: {currentSortLabel}</Text>
+                    <ChevronDown size={14} color="#8E94A4" style={{ marginLeft: 4 }} />
                 </TouchableOpacity>
             </View>
 

@@ -206,24 +206,39 @@ export const useCollectionStore = create(
                 }),
 
             updateCard: (id, updatedFields) =>
-                set((state) => ({
-                    myCollection: state.myCollection.map((item) =>
-                        String(item.id) === String(id) ? { ...item, ...updatedFields } : item,
-                    ),
-                    version: state.version + 1,
-                })),
+                set((state) => {
+                    const index = state.myCollection.findIndex(
+                        (item) => String(item.id) === String(id),
+                    );
+                    if (index === -1) return state;
+
+                    const nextCollection = [...state.myCollection];
+                    nextCollection[index] = {
+                        ...nextCollection[index],
+                        ...updatedFields,
+                    };
+
+                    return {
+                        myCollection: nextCollection,
+                        version: state.version + 1,
+                    };
+                }),
 
             setUserScore: (id, score) =>
-                set((state) => ({
-                    myCollection: state.myCollection.map((item) =>
-                        String(item.id) === String(id)
-                            ? {
-                                  ...item,
-                                  userScore: Math.max(0, Math.min(10, score)),
-                              }
-                            : item,
-                    ),
-                })),
+                set((state) => {
+                    const index = state.myCollection.findIndex(
+                        (item) => String(item.id) === String(id),
+                    );
+                    if (index === -1) return state;
+
+                    const nextCollection = [...state.myCollection];
+                    nextCollection[index] = {
+                        ...nextCollection[index],
+                        userScore: Math.max(0, Math.min(10, score)),
+                    };
+
+                    return { myCollection: nextCollection };
+                }),
 
             setFavorite: (id, value) =>
                 set((state) => ({

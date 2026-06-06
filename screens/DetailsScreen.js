@@ -4,11 +4,10 @@ import {
     StyleSheet,
     Platform,
     Vibration,
-    InteractionManager,
     ScrollView,
     KeyboardAvoidingView,
     Dimensions,
-    Text, // Добавил для подписи тестового контейнера
+    Text,
 } from "react-native";
 import { useIsFocused } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -42,7 +41,6 @@ export default function DetailsScreen({ route, navigation }) {
 
     const [isLogicReady, setIsLogicReady] = useState(false);
     const [isAnimationFinished, setIsAnimationFinished] = useState(false);
-    // 1. Добавляем флаг удаления
     const [isDeleting, setIsDeleting] = useState(false);
     const [errorModal, setErrorModal] = useState({
         visible: false,
@@ -51,21 +49,29 @@ export default function DetailsScreen({ route, navigation }) {
 
     const lottieRef = useRef(null);
 
-    // Оптимизация входа на экран
     useEffect(() => {
-        const interactionTask = InteractionManager.runAfterInteractions(() => {
-            const logicTimer = setTimeout(() => setIsLogicReady(true), DATA_LOAD_DELAY);
-            const animationTimer = setTimeout(
-                () => setIsAnimationFinished(true),
-                SKELETON_FADE_DELAY,
-            );
+        let idleHandle = null;
+        let logicTimer = null;
+        let animationTimer = null;
 
-            return () => {
-                clearTimeout(logicTimer);
-                clearTimeout(animationTimer);
-            };
-        });
-        return () => interactionTask.cancel();
+        const startTimers = () => {
+            logicTimer = setTimeout(() => setIsLogicReady(true), DATA_LOAD_DELAY);
+            animationTimer = setTimeout(() => setIsAnimationFinished(true), SKELETON_FADE_DELAY);
+        };
+
+        if (typeof requestIdleCallback !== "undefined") {
+            idleHandle = requestIdleCallback(startTimers);
+        } else {
+            startTimers();
+        }
+
+        return () => {
+            if (idleHandle && typeof cancelIdleCallback !== "undefined") {
+                cancelIdleCallback(idleHandle);
+            }
+            if (logicTimer) clearTimeout(logicTimer);
+            if (animationTimer) clearTimeout(animationTimer);
+        };
     }, []);
 
     // Store
@@ -82,7 +88,6 @@ export default function DetailsScreen({ route, navigation }) {
         [myCollection, item.id],
     );
 
-    // 2. Если мы удаляем карточку, принудительно передаем null, блокируя вызов API
     const { data: fullDetails, loading } = useFetchDetails(
         isDeleting || !isLogicReady || initialSavedItem ? null : item.id,
     );
@@ -255,15 +260,12 @@ export default function DetailsScreen({ route, navigation }) {
                     handleAddToFolder,
                     handleStatusUpdate,
                     handleCreateFolder: modalActions.handleCreateFolder,
-                    // 3. Изменяем хэндлер удаления
                     handleDelete: () => {
                         setIsDeleting(true);
-                        // Сначала закрываем экран, чтобы юзер не видел визуальных багов
                         navigation.goBack();
-                        // Удаляем из стора (можно сделать небольшую задержку, чтобы анимация скрытия прошла гладко)
                         setTimeout(() => {
                             deleteCard(item.id);
-                        }, 100);
+                        }, 400);
                     },
                 }}
             />

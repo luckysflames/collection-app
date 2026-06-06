@@ -233,6 +233,7 @@ export default function FolderDetailScreen({ route, navigation }) {
                             isBrilliant={isBrilliant}
                             onBrilliantPress={handleToggleBrilliant}
                             showBrilliantBtn={isBrilliant}
+                            sortType={sortType}
                         />
                     }
                 />

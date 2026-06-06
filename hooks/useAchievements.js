@@ -1,7 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import { InteractionManager } from "react-native";
 import { calculateAchievements } from "../utils/achievements/index";
-// ДОБАВЛЕНО: Импортируем стор уведомлений, чтобы знать историю полученных ачивок
 import { useNotificationStore } from "../store/useNotificationStore";
 import { ACHIEVEMENT_SECTIONS, ACHIEVEMENT_SUBGROUPS } from "../constants";
 
@@ -35,14 +33,11 @@ export function useAchievements(myCollection, highlightId, navigation) {
                 displayIconName: isLockedSecret ? "Lock" : achiv.iconName,
             };
         });
-    }, [myCollection, shownAchievements]);
+    });
 
-    // 1. Формируем структуру данных
     const groupedCategories = useMemo(() => {
-        // ИСПОЛЬЗУЕМ: Уже обработанные ачивки вместо сырых
         const achievements = processedAchievements;
 
-        // Группируем по секциям
         const sectionBuckets = achievements.reduce((acc, achievement) => {
             const section = achievement.section || "common";
             if (!acc[section]) acc[section] = [];
@@ -54,7 +49,6 @@ export function useAchievements(myCollection, highlightId, navigation) {
             (sectionId) => {
                 const data = sectionBuckets[sectionId];
 
-                // Внутри секции группируем ачивки по их внутреннему groupId
                 const groupBuckets = data.reduce((acc, achievement) => {
                     const groupId = achievement.groupId || "other";
                     if (!acc[groupId]) acc[groupId] = [];
@@ -69,7 +63,6 @@ export function useAchievements(myCollection, highlightId, navigation) {
                 }));
 
                 const totalInSection = data.length;
-                // Теперь этот фильтр корректно учтет перманентные ачивки!
                 const unlockedInSection = data.filter((i) => i.isCompleted).length;
 
                 return {
@@ -80,55 +73,62 @@ export function useAchievements(myCollection, highlightId, navigation) {
                 };
             },
         );
-    }, [processedAchievements]); // Зависим от обработанного массива
+    }, [processedAchievements]);
 
-    // 2. Общая статистика по всем ачивкам
     const totalStats = useMemo(() => {
-        // ИСПОЛЬЗУЕМ: Обработанный массив, чтобы счётчик в Header тоже не сбрасывался
         return {
             total: processedAchievements.length,
             unlocked: processedAchievements.filter((a) => a.isCompleted).length,
         };
     }, [processedAchievements]);
 
-    // Список доступных табов для верхнего меню
     const tabs = useMemo(() => {
         return groupedCategories.map((cat) => ({ id: cat.id, title: cat.title }));
     }, [groupedCategories]);
 
-    // 3. Авто-скролл к highlightId
     useEffect(() => {
-        if (highlightId && itemRefs[highlightId]) {
-            const interactionPromise = InteractionManager.runAfterInteractions(() => {
-                const timer = setTimeout(() => {
-                    if (itemRefs[highlightId] && containerRef.current) {
-                        itemRefs[highlightId].measureLayout(
-                            containerRef.current,
-                            (x, y) => {
-                                scrollRef.current?.scrollTo({
-                                    y: Math.max(0, y - 150),
-                                    animated: true,
-                                });
-                            },
-                            (error) => console.error("Scroll error:", error),
-                        );
-                    }
-                }, 400);
+        if (!highlightId || !itemRefs[highlightId]) return;
 
-                return () => clearTimeout(timer);
-            });
+        let idleHandle = null;
+        let scrollTimeout = null;
 
-            const clearParamsTimer = setTimeout(() => {
-                if (navigation.isFocused()) {
-                    navigation.setParams({ highlightId: undefined });
+        const performScroll = () => {
+            scrollTimeout = setTimeout(() => {
+                if (itemRefs[highlightId] && containerRef.current) {
+                    itemRefs[highlightId].measureLayout(
+                        containerRef.current,
+                        (x, y) => {
+                            scrollRef.current?.scrollTo({
+                                y: Math.max(0, y - 150),
+                                animated: true,
+                            });
+                        },
+                        (error) => console.error("Scroll error:", error),
+                    );
                 }
-            }, 3000);
+            }, 250);
+        };
 
-            return () => {
-                interactionPromise.cancel();
-                clearTimeout(clearParamsTimer);
-            };
+        if (typeof requestIdleCallback !== "undefined") {
+            idleHandle = requestIdleCallback(performScroll);
+        } else {
+            // Фолбек для старых сред выполнения, где нет requestIdleCallback
+            performScroll();
         }
+
+        const clearParamsTimer = setTimeout(() => {
+            if (navigation.isFocused()) {
+                navigation.setParams({ highlightId: undefined });
+            }
+        }, 3000);
+
+        return () => {
+            if (idleHandle && typeof cancelIdleCallback !== "undefined") {
+                cancelIdleCallback(idleHandle);
+            }
+            if (scrollTimeout) clearTimeout(scrollTimeout);
+            clearTimeout(clearParamsTimer);
+        };
     }, [highlightId, navigation, itemRefs]);
 
     return {

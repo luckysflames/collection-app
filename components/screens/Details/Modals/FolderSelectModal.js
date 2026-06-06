@@ -7,15 +7,12 @@ import {
     FlatList,
     Dimensions,
     ScrollView,
+    ActivityIndicator, // Добавили стандартный лоадер
 } from "react-native";
 import { FolderPlus, Folder as FolderIcon, Check, FolderHeart, Heart } from "lucide-react-native";
 import { BottomSheet } from "../../../ui/BottomSheet";
-import { useCollectionStore } from "../../../../store/useCollectionStore";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
-
-// Строго фиксированная полная высота одного элемента в списке (высота + marginBottom)
-// 66px (высота компонента) + 8px (отступ) = 74px
 const ITEM_HEIGHT = 74;
 
 export default function FolderSelectModal({
@@ -26,47 +23,30 @@ export default function FolderSelectModal({
     onCreateNew,
     selectedFolderIds = [],
 }) {
-    const myCollection = useCollectionStore((state) => state.myCollection);
     const flatListRef = useRef(null);
     const [activeLetter, setActiveLetter] = useState("PINNED");
 
-    // 1. Быстрый подсчет элементов в папках
-    const folderCounts = useMemo(() => {
-        const counts = {};
-        myCollection.forEach((item) => {
-            if (item.parentFolderIds && Array.isArray(item.parentFolderIds)) {
-                item.parentFolderIds.forEach((id) => {
-                    counts[id] = (counts[id] || 0) + 1;
-                });
-            }
-        });
-        return counts;
-    }, [myCollection]);
+    // Стейт для анимации загрузки
+    const [isProcessing, setIsProcessing] = useState(false);
 
-    // Функция сортировки, общая для папок и для букв алфавита
     const compareStrings = useCallback((a, b) => {
         return (a || "").localeCompare(b || "", ["ru", "en"], { sensitivity: "base" });
     }, []);
 
-    // Разделяем папки на две изолированные группы
     const { pinnedFolders, unpinnedFolders } = useMemo(() => {
         if (!folders) return { pinnedFolders: [], unpinnedFolders: [] };
-
         const pinned = folders.filter((f) => f.isPinned);
         const unpinned = folders.filter((f) => !f.isPinned);
-
         return {
             pinnedFolders: pinned.sort((a, b) => compareStrings(a.title, b.title)),
             unpinnedFolders: unpinned.sort((a, b) => compareStrings(a.title, b.title)),
         };
     }, [folders, compareStrings]);
 
-    // 2. Итоговый массив для FlatList
     const sortedFolders = useMemo(() => {
         return [...pinnedFolders, ...unpinnedFolders];
     }, [pinnedFolders, unpinnedFolders]);
 
-    // 3. Извлекаем первые буквы ТОЛЬКО из незакрепленных папок с синхронной сортировкой
     const availableLetters = useMemo(() => {
         const lettersSet = new Set();
         unpinnedFolders.forEach((f) => {
@@ -75,25 +55,20 @@ export default function FolderSelectModal({
                 if (firstLetter) lettersSet.add(firstLetter);
             }
         });
-        // Сортируем буквы точно так же, как и папки (сначала RU, затем EN)
         return Array.from(lettersSet).sort(compareStrings);
     }, [unpinnedFolders, compareStrings]);
 
-    // Есть ли вообще закрепленные папки?
     const hasPinned = pinnedFolders.length > 0;
+    const showNavigation = useMemo(
+        () => hasPinned || availableLetters.length > 1,
+        [hasPinned, availableLetters],
+    );
 
-    // Флаг: показывать ли ленту навигации
-    const showNavigation = useMemo(() => {
-        return hasPinned || availableLetters.length > 1;
-    }, [hasPinned, availableLetters]);
-
-    // 4. Функция быстрого перехода (теперь работает идеально за счет getItemLayout)
     const scrollToSection = useCallback(
         (target) => {
+            if (isProcessing) return; // Блокируем скролл при обработке
             setActiveLetter(target);
-
             let targetIndex = -1;
-
             if (target === "PINNED") {
                 targetIndex = 0;
             } else {
@@ -104,7 +79,6 @@ export default function FolderSelectModal({
                     targetIndex = pinnedFolders.length + unpinnedIndex;
                 }
             }
-
             if (targetIndex !== -1 && flatListRef.current) {
                 flatListRef.current.scrollToIndex({
                     index: targetIndex,
@@ -113,20 +87,36 @@ export default function FolderSelectModal({
                 });
             }
         },
-        [unpinnedFolders, pinnedFolders.length],
+        [unpinnedFolders, pinnedFolders.length, isProcessing],
     );
 
-    // 5. Оптимизированный рендер строки папки c ограничением длины текста
+    // Оптимизированный обработчик клика по папке
+    const handleFolderPress = useCallback(
+        (folderId) => {
+            if (isProcessing) return;
+
+            setIsProcessing(true);
+            setTimeout(() => {
+                try {
+                    onSelect(folderId);
+                } finally {
+                    setIsProcessing(false);
+                }
+            }, 0);
+        },
+        [onSelect, isProcessing],
+    );
+
     const renderFolderItem = useCallback(
         ({ item }) => {
             const isSelected = selectedFolderIds.includes(item.id);
-            const count = folderCounts[item.id] || 0;
 
             return (
                 <TouchableOpacity
                     style={[styles.folderItem, isSelected && styles.folderItemActive]}
-                    onPress={() => onSelect(item.id)}
+                    onPress={() => handleFolderPress(item.id)}
                     activeOpacity={0.7}
+                    disabled={isProcessing} // Отключаем клики во время загрузки
                 >
                     <View
                         style={[
@@ -149,7 +139,6 @@ export default function FolderSelectModal({
                         >
                             {item.title}
                         </Text>
-                        <Text style={styles.folderSubtext}>Элементов: {count}</Text>
                     </View>
 
                     <View style={styles.checkWrapper}>
@@ -162,10 +151,9 @@ export default function FolderSelectModal({
                 </TouchableOpacity>
             );
         },
-        [selectedFolderIds, folderCounts, onSelect],
+        [selectedFolderIds, handleFolderPress, isProcessing],
     );
 
-    // 6. Оптимизация разметки FlatList для моментального скролла
     const getItemLayout = useCallback(
         (data, index) => ({
             length: ITEM_HEIGHT,
@@ -176,11 +164,16 @@ export default function FolderSelectModal({
     );
 
     return (
-        <BottomSheet visible={visible} onClose={onClose} containerStyle={styles.sheetContainer}>
+        <BottomSheet
+            visible={visible}
+            onClose={isProcessing ? undefined : onClose}
+            containerStyle={styles.sheetContainer}
+        >
             <Text style={styles.header}>Добавить в папку</Text>
 
             <TouchableOpacity
-                style={styles.createBtn}
+                style={[styles.createBtn, isProcessing && { opacity: 0.5 }]}
+                disabled={isProcessing}
                 onPress={() => {
                     onClose();
                     setTimeout(() => onCreateNew(), 300);
@@ -192,9 +185,8 @@ export default function FolderSelectModal({
                 <Text style={styles.createBtnText}>Создать новую папку</Text>
             </TouchableOpacity>
 
-            {/* --- ГОРИЗОНТАЛЬНЫЙ СЕЛЕКТОР (СЕРДЕЧКО + БУКВЫ) --- */}
             {showNavigation && (
-                <View style={styles.alphabetContainer}>
+                <View style={[styles.alphabetContainer, isProcessing && { opacity: 0.5 }]}>
                     <ScrollView
                         horizontal
                         showsHorizontalScrollIndicator={false}
@@ -207,6 +199,7 @@ export default function FolderSelectModal({
                                     activeLetter === "PINNED" && styles.letterBadgeActive,
                                 ]}
                                 onPress={() => scrollToSection("PINNED")}
+                                disabled={isProcessing}
                                 activeOpacity={0.6}
                             >
                                 <Heart
@@ -231,6 +224,7 @@ export default function FolderSelectModal({
                                         isActive && styles.letterBadgeActive,
                                     ]}
                                     onPress={() => scrollToSection(letter)}
+                                    disabled={isProcessing}
                                     activeOpacity={0.6}
                                 >
                                     <Text
@@ -260,18 +254,32 @@ export default function FolderSelectModal({
                     initialNumToRender={15}
                     maxToRenderPerBatch={15}
                     windowSize={5}
+                    scrollEnabled={!isProcessing} // Выключаем скролл при загрузке
                     ListEmptyComponent={<Text style={styles.emptyText}>У вас пока нет папок</Text>}
                 />
+
+                {/* --- АБСОЛЮТНЫЙ ЛОАДЕР ПОВЕРХ СПИСКА --- */}
+                {isProcessing && (
+                    <View style={styles.loadingOverlay}>
+                        <ActivityIndicator size="large" color="#7D8AFF" />
+                    </View>
+                )}
             </View>
 
-            <TouchableOpacity style={styles.doneBtn} onPress={onClose}>
+            <TouchableOpacity
+                style={[styles.doneBtn, isProcessing && { opacity: 0.5 }]}
+                onPress={onClose}
+                disabled={isProcessing}
+            >
                 <Text style={styles.doneBtnText}>Готово</Text>
             </TouchableOpacity>
         </BottomSheet>
     );
 }
 
+// Добавлено в стили:
 const styles = StyleSheet.create({
+    // ... ваши старые стили остаются нетронутыми
     sheetContainer: {
         backgroundColor: "#0B1534",
         paddingHorizontal: 20,
@@ -340,6 +348,7 @@ const styles = StyleSheet.create({
     },
     listContainer: {
         maxHeight: SCREEN_HEIGHT * 0.42,
+        position: "relative", // Важно для позиционирования оверлея
     },
     listContent: {
         paddingBottom: 10,
@@ -385,11 +394,6 @@ const styles = StyleSheet.create({
     folderTextActive: {
         color: "#fff",
     },
-    folderSubtext: {
-        color: "#4E5564",
-        fontSize: 12,
-        marginTop: 2,
-    },
     checkWrapper: {
         marginLeft: 10,
     },
@@ -410,5 +414,13 @@ const styles = StyleSheet.create({
         color: "#fff",
         fontSize: 16,
         fontWeight: "bold",
+    },
+    // НОВЫЕ СТИЛИ ДЛЯ ОВЕРЛЕЯ ЗАГРУЗКИ:
+    loadingOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: "rgba(11, 21, 52, 0.7)",
+        justifyContent: "center",
+        alignItems: "center",
+        borderRadius: 18,
     },
 });

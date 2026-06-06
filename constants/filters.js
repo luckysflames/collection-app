@@ -1,4 +1,11 @@
-import { ANIME_KINDS, ANIME_RATINGS, ANIME_STATUSES, BOOK_MATURITY_RATINGS, ESRB_RATINGS, MOVIE_STATUSES } from "./forms";
+import {
+    ANIME_KINDS,
+    ANIME_RATINGS,
+    ANIME_STATUSES,
+    BOOK_MATURITY_RATINGS,
+    ESRB_RATINGS,
+    MOVIE_STATUSES,
+} from "./forms";
 
 export const SORT_LABELS = {
     date_desc: "Сначала новые",
@@ -40,7 +47,10 @@ export const SORT_SUB_OPTIONS = {
         { id: "alphabet_asc", label: "От А до Я", icon: "ArrowDownAZ" },
         { id: "alphabet_desc", label: "От Я до А", icon: "ArrowUpAZ" },
     ],
-    manual: [{ id: "manual", label: "Ручной порядок", icon: "Check" }],
+    manual: [
+        { id: "manual", label: "Прямой порядок", icon: "ArrowUpNarrowWide" },
+        { id: "manual_desc", label: "Обратный порядок", icon: "ArrowDownWideNarrow" },
+    ],
     status_change: [
         {
             id: "status_change_desc",

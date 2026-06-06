@@ -8,19 +8,53 @@ db.execute(
     "CREATE TABLE IF NOT EXISTS kv_store (key TEXT PRIMARY KEY, value TEXT)",
 );
 
-export const sqliteZustandStorage = {
-    setItem: (name, value) => {
+const pendingOperations = new Map();
+let flushTimer = null;
+
+const scheduleFlush = () => {
+    if (flushTimer) return;
+
+    const flushQueue = () => {
+        const operations = new Map(pendingOperations);
+        pendingOperations.clear();
+        flushTimer = null;
+
         try {
-            db.execute(
-                "INSERT OR REPLACE INTO kv_store (key, value) VALUES (?, ?)",
-                [name, value],
-            );
+            operations.forEach((value, key) => {
+                if (value === null) {
+                    db.execute("DELETE FROM kv_store WHERE key = ?", [key]);
+                } else {
+                    db.execute(
+                        "INSERT OR REPLACE INTO kv_store (key, value) VALUES (?, ?)",
+                        [key, value],
+                    );
+                }
+            });
         } catch (e) {
-            console.error("SQLite setItem error:", e);
+            console.error("SQLite batch write error:", e);
         }
+    };
+
+    if (typeof requestIdleCallback !== "undefined") {
+        flushTimer = requestIdleCallback(flushQueue, { timeout: 100 });
+    } else {
+        flushTimer = setTimeout(flushQueue, 50);
+    }
+};
+
+export const sqliteZustandStorage = {
+    setItem: async (name, value) => {
+        pendingOperations.set(name, value);
+        scheduleFlush();
+        return null;
     },
 
     getItem: (name) => {
+        if (pendingOperations.has(name)) {
+            const pendingValue = pendingOperations.get(name);
+            return pendingValue === null ? null : pendingValue;
+        }
+
         try {
             const result = db.execute(
                 "SELECT value FROM kv_store WHERE key = ?",
@@ -36,11 +70,9 @@ export const sqliteZustandStorage = {
         }
     },
 
-    removeItem: (name) => {
-        try {
-            db.execute("DELETE FROM kv_store WHERE key = ?", [name]);
-        } catch (e) {
-            console.error("SQLite removeItem error:", e);
-        }
+    removeItem: async (name) => {
+        pendingOperations.set(name, null);
+        scheduleFlush();
+        return null;
     },
 };

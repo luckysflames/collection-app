@@ -34,7 +34,8 @@ export const FolderHeader = memo((props) => {
         showBrilliantBtn,
         isBrilliant,
         onBrilliantPress,
-        isFocused, // Принимаем проп фокуса для Lottie-анимаций
+        isFocused,
+        sortType,
     } = props;
 
     const headerLottieRef = useRef(null);
@@ -116,6 +117,7 @@ export const FolderHeader = memo((props) => {
                             onInfoPress={onInfoPress}
                             isBrilliant={isBrilliant}
                             onBrilliantPress={onBrilliantPress}
+                            sortType={sortType}
                         />
                     )}
                 </View>

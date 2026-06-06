@@ -20,38 +20,22 @@ export const useFilteredCollection = ({
             if (searchQuery && searchQuery.trim().length > 0) {
                 const query = searchQuery.toLowerCase();
                 const matchesTitle = item.title?.toLowerCase().includes(query);
-                const matchesOriginal = item.originalTitle
-                    ?.toLowerCase()
-                    .includes(query);
+                const matchesOriginal = item.originalTitle?.toLowerCase().includes(query);
 
-                // 1. Сначала базовая проверка: тот ли это глобальный раздел (Anime/Movie/Game)
                 if (item.appSection !== currentSection) return false;
 
-                // 2. Если мы внутри папки, ищем только в ней
-                if (isInsideFolder) {
-                    // Здесь проверка на вхождение в папку (через folderOrder или parentFolderIds)
-                    // Но обычно если есть searchQuery, мы хотим найти элемент везде в этом разделе.
-                    // Если хочешь ограничить поиск только текущей вкладкой/категорией:
-                }
-
-                // 3. ПРОВЕРКА КАТЕГОРИИ (Чтобы не вылетало из "Смотрю", "Папки" и т.д.)
                 if (category === "Папки") {
                     if (!item.isFolder) return false;
                 } else if (category === FAVORITE_STATUS) {
                     if (!item.isFavorite) return false;
                 } else if (category !== "Всё") {
-                    // Если это конкретный статус (Смотрю, Брошено и т.д.)
                     if (item.status !== category) return false;
                 }
-
-                // 4. Если это папка, и мы НЕ во вкладке "Папки" или "Всё" (с модом папок),
-                // возможно, стоит её скрыть? Зависит от твоей логики.
-                // Сейчас оставим логику "нашел — показывай".
 
                 return matchesTitle || matchesOriginal;
             }
 
-            // --- 1. ОБЫЧНАЯ ФИЛЬТРАЦИЯ (ваш старый код) ---
+            // --- ОБЫЧНАЯ ФИЛЬТРАЦИЯ ---
             if (isInsideFolder) return true;
             if (item.appSection !== currentSection) return false;
 
@@ -73,14 +57,10 @@ export const useFilteredCollection = ({
                 if (isFolder) return true;
                 if (!hasParent) return true;
 
-                const hasSameStatusParent = item.parentFolderIds.some(
-                    (parentId) => {
-                        const parent = data.find(
-                            (d) => String(d.id) === String(parentId),
-                        );
-                        return parent && parent.status === item.status;
-                    },
-                );
+                const hasSameStatusParent = item.parentFolderIds.some((parentId) => {
+                    const parent = data.find((d) => String(d.id) === String(parentId));
+                    return parent && parent.status === item.status;
+                });
                 return !hasSameStatusParent;
             }
             return !isFolder;
@@ -89,12 +69,9 @@ export const useFilteredCollection = ({
         // --- 1.5. ФИЛЬТРЫ ПО ПОЛЯМ ---
         if (Object.keys(activeFilters).length > 0) {
             filtered = filtered.filter((item) => {
-                // Папки не фильтруются
                 if (item.isFolder) return true;
 
-                for (const [filterKey, filterValue] of Object.entries(
-                    activeFilters,
-                )) {
+                for (const [filterKey, filterValue] of Object.entries(activeFilters)) {
                     if (!matchesFilterValue(item, filterKey, filterValue)) {
                         return false;
                     }
@@ -110,8 +87,11 @@ export const useFilteredCollection = ({
                 if (a.isPinned && !b.isPinned) return -1;
                 if (!a.isPinned && b.isPinned) return 1;
             }
-            // Ручной порядок внутри папки активен только при выборе manual
-            if (isInsideFolder && sortType === "manual") {
+
+            // --- РУЧНАЯ СОРТИРОВКА (Прямая и Обратная) ---
+            const isManualSort = sortType === "manual" || sortType === "manual_desc";
+
+            if (isInsideFolder && isManualSort) {
                 if (Array.isArray(folderOrder) && folderOrder.length > 0) {
                     const orderStrings = folderOrder.map(String);
                     const indexA = orderStrings.indexOf(String(a.id));
@@ -120,22 +100,29 @@ export const useFilteredCollection = ({
                     if (indexA !== -1 || indexB !== -1) {
                         if (indexA === -1) return 1;
                         if (indexB === -1) return -1;
-                        return indexA - indexB;
+
+                        // Если "manual" — сортируем как обычно (0, 1, 2...)
+                        // Если "manual_desc" — разворачиваем порядок (индексы наоборот)
+                        return sortType === "manual" ? indexA - indexB : indexB - indexA;
                     }
                 }
 
-                // Если порядок не определен, падаем обратно на дату.
+                // Если порядка нет в буфере, сваливаемся на сортировку по умолчанию (дате)
                 const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
                 const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-                return dateB - dateA;
+                return sortType === "manual" ? dateB - dateA : dateA - dateB;
             }
 
-            // Стандартная сортировка (если не папка или выбран другой вариант)
+            // --- СТАНДАРТНАЯ СОРТИРОВКА ПО СВОЙСТВАМ ---
             const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
             const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-            const statusChangeDateA = a.lastStatusChangeAt ? new Date(a.lastStatusChangeAt).getTime() : dateA;
-            const statusChangeDateB = b.lastStatusChangeAt ? new Date(b.lastStatusChangeAt).getTime() : dateB;
-            // isBrilliant считается рейтингом 11 (выше максимума 10)
+            const statusChangeDateA = a.lastStatusChangeAt
+                ? new Date(a.lastStatusChangeAt).getTime()
+                : dateA;
+            const statusChangeDateB = b.lastStatusChangeAt
+                ? new Date(b.lastStatusChangeAt).getTime()
+                : dateB;
+
             const ratingA = a.isBrilliant ? 11 : Number(a.userScore) || 0;
             const ratingB = b.isBrilliant ? 11 : Number(b.userScore) || 0;
             const titleA = a.title?.toLowerCase() || "";
@@ -163,13 +150,11 @@ export const useFilteredCollection = ({
             }
         });
 
-        // --- 3. СЧЕТЧИКИ (только для отображения папок снаружи) ---
+        // --- 3. СЧЕТЧИКИ ---
         return sorted.map((item) => {
             if (item.isFolder) {
                 const count = data.filter((i) =>
-                    i.parentFolderIds?.some(
-                        (id) => String(id) === String(item.id),
-                    ),
+                    i.parentFolderIds?.some((id) => String(id) === String(item.id)),
                 ).length;
                 return { ...item, _computedCount: count };
             }

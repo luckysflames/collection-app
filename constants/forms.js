@@ -48,7 +48,7 @@ export const ANIME_RATINGS = [
 
 // Типы аниме (kind)
 export const ANIME_KINDS = [
-    { id: "tv", label: "ТВ" },
+    { id: "tv", label: "Сериал" },
     { id: "movie", label: "Фильм" },
     { id: "ova", label: "OVA" },
     { id: "ona", label: "ONA" },
