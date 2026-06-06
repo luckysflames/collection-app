@@ -45,6 +45,13 @@ export const animeCalculators = {
             : 0;
     },
 
+    screenshot_master: (cards) => {
+        return cards?.some(
+            (card) => card.screenshots?.length === 30,
+        )
+            ? 1
+            : 0;
+    },
     // -------------------------------------------------------------------
 
     // -------------------------- ГРУППА: ЖАНРЫ --------------------------

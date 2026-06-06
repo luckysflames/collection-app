@@ -18,6 +18,9 @@ export default function AchievementsScreen({ navigation, route }) {
     const myCollection = useCollectionStore((state) => state.myCollection);
     const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
 
+    // Локальный стейт под активный таб (переносим повыше для корректных проверок)
+    const [activeTab, setActiveTab] = useState("common");
+
     // Подключаем наш кастомный хук
     const {
         groupedCategories,
@@ -30,20 +33,49 @@ export default function AchievementsScreen({ navigation, route }) {
         itemRefs,
     } = useAchievements(myCollection, highlightId, navigation);
 
-    // Локальный стейт под активный таб
-    const [activeTab, setActiveTab] = useState("common");
-
-    // Если пришли по пушу/ссылке с конкретной ачивкой (highlightId) – автоматически переключаем таб на нужный
+    // 1. СИНХРОННЫЙ ЭФФЕКТ: Быстро переключаем вкладку, если прилетел highlightId из другого таба
     useEffect(() => {
         if (highlightId) {
             const targetSection = groupedCategories.find((sec) =>
                 sec.groups.some((g) => g.data.some((item) => item.id === highlightId)),
             );
-            if (targetSection) {
+            if (targetSection && targetSection.id !== activeTab) {
                 setActiveTab(targetSection.id);
             }
         }
     }, [highlightId, groupedCategories]);
+
+    // 2. АСИНХРОННЫЙ ЭФФЕКТ ДЛЯ СКРОЛЛА: Ждем, пока вкладка переключится и элементы отрендерятся
+    useEffect(() => {
+        if (!highlightId) return;
+
+        // Проверяем, что элемент текущей вкладки действительно соответствует искомому ачивменту
+        const targetElementExists = itemRefs[highlightId];
+
+        // Даем нативному потоку 150-250мс на перестроение Layout (особенно критично для Android)
+        const scrollTimer = setTimeout(() => {
+            const element = itemRefs[highlightId];
+
+            if (element && scrollRef.current) {
+                // Измеряем позицию элемента относительно контейнера ScrollView
+                element.measureLayout(
+                    containerRef.current,
+                    (x, y) => {
+                        scrollRef.current?.scrollTo({
+                            y: Math.max(0, y - 40), // Оставляем небольшой отступ сверху для красоты
+                            animated: true,
+                        });
+
+                        // Очищаем параметры роута только ПОСЛЕ успешного скролла
+                        navigation.setParams({ highlightId: undefined });
+                    },
+                    (error) => console.log("Ошибка измерения позиции ачивки:", error),
+                );
+            }
+        }, 200);
+
+        return () => clearTimeout(scrollTimer);
+    }, [highlightId, activeTab, itemRefs]); // Реагирует на смену таба или появление рефов
 
     // Получаем данные текущей активной секции
     const currentSection = groupedCategories.find((cat) => cat.id === activeTab);
@@ -74,7 +106,7 @@ export default function AchievementsScreen({ navigation, route }) {
                 contentContainerStyle={styles.scrollContent}
             >
                 {currentSection && (
-                    <View ref={containerRef} style={styles.sectionBlock}>
+                    <View ref={containerRef} style={styles.sectionBlock} collapsable={false}>
                         {/* Мини-статистика по текущей секции */}
                         <View style={styles.sectionMeta}>
                             <Text style={styles.sectionStatsText}>
@@ -91,7 +123,13 @@ export default function AchievementsScreen({ navigation, route }) {
                                 )}
 
                                 {group.data.map((item) => (
-                                    <View key={item.id} ref={(el) => (itemRefs[item.id] = el)}>
+                                    <View
+                                        key={item.id}
+                                        ref={(el) => {
+                                            if (el) itemRefs[item.id] = el;
+                                        }}
+                                        collapsable={false}
+                                    >
                                         <AchievementItem
                                             achievement={item}
                                             onPress={setSelectedAchiv}
@@ -109,49 +147,30 @@ export default function AchievementsScreen({ navigation, route }) {
             </ScrollView>
 
             {/* Модалка детальной информации */}
-            <AchievementDetailModal
-                visible={!!selectedAchiv}
-                achievement={selectedAchiv}
-                onClose={() => setSelectedAchiv(null)}
-            />
+            {selectedAchiv && (
+                <AchievementDetailModal
+                    visible={!!selectedAchiv}
+                    achievement={selectedAchiv}
+                    onClose={() => setSelectedAchiv(null)}
+                />
+            )}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#050B18",
-    },
-    header: {
-        paddingHorizontal: 20,
-        paddingBottom: 15,
-        backgroundColor: "#050B18",
-    },
+    container: { flex: 1, backgroundColor: "#050B18" },
+    header: { paddingHorizontal: 20, paddingBottom: 15, backgroundColor: "#050B18" },
     tabsWrapper: {
         backgroundColor: "#050B18",
         borderBottomWidth: 1,
         borderColor: "rgba(255, 255, 255, 0.04)",
     },
-    scrollContent: {
-        paddingHorizontal: 20,
-        paddingTop: 20,
-    },
-    sectionBlock: {
-        marginBottom: 20,
-    },
-    sectionMeta: {
-        marginBottom: 16,
-        paddingHorizontal: 4,
-    },
-    sectionStatsText: {
-        color: "rgba(255, 255, 255, 0.4)",
-        fontSize: 13,
-        fontWeight: "600",
-    },
-    groupContainer: {
-        marginBottom: 20,
-    },
+    scrollContent: { paddingHorizontal: 20, paddingTop: 20 },
+    sectionBlock: { marginBottom: 20 },
+    sectionMeta: { marginBottom: 16, paddingHorizontal: 4 },
+    sectionStatsText: { color: "rgba(255, 255, 255, 0.4)", fontSize: 13, fontWeight: "600" },
+    groupContainer: { marginBottom: 20 },
     groupTitle: {
         color: "#7D8AFF",
         fontSize: 11,

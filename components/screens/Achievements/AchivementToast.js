@@ -60,7 +60,12 @@ export const AchievementToast = ({ achievement, onDismiss }) => {
 
     const handlePress = () => {
         hide();
-        navigation.navigate("Achievements", { highlightId: achievement?.id });
+
+        navigation.navigate("Коллекция", {
+            screen: "Achievements",
+            params: { highlightId: achievement?.id },
+            initial: false,
+        });
     };
 
     // БЕЗОПАСНЫЙ СБОР ДАННЫХ (Защита от undefined и пустых полей display*)
