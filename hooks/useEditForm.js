@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { parseList } from "../utils/listParser";
 
 export const useEditForm = (isEditing, initialData) => {
     const [form, setForm] = useState({});
@@ -24,6 +25,8 @@ export const useEditForm = (isEditing, initialData) => {
                 "budget",
                 "episodes",
                 "episodesAired",
+                "episodesCount",
+                "seasonsCount",
                 "metacritic",
             ];
 
@@ -66,23 +69,31 @@ export const useEditForm = (isEditing, initialData) => {
                         preparedData[key] = value;
                     } else if (typeof value === "string") {
                         // Если пришла строка (например, из старых данных), превращаем в массив
-                        preparedData[key] = value
-                            .split(",")
-                            .map((s) => s.trim())
-                            .filter(Boolean);
+                        preparedData[key] = parseList(value);
                     } else {
                         preparedData[key] = [];
                     }
                     return;
                 }
 
-                // 3. Массивы в строку
+                // 3. Если в данных приходят API-поля сериалов,
+                //    мапим их на форму с привычными полями.
+                if (key === "seasonsCount") {
+                    preparedData.seasons = cleanNumeric(value);
+                    return;
+                }
+                if (key === "episodesCount") {
+                    preparedData.episodes = cleanNumeric(value);
+                    return;
+                }
+
+                // 4. Массивы в строку
                 if (Array.isArray(value)) {
                     preparedData[key] = value.join(", ");
                     return;
                 }
 
-                // 4. Поля селекторов копируются как есть (уже содержат ID)
+                // 5. Поля селекторов копируются как есть (уже содержат ID)
                 if (selectFields.includes(key)) {
                     preparedData[key] = String(value);
                     return;

@@ -119,7 +119,7 @@ export default function AnimeFields({ form, updateField }) {
 
             <CommonField
                 label="Студии"
-                placeholder="Doga Kobo, ..."
+                placeholder="Doga Kobo; Studio Ghibli; ..."
                 form={form}
                 updateField={updateField}
                 fieldName="studios"

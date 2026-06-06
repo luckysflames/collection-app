@@ -11,15 +11,14 @@ const DYNAMIC_FILTER_FIELDS = [
 export const isDynamicFilterField = (filterKey) =>
     DYNAMIC_FILTER_FIELDS.includes(filterKey);
 
+import { parseList } from "./listParser";
+
 export const splitFilterValues = (value) => {
     if (Array.isArray(value)) {
         return value.map((item) => String(item).trim()).filter(Boolean);
     }
     if (typeof value === "string") {
-        return value
-            .split(",")
-            .map((item) => item.trim())
-            .filter(Boolean);
+        return parseList(value);
     }
     return [];
 };

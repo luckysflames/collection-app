@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 
 import { LabelValue } from "./LabelValue";
-import { formatKind, formatRating } from "./utils";
+import { formatKind, formatMovieCountries, formatRating, formatTVCountries } from "./utils";
 import { ANIME_ORIGIN_MAP } from "../../../..//constants/index";
 
 export const AnimeQuickData = ({ data }) => {
@@ -73,14 +73,14 @@ export const AnimeExtra = ({ data }) => (
 
 export const MovieExtra = ({ data }) => (
     <>
-        <LabelValue label="Страны" value={data.countries?.join(", ")} />
+        <LabelValue label="Страны" value={formatMovieCountries(data.countries)} />
         <LabelValue label="Компании" value={data.companies?.join(", ")} />
     </>
 );
 
 export const TVExtra = ({ data }) => (
     <>
-        <LabelValue label="Страны" value={data.countries?.join(", ")} />
+        <LabelValue label="Страны" value={formatTVCountries(data.countries)} />
         <LabelValue label="Компании" value={data.companies?.join(", ")} />
         {data.createdBy?.length > 0 && (
             <LabelValue label="Создатели" value={data.createdBy.join(", ")} />

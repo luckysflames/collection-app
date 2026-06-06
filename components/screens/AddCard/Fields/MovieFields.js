@@ -56,7 +56,7 @@ export default function MovieFields({ form, updateField }) {
 
             <CommonField
                 label="Страны"
-                placeholder="Япония, США, ..."
+                placeholder="Япония; США; ..."
                 form={form}
                 updateField={updateField}
                 fieldName="countries"
@@ -64,7 +64,7 @@ export default function MovieFields({ form, updateField }) {
 
             <CommonField
                 label="Компании"
-                placeholder="Disney, Pixar, ..."
+                placeholder="Disney; Pixar; Sony Pictures Entertainment, LLC"
                 form={form}
                 updateField={updateField}
                 fieldName="companies"

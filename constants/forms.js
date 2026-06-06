@@ -70,10 +70,12 @@ export const ANIME_STATUSES = [
 export const MOVIE_STATUSES = [
     { id: "rumored", label: "Слухи" },
     { id: "planned", label: "Планируется" },
+    { id: "pilot", label: "Пилот" },
     { id: "in production", label: "В производстве" },
     { id: "post production", label: "Пост-продакшн" },
-    { id: "ended", label: "Вышло" },
-    { id: "released", label: "Вышло" },
+    { id: "returning series", label: "Продлено" },
+    { id: "released", label: "Выпущено" },
+    { id: "ended", label: "Завершено" },
     { id: "canceled", label: "Отменено" },
 ];
 

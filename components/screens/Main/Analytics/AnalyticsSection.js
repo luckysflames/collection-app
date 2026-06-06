@@ -12,6 +12,7 @@ import {
 import { ChevronDown, ChevronUp } from "lucide-react-native";
 import { PieChart } from "react-native-gifted-charts";
 import { CATEGORY_CONFIG, SUB_CATEGORIES } from "../../../..//constants/index";
+import { COUNTRIES_MAP, COUNTRIES_MAP_FULL_NAME_MAP } from "../../../../constants/countries";
 
 // Вспомогательная функция для заглавной буквы
 const capitalize = (str, forceLower = true) => {
@@ -36,7 +37,6 @@ export default function AnalyticsSection({ category, stats, itemCount }) {
         ];
         const extras = (CATEGORY_CONFIG[category] || []).map((extra) => ({
             id: extra.key,
-            // Применяем capitalize к динамическим заголовкам
             label: capitalize(extra.title.replace("Топ ", "")),
         }));
         return [...base, ...extras];
@@ -47,6 +47,7 @@ export default function AnalyticsSection({ category, stats, itemCount }) {
         setIsExpanded(!isExpanded);
     };
 
+    // Модифицируем chartData, чтобы в самом графике (при наведении/клике) тоже были красивые русские названия стран
     const chartData = useMemo(() => {
         const rawData = stats[activeTab] || [];
 
@@ -54,14 +55,27 @@ export default function AnalyticsSection({ category, stats, itemCount }) {
             return [{ value: 1, color: "#444E72", text: "Пусто" }];
         }
 
-        // Ограничиваем количество элементов, чтобы цвета не повторялись
-        // Slice берет первые N элементов (где N - количество цветов)
-        return rawData.slice(0, colorScale.length).map((item, index) => ({
-            value: item.count,
-            color: colorScale[index],
-            label: item.name,
-        }));
-    }, [stats, activeTab]);
+        const isCountryTab = activeTab === "topCountries";
+
+        return rawData.slice(0, colorScale.length).map((item, index) => {
+            let processedName = item.name;
+
+            if (isCountryTab && item.name) {
+                const cleanName = String(item.name).trim();
+                // Разделяем логику маппинга по категории (сериалы — верхний регистр кодов, фильмы — нижний регистр названий)
+                processedName =
+                    category === "tv"
+                        ? COUNTRIES_MAP[cleanName.toUpperCase()] || item.name
+                        : COUNTRIES_MAP_FULL_NAME_MAP[cleanName.toLowerCase()] || item.name;
+            }
+
+            return {
+                value: item.count,
+                color: colorScale[index],
+                label: processedName,
+            };
+        });
+    }, [stats, activeTab, category]);
 
     const displayData = useMemo(() => {
         return (stats[activeTab] || []).slice(0, colorScale.length);
@@ -76,9 +90,7 @@ export default function AnalyticsSection({ category, stats, itemCount }) {
             >
                 <View style={styles.titleWrapper}>
                     <View style={styles.accentBar} />
-                    <Text style={styles.sectionTitle}>
-                        {categoryInfo?.label}
-                    </Text>
+                    <Text style={styles.sectionTitle}>{categoryInfo?.label}</Text>
                     <View style={styles.countBadge}>
                         <Text style={styles.itemCount}>{itemCount} шт</Text>
                     </View>
@@ -101,17 +113,13 @@ export default function AnalyticsSection({ category, stats, itemCount }) {
                         {tabs.map((tab) => (
                             <TouchableOpacity
                                 key={tab.id}
-                                style={[
-                                    styles.tab,
-                                    activeTab === tab.id && styles.activeTab,
-                                ]}
+                                style={[styles.tab, activeTab === tab.id && styles.activeTab]}
                                 onPress={() => setActiveTab(tab.id)}
                             >
                                 <Text
                                     style={[
                                         styles.tabText,
-                                        activeTab === tab.id &&
-                                            styles.activeTabText,
+                                        activeTab === tab.id && styles.activeTabText,
                                     ]}
                                 >
                                     {tab.label}
@@ -129,9 +137,7 @@ export default function AnalyticsSection({ category, stats, itemCount }) {
                                 innerRadius={40}
                                 innerCircleColor={"#0B1534"}
                                 centerLabelComponent={() => (
-                                    <Text style={styles.centerLabel}>
-                                        Топ-5
-                                    </Text>
+                                    <Text style={styles.centerLabel}>Топ-5</Text>
                                 )}
                                 animationDuration={500}
                             />
@@ -140,51 +146,59 @@ export default function AnalyticsSection({ category, stats, itemCount }) {
                         <View style={styles.legendWrapper}>
                             <ScrollView
                                 style={styles.legendScroll}
-                                contentContainerStyle={
-                                    styles.legendScrollContent
-                                }
+                                contentContainerStyle={styles.legendScrollContent}
                                 nestedScrollEnabled={true}
                             >
-                                {displayData.map((item, index) => (
-                                    <View key={index} style={styles.legendItem}>
-                                        <View
-                                            style={[
-                                                styles.colorDot,
-                                                {
-                                                    backgroundColor:
-                                                        colorScale[index],
-                                                },
-                                            ]}
-                                        />
-                                        <Text
-                                            style={styles.legendName}
-                                            numberOfLines={1}
-                                        >
-                                            {capitalize(
-                                                item.name,
-                                                ![
-                                                    "topAuthors",
-                                                    "topStudios",
-                                                    "topDevelopers",
-                                                    "topCompanies",
-                                                    "topCountries",
-                                                    "topGenres",
-                                                    "topPublishers"
-                                                ].includes(activeTab),
-                                            )}
-                                        </Text>
-                                        <Text style={styles.legendCount}>
-                                            {item.count}
-                                        </Text>
-                                    </View>
-                                ))}
-                                {stats[activeTab]?.length >
-                                    colorScale.length && (
+                                {displayData.map((item, index) => {
+                                    const isCountryTab = activeTab === "topCountries";
+                                    let displayName = item.name;
+
+                                    if (isCountryTab && item.name) {
+                                        const cleanName = String(item.name).trim();
+                                        // Применяем изолированную логику: сериалам — коды, фильмам — полные имена
+                                        displayName =
+                                            category === "tv"
+                                                ? COUNTRIES_MAP[cleanName.toUpperCase()] ||
+                                                  item.name
+                                                : COUNTRIES_MAP_FULL_NAME_MAP[
+                                                      cleanName.toLowerCase()
+                                                  ] || item.name;
+                                    }
+
+                                    return (
+                                        <View key={index} style={styles.legendItem}>
+                                            <View
+                                                style={[
+                                                    styles.colorDot,
+                                                    { backgroundColor: colorScale[index] },
+                                                ]}
+                                            />
+                                            <Text style={styles.legendName} numberOfLines={1}>
+                                                {/* Если это вкладка стран — выводим локализованноеdisplayName. 
+                                                    Если нет — прогоняем через встроенный capitalize */}
+                                                {isCountryTab
+                                                    ? displayName
+                                                    : capitalize(
+                                                          displayName,
+                                                          ![
+                                                              "topAuthors",
+                                                              "topStudios",
+                                                              "topDevelopers",
+                                                              "topCompanies",
+                                                              "topCountries",
+                                                              "topGenres",
+                                                              "topPublishers",
+                                                          ].includes(activeTab),
+                                                      )}
+                                            </Text>
+                                            <Text style={styles.legendCount}>{item.count}</Text>
+                                        </View>
+                                    );
+                                })}
+                                {stats[activeTab]?.length > colorScale.length && (
                                     <Text style={styles.moreText}>
-                                        + еще{" "}
-                                        {stats[activeTab].length -
-                                            colorScale.length}{" "}
-                                        не вошли в топ...
+                                        + еще {stats[activeTab].length - colorScale.length} не вошли
+                                        в топ...
                                     </Text>
                                 )}
                             </ScrollView>

@@ -26,8 +26,8 @@ export const tvCalculators = {
             (card) =>
                 card.type === "tv" &&
                 !card.isFolder &&
-                card.episodes &&
-                Number(card.episodes) <= 10,
+                card.episodesCount &&
+                Number(card.episodesCount) <= 10,
         ).length || 0,
 
     // Новинки (текущий или прошлый год)
@@ -79,8 +79,8 @@ export const tvCalculators = {
             (card) =>
                 card.type === "tv" &&
                 !card.isFolder &&
-                card.episodes &&
-                Number(card.episodes) > 100,
+                card.episodesCount &&
+                Number(card.episodesCount) > 100,
         ).length || 0,
 
     // СЕКРЕТНЫЕ: Сезонов >= 8
@@ -89,8 +89,8 @@ export const tvCalculators = {
             (card) =>
                 card.type === "tv" &&
                 !card.isFolder &&
-                (card.seasons || card.seasonsCount) &&
-                Number(card.seasons || card.seasonsCount) >= 8,
+                card.seasonsCount &&
+                Number(card.seasonsCount) >= 8,
         ).length || 0,
 
     // СЕКРЕТНЫЕ: Стриминги Amazon или Netflix

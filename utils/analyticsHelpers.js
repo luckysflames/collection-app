@@ -1,4 +1,5 @@
 import { ANIME_KINDS } from "../constants/index";
+import { parseList } from "./listParser";
 
 /**
  * Извлекает числовое значение из строки
@@ -12,13 +13,7 @@ export const extractNumeric = (value) => {
 /**
  * Парсит строку с разделителями и возвращает массив
  */
-export const parseCommaSeparated = (value) => {
-    if (!value) return [];
-    return String(value)
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean);
-};
+export const parseCommaSeparated = (value) => parseList(value);
 
 /**
  * Переводит часы в строку формата "X дн Y ч" или "Y ч"

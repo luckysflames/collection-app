@@ -87,7 +87,27 @@ export const useDetailsData = (item, fullDetails, savedItem) => {
                         item?.originalTitle ||
                         fullDetails?.originalTitle,
                 };
-            case "tv":
+            case "tv": {
+                const seasons =
+                    savedItem?.seasons ?? item?.seasons ?? fullDetails?.seasons;
+                const episodes =
+                    savedItem?.episodes ?? item?.episodes ?? fullDetails?.episodes;
+
+                const seasonsCount =
+                    savedItem?.seasonsCount ??
+                    item?.seasonsCount ??
+                    fullDetails?.seasonsCount ??
+                    savedItem?.seasons ??
+                    item?.seasons ??
+                    fullDetails?.seasons;
+                const episodesCount =
+                    savedItem?.episodesCount ??
+                    item?.episodesCount ??
+                    fullDetails?.episodesCount ??
+                    savedItem?.episodes ??
+                    item?.episodes ??
+                    fullDetails?.episodes;
+
                 return {
                     ...common,
                     first_air_date:
@@ -112,19 +132,16 @@ export const useDetailsData = (item, fullDetails, savedItem) => {
                         item?.originalTitle ||
                         fullDetails?.originalTitle,
                     duration: savedItem?.duration || item?.duration || fullDetails?.duration,
-                    seasonsCount:
-                        savedItem?.seasonsCount || item?.seasonsCount || fullDetails?.seasonsCount,
+                    seasonsCount,
                     seasonsList:
                         savedItem?.seasonsList ||
                         item?.seasonsList ||
                         fullDetails?.seasonsList ||
                         [],
                     related: savedItem?.related || item?.related || fullDetails?.related || [],
-                    episodesCount:
-                        savedItem?.episodesCount ||
-                        item?.episodesCount ||
-                        fullDetails?.episodesCount,
+                    episodesCount,
                 };
+            }
             case "game":
                 return {
                     ...common,

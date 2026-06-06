@@ -1,13 +1,9 @@
+import { parseList } from "./listParser";
+
 const splitString = (str) => {
-    const items = Array.isArray(str)
-        ? str
-        : typeof str === "string"
-          ? str.split(",").map((s) => s.trim())
-          : [];
+    const items = parseList(str);
 
     return items.filter(Boolean).map((s) => {
-        // Делаем первую букву заглавной, остальные не трогаем
-        // (или приводим к нижнему через .toLowerCase() если нужно полное форматирование)
         return s.charAt(0).toUpperCase() + s.slice(1);
     });
 };
@@ -63,8 +59,8 @@ export const prepareDataForSave = (formData, itemType) => {
                 companies: splitString(formData.companies),
                 duration: extractNumeric(formData.duration) || "",
                 originalTitle: formData.originalTitle,
-                seasons: extractNumeric(formData.seasons) || "",
-                episodes: extractNumeric(formData.episodes) || "",
+                seasonsCount: extractNumeric(formData.seasons) || "",
+                episodesCount: extractNumeric(formData.episodes) || "",
             };
             break;
         case "anime":

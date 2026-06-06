@@ -1,6 +1,7 @@
 import { Alert, Keyboard } from "react-native";
 import { useCollectionStore } from "../store/useCollectionStore";
 import { useEffect, useState } from "react";
+import { parseList } from "../utils/listParser";
 import {
     DEFAULT_FALLBACK_STATUS,
     DEFAULT_STATUS_BY_SECTION,
@@ -35,15 +36,7 @@ export const useAddCardForm = (navigation, initialType) => {
         }));
     }, [currentType]); // Следим за конкретной строкой, а не за всем объектом формы
 
-    const split = (str) => {
-        if (Array.isArray(str)) return str;
-        return str
-            ? str
-                  .split(",")
-                  .map((s) => s.trim())
-                  .filter(Boolean)
-            : [];
-    };
+    const split = parseList;
 
     const extractNumeric = (value) => {
         if (!value) return "";
@@ -104,8 +97,8 @@ export const useAddCardForm = (navigation, initialType) => {
                     companies: split(form.companies),
                     duration: extractNumeric(form.duration),
                     originalTitle: form.originalTitle,
-                    seasons: extractNumeric(form.seasons),
-                    episodes: extractNumeric(form.episodes),
+                    seasonsCount: extractNumeric(form.seasons),
+                    episodesCount: extractNumeric(form.episodes),
                 };
                 break;
             case "anime":

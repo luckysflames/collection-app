@@ -35,7 +35,7 @@ export default function GameFields({ form, updateField }) {
 
             <CommonField
                 label="Разработчики"
-                placeholder="Team Cherry, ..."
+                placeholder="Team Cherry; Valve; ..."
                 form={form}
                 updateField={updateField}
                 fieldName="developers"

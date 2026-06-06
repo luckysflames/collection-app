@@ -140,7 +140,7 @@ export const InfoStats = ({ displayData }) => {
                     <View style={{ flex: 0.5 }}>
                         <StatSubItem
                             label="Сезонов"
-                            value={displayData.seasons || displayData.seasonsCount || "?"}
+                            value={displayData.seasonsCount || "?"}
                         />
                     </View>
                 )}
@@ -158,7 +158,7 @@ export const InfoStats = ({ displayData }) => {
                 {displayData.type === "tv" && (
                     <StatSubItem
                         label="Эпизодов"
-                        value={displayData.episodes || displayData.episodesCount || "?"}
+                        value={displayData.episodesCount || "?"}
                     />
                 )}
                 {displayData.type !== "book" && (

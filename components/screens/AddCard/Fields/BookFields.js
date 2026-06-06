@@ -11,7 +11,7 @@ export default function BookFields({ form, updateField }) {
         <View>
             <CommonField
                 label="Авторы"
-                placeholder="Дж. К. Роулинг, ..."
+                placeholder="Дж. К. Роулинг; Джордж Р. Р. Мартин; ..."
                 form={form}
                 updateField={updateField}
                 fieldName="authors"

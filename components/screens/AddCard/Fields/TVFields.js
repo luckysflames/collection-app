@@ -66,17 +66,6 @@ export default function TVFields({ form, updateField }) {
             <View style={formStyles.rowInputs}>
                 <View style={{ flex: 1 }}>
                     <CommonField
-                        label="Бюджет ($)"
-                        placeholder="150000"
-                        form={form}
-                        updateField={updateField}
-                        fieldName="budget"
-                        keyboardType="numeric"
-                    />
-                </View>
-
-                <View style={{ flex: 1 }}>
-                    <CommonField
                         label="Длительность (мин)"
                         placeholder="45"
                         form={form}
@@ -85,9 +74,7 @@ export default function TVFields({ form, updateField }) {
                         keyboardType="numeric"
                     />
                 </View>
-            </View>
 
-            <View style={formStyles.rowInputs}>
                 <View style={{ flex: 1 }}>
                     <SelectField
                         label="Статус"
@@ -102,7 +89,7 @@ export default function TVFields({ form, updateField }) {
 
             <CommonField
                 label="Страны"
-                placeholder="Япония, США, ..."
+                placeholder="Япония; США; ..."
                 form={form}
                 updateField={updateField}
                 fieldName="countries"
@@ -110,7 +97,7 @@ export default function TVFields({ form, updateField }) {
 
             <CommonField
                 label="Компании"
-                placeholder="Netflix, ..."
+                placeholder="Netflix; Sony Pictures Entertainment, LLC"
                 form={form}
                 updateField={updateField}
                 fieldName="companies"
