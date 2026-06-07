@@ -14,6 +14,7 @@ import {
     Upload,
     Sparkles,
     Volume2,
+    Bell,
 } from "lucide-react-native";
 
 import { getBugReportTemplate } from "../utils/bugReportHelper";
@@ -35,6 +36,8 @@ export default function SettingsScreen({ navigation }) {
     const setIsVibration = useCollectionStore((state) => state.setIsVibration);
     const isSound = useCollectionStore((state) => state.isSound);
     const setIsSound = useCollectionStore((state) => state.setIsSound);
+    const isNotify = useCollectionStore((state) => state.isNotify);
+    const setIsNotify = useCollectionStore((state) => state.setIsNotify);
 
     const { actions } = useDataManagement(store);
     const { handleExportCollection, handleImportCollection, FileModal } =
@@ -84,6 +87,14 @@ export default function SettingsScreen({ navigation }) {
                         type="switch"
                         value={isSound}
                         onValueChange={setIsSound}
+                    />
+                    <View style={styles.separator} />
+                    <SettingItem
+                        icon={Bell}
+                        label="Достижения"
+                        type="switch"
+                        value={isNotify}
+                        onValueChange={setIsNotify}
                     />
                     <View style={styles.separator} />
                     <SettingItem

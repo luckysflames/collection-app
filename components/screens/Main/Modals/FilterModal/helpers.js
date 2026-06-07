@@ -7,6 +7,13 @@ export const renderFilterValue = (filter, value) => {
     if (!filter || value === undefined) return "";
 
     if (filter.type === "select") {
+        if (Array.isArray(value)) {
+            const labels = filter.options
+                ?.filter((option) => value.includes(option.id))
+                .map((option) => option.label);
+            return labels?.join(", ") || "";
+        }
+
         const option = filter.options?.find((o) => o.id === value);
         return option ? option.label : "";
     }
@@ -129,6 +136,7 @@ export const generateDynamicFilters = (myCollection, section) => {
                 type: "select",
                 options,
                 isDynamic: true,
+                multiSelect: true,
                 icon: dynamicIcons[field] || "ListFilter",
             });
         }

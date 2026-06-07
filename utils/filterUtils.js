@@ -72,11 +72,16 @@ export const matchesFilterValue = (item, filterKey, filterValue) => {
     }
 
     if (Array.isArray(filterValue)) {
-        const [min, max] = filterValue;
-        const numericValue = normalizeNumericValue(itemValue);
-        if (numericValue === null) return false;
+        if (filterValue.length === 0) return true;
 
-        return numericValue >= min && numericValue <= max;
+        if (isDynamicFilterField(filterKey)) {
+            const values = splitFilterValues(itemValue);
+            return filterValue.every((value) => values.includes(String(value)));
+        }
+
+        return filterValue.some(
+            (value) => String(itemValue) === String(value),
+        );
     }
 
     return false;

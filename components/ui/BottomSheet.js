@@ -92,10 +92,7 @@ export const BottomSheet = ({ visible, onClose, children, containerStyle }) => {
                         },
                     ]}
                 >
-                    <Pressable
-                        style={StyleSheet.absoluteFill}
-                        onPress={handleClose}
-                    />
+                    <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
                 </Animated.View>
 
                 {/* Content Container */}
@@ -105,7 +102,7 @@ export const BottomSheet = ({ visible, onClose, children, containerStyle }) => {
                         containerStyle,
                         {
                             transform: [{ translateY: panY }],
-                            paddingBottom: Math.max(insets.bottom, 20) + 10,
+                            paddingBottom: Math.max(insets.bottom, 20),
                         },
                     ]}
                     {...panResponder.panHandlers}
@@ -114,9 +111,6 @@ export const BottomSheet = ({ visible, onClose, children, containerStyle }) => {
                     {children}
                 </Animated.View>
             </View>
-            <View
-                style={{ height: insets.bottom, backgroundColor: "#0B1534" }}
-            />
         </Modal>
     );
 };
@@ -128,7 +122,7 @@ const styles = StyleSheet.create({
         backgroundColor: "rgba(0, 0, 0, 0.5)",
     },
     modalContent: {
-        backgroundColor: "#1E2127", // Ваш основной цвет фона
+        backgroundColor: "#1E2127",
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         width: "100%",

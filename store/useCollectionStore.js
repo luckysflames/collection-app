@@ -25,6 +25,7 @@ export const useCollectionStore = create(
             isCompactMenu: true,
             isVibration: true,
             isSound: true,
+            isNotify: true,
             collectionGoal: 500,
             availableStatuses: {},
             defaultTabs: {
@@ -94,6 +95,7 @@ export const useCollectionStore = create(
             setIsCompactMenu: (value) => set({ isCompactMenu: value }),
             setIsVibration: (value) => set({ isVibration: value }),
             setIsSound: (value) => set({ isSound: value }),
+            setIsNotify: (value) => set({ isNotify: value }),
 
             // --- PASSWORD MANAGEMENT ---
             setDeletionPassword: (newPassword) => set({ deletionPassword: newPassword }),

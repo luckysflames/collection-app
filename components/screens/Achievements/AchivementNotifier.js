@@ -8,6 +8,7 @@ import { AchievementToast } from "./AchivementToast";
 
 export const AchivementNotifier = () => {
     const myCollection = useCollectionStore((state) => state.myCollection);
+    const isNotify = useCollectionStore((state) => state.isNotify);
 
     const _hasHydrated = useNotificationStore((state) => state._hasHydrated);
     const achievementQueue = useNotificationStore((state) => state.achievementQueue);
@@ -39,7 +40,7 @@ export const AchivementNotifier = () => {
         });
     }, [myCollection, _hasHydrated, shownAchievements, achievementQueue]);
 
-    if (!currentAchievement) return null;
+    if (!currentAchievement || !isNotify) return null;
 
     return (
         <AchievementToast

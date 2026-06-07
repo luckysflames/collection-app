@@ -14,7 +14,7 @@ export const useFilteredCollection = ({
     activeFilters = {},
 }) => {
     return useMemo(() => {
-        // --- 1. ФИЛЬТРАЦИЯ ---
+        // --- 1. ПЕРВИЧНАЯ ФИЛЬТРАЦИЯ (Выбираем то, что подходит по условиям) ---
         let filtered = data.filter((item) => {
             // 0. ФИЛЬТР ПОИСКА (приоритет)
             if (searchQuery && searchQuery.trim().length > 0) {
@@ -35,50 +35,84 @@ export const useFilteredCollection = ({
                 return matchesTitle || matchesOriginal;
             }
 
-            // --- ОБЫЧНАЯ ФИЛЬТРАЦИЯ ---
+            // --- ОБЫЧНАЯ ФИЛЬТРАЦИЯ ПО КАТЕГОРИЯМ ---
             if (isInsideFolder) return true;
             if (item.appSection !== currentSection) return false;
 
             const isFolder = !!item.isFolder;
             const hasParent = (item.parentFolderIds || []).length > 0;
 
+            // Специальная вкладка 1: Всё
             if (category === "Всё") {
                 return showFoldersOnly ? isFolder || !hasParent : !isFolder;
             }
+            // Специальная вкладка 2: Папки (тут всегда только папки)
             if (category === "Папки") return isFolder;
+
+            // Специальная вкладка 3: Избранное
             if (category === FAVORITE_STATUS) {
                 if (!item.isFavorite) return false;
-                return showFoldersOnly ? true : !isFolder;
+                return showFoldersOnly ? isFolder || !hasParent : !isFolder;
             }
 
-            if (item.status !== category) return false;
+            // Фильтр для обычных вкладок статусов (например, "Смотрю", "В планах")
+            // Если группировщик ВЫКЛЮЧЕН — папки на этих вкладках вообще не показываем
+            if (!showFoldersOnly && isFolder) return false;
 
-            if (showFoldersOnly) {
-                if (isFolder) return true;
-                if (!hasParent) return true;
-
-                const hasSameStatusParent = item.parentFolderIds.some((parentId) => {
-                    const parent = data.find((d) => String(d.id) === String(parentId));
-                    return parent && parent.status === item.status;
-                });
-                return !hasSameStatusParent;
-            }
-            return !isFolder;
+            return item.status === category;
         });
 
-        // --- 1.5. ФИЛЬТРЫ ПО ПОЛЯМ ---
+        // --- 1.5. ФИЛЬТРЫ ПО ДОПОЛНИТЕЛЬНЫМ ПОЛЯМ ---
         if (Object.keys(activeFilters).length > 0) {
             filtered = filtered.filter((item) => {
                 if (item.isFolder) return true;
-
                 for (const [filterKey, filterValue] of Object.entries(activeFilters)) {
                     if (!matchesFilterValue(item, filterKey, filterValue)) {
                         return false;
                     }
                 }
-
                 return true;
             });
+        }
+
+        // --- 1.8. МАГИЯ ГРУППИРОВКИ ---
+        // Применяется, только если тумблер ВКЛЮЧЕН, мы на вкладке статуса и не внутри папки
+        if (
+            showFoldersOnly &&
+            !isInsideFolder &&
+            category !== "Всё" &&
+            category !== "Папки" &&
+            category !== FAVORITE_STATUS
+        ) {
+            const finalItemsMap = new Map();
+            const parentIdsToFetch = new Set();
+
+            filtered.forEach((item) => {
+                if (item.isFolder) {
+                    // Если папка каким-то образом сама подошла под статус, сохраняем
+                    finalItemsMap.set(String(item.id), item);
+                } else {
+                    const parents = item.parentFolderIds || [];
+                    if (parents.length === 0) {
+                        // Карточку без папки оставляем в корне списка
+                        finalItemsMap.set(String(item.id), item);
+                    } else {
+                        // Для карточек с папками — собираем ID их родителей, а сами карточки убираем
+                        parents.forEach((parentId) => parentIdsToFetch.add(String(parentId)));
+                    }
+                }
+            });
+
+            // Вытаскиваем накопленные папки из исходного массива data (любого статуса)
+            if (parentIdsToFetch.size > 0) {
+                data.forEach((dbItem) => {
+                    if (dbItem.isFolder && parentIdsToFetch.has(String(dbItem.id))) {
+                        finalItemsMap.set(String(dbItem.id), dbItem);
+                    }
+                });
+            }
+
+            filtered = Array.from(finalItemsMap.values());
         }
 
         // --- 2. СОРТИРОВКА ---
@@ -88,7 +122,6 @@ export const useFilteredCollection = ({
                 if (!a.isPinned && b.isPinned) return 1;
             }
 
-            // --- РУЧНАЯ СОРТИРОВКА (Прямая и Обратная) ---
             const isManualSort = sortType === "manual" || sortType === "manual_desc";
 
             if (isInsideFolder && isManualSort) {
@@ -100,20 +133,15 @@ export const useFilteredCollection = ({
                     if (indexA !== -1 || indexB !== -1) {
                         if (indexA === -1) return 1;
                         if (indexB === -1) return -1;
-
-                        // Если "manual" — сортируем как обычно (0, 1, 2...)
-                        // Если "manual_desc" — разворачиваем порядок (индексы наоборот)
                         return sortType === "manual" ? indexA - indexB : indexB - indexA;
                     }
                 }
 
-                // Если порядка нет в буфере, сваливаемся на сортировку по умолчанию (дате)
                 const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
                 const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
                 return sortType === "manual" ? dateB - dateA : dateA - dateB;
             }
 
-            // --- СТАНДАРТНАЯ СОРТИРОВКА ПО СВОЙСТВАМ ---
             const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
             const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
             const statusChangeDateA = a.lastStatusChangeAt

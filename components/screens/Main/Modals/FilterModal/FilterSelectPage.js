@@ -21,11 +21,45 @@ export const FilterSelectPage = ({
         return <View style={styles.page} />;
     }
 
+    const currentValue = localFilters[filter.id];
+    const selectedValues = Array.isArray(currentValue)
+        ? currentValue
+        : currentValue
+        ? [currentValue]
+        : [];
+
     const handleSelect = (optionId) => {
-        setLocalFilters((prev) => ({
-            ...prev,
-            [filter.id]: optionId,
-        }));
+        if (filter.multiSelect) {
+            setLocalFilters((prev) => {
+                const current = prev[filter.id];
+                const values = Array.isArray(current)
+                    ? [...current]
+                    : current
+                    ? [current]
+                    : [];
+
+                const isAlreadySelected = values.includes(optionId);
+                const nextValues = isAlreadySelected
+                    ? values.filter((id) => id !== optionId)
+                    : [...values, optionId];
+
+                if (nextValues.length === 0) {
+                    const next = { ...prev };
+                    delete next[filter.id];
+                    return next;
+                }
+
+                return {
+                    ...prev,
+                    [filter.id]: nextValues,
+                };
+            });
+        } else {
+            setLocalFilters((prev) => ({
+                ...prev,
+                [filter.id]: optionId,
+            }));
+        }
     };
 
     const handleReset = () => {
@@ -51,15 +85,14 @@ export const FilterSelectPage = ({
                             style={styles.detailOptionItem}
                         >
                             <Text style={styles.optionLabel}>Любой</Text>
-                            {localFilters[filter.id] === undefined && (
+                            {selectedValues.length === 0 && (
                                 <Check size={20} color="#7D8AFF" />
                             )}
                         </TouchableOpacity>
 
                         {/* Список опций */}
                         {filter.options.map((option) => {
-                            const isActive =
-                                localFilters[filter.id] === option.id;
+                            const isActive = selectedValues.includes(option.id);
                             return (
                                 <TouchableOpacity
                                     key={option.id}
