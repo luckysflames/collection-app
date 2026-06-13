@@ -1,4 +1,4 @@
-import React, { memo } from "react"; // 1. Импортируем memo
+import React, { memo } from "react";
 import {
     View,
     Text,
@@ -14,7 +14,6 @@ import { BookCopy, Gem, Infinity, Pin, Star } from "lucide-react-native";
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
 
-// 1. Сначала просто объявляем компонент как обычную функцию
 const MediaCardComponent = ({
     item,
     itemCount,
@@ -38,18 +37,12 @@ const MediaCardComponent = ({
             style={styles.cardContainer}
         >
             <View style={[styles.card, small && { height: 200, width: 140 }]}>
-                <Image
-                    source={{ uri: item.image }}
-                    style={styles.image}
-                    fadeDuration={150}
-                />
+                <Image source={{ uri: item.image }} style={styles.image} fadeDuration={150} />
 
-                {/* Порядковый номер (слева сверху) */}
+                {/* Порядковый номер (справа сверху) */}
                 {showOrderNumber && (
                     <View style={badgeStyle}>
-                        <Text style={styles.orderText}>
-                            {orderNumber || ""}
-                        </Text>
+                        <Text style={styles.orderText}>{orderNumber || ""}</Text>
                     </View>
                 )}
 
@@ -62,9 +55,7 @@ const MediaCardComponent = ({
 
                 {/* Рейтинг пользователя (слева сверху) */}
                 {item.isBrilliant ? (
-                    <View
-                        style={[styles.ratingBadge, { borderColor: "#7D8AFF" }]}
-                    >
+                    <View style={[styles.ratingBadge, { borderColor: "#7D8AFF" }]}>
                         <Gem size={12} color="#7D8AFF" fill="#7D8AFF" />
                         <Infinity size={12} color="#7D8AFF" />
                     </View>
@@ -84,11 +75,21 @@ const MediaCardComponent = ({
                 )}
 
                 <LinearGradient
-                    colors={["transparent", "rgba(5, 11, 24, 0.9)"]}
+                    colors={["transparent", "rgba(5, 11, 24, 0.95)"]}
                     style={styles.gradient}
                 />
 
+                {/* Блок информации внизу карточки */}
                 <View style={styles.info}>
+                    {/* ПЛАШКА СТАТУСА */}
+                    {item.status && (
+                        <View style={styles.statusContainer}>
+                            <Text style={styles.statusText} numberOfLines={1}>
+                                {item.status}
+                            </Text>
+                        </View>
+                    )}
+
                     <Text style={styles.title} numberOfLines={2}>
                         {item.title}
                     </Text>
@@ -98,11 +99,12 @@ const MediaCardComponent = ({
     );
 };
 
-// 2. Экспортируем уже обернутым в memo
+// 2. Экспортируем обернутым в memo
 export const MediaCard = memo(MediaCardComponent, (prevProps, nextProps) => {
     return (
         prevProps.item.id === nextProps.item.id &&
         prevProps.item.title === nextProps.item.title &&
+        prevProps.item.status === nextProps.item.status &&
         prevProps.item.isPinned === nextProps.item.isPinned &&
         prevProps.item.userScore === nextProps.item.userScore &&
         prevProps.item.isBrilliant === nextProps.item.isBrilliant &&
@@ -121,7 +123,7 @@ const styles = StyleSheet.create({
     },
     card: {
         width: "100%",
-        height: 250, // Немного уменьшил, чтобы на экране влезало больше (опционально)
+        height: 250,
         borderRadius: 20,
         backgroundColor: "#1A2232",
         overflow: "hidden",
@@ -129,7 +131,7 @@ const styles = StyleSheet.create({
     image: {
         width: "100%",
         height: "100%",
-        backgroundColor: "#1A2232", // Цвет-заглушка пока грузится фото
+        backgroundColor: "#1A2232",
     },
     orderBadge: {
         position: "absolute",
@@ -159,14 +161,16 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        height: "60%",
+        height: "65%",
     },
     info: {
         position: "absolute",
         bottom: 0,
         left: 0,
         right: 0,
-        padding: 10,
+        padding: 12,
+        flexDirection: "column",
+        rowGap: 6,
     },
     title: {
         color: "#fff",
@@ -174,10 +178,24 @@ const styles = StyleSheet.create({
         fontSize: 13,
         lineHeight: 16,
     },
+    statusContainer: {
+        alignSelf: "flex-start",
+        backgroundColor: "rgba(255, 255, 255, 0.15)",
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 6,
+    },
+    statusText: {
+        color: "rgba(255, 255, 255, 0.85)",
+        fontSize: 10,
+        fontWeight: "600",
+        textTransform: "uppercase",
+        letterSpacing: 0.3,
+    },
     pinBadge: {
         position: "absolute",
         top: 10,
-        alignSelf: "center", // Центрирование по горизонтали
+        alignSelf: "center",
         backgroundColor: "rgba(26, 34, 50, 0.8)",
         padding: 4,
         borderRadius: 10,
@@ -190,7 +208,7 @@ const styles = StyleSheet.create({
         top: 10,
         left: 10,
         height: 25,
-        backgroundColor: "rgba(26, 34, 50, 0.9)", // Темный фон для контраста со звездой
+        backgroundColor: "rgba(26, 34, 50, 0.9)",
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 8,
@@ -199,7 +217,7 @@ const styles = StyleSheet.create({
         columnGap: 4,
         zIndex: 11,
         borderWidth: 1,
-        borderColor: "#ffd700", // Золотистая рамка
+        borderColor: "#ffd700",
     },
     folderBadge: {
         position: "absolute",

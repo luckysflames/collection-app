@@ -40,6 +40,7 @@ export default function EditCardScreen({ route, navigation }) {
                 enableOnAndroid={true}
                 extraScrollHeight={200}
                 keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
             >
                 <HeaderSection
                     isEditing={true}

@@ -33,7 +33,8 @@ export const DataManagementScreen = ({ navigation }) => {
             <KeyboardAwareScrollView
                 style={styles.flex1}
                 contentContainerStyle={styles.scrollContent}
-                enableOnAndroid
+                enableOnAndroid={true}
+                showsVerticalScrollIndicator={false}
             >
                 <PasswordCard
                     store={store}
@@ -52,7 +53,7 @@ export const DataManagementScreen = ({ navigation }) => {
 
                 <View
                     style={{
-                        height: isCompactMenu ? insets.bottom + 60 : insets.bottom + 120,
+                        height: isCompactMenu ? insets.bottom + 90 : insets.bottom + 150,
                     }}
                 />
             </KeyboardAwareScrollView>

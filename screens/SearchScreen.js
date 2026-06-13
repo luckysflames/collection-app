@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import {
     View,
     StyleSheet,
@@ -13,6 +13,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { ChevronLeft } from "lucide-react-native";
 
+import { useCollectionStore } from "../store/useCollectionStore";
 import { useMediaSearch } from "../hooks/useMediaSearch";
 import { MediaCard } from "../components/ui/MediaCard";
 import { SearchHeader } from "../components/screens/Search/SearchHeader";
@@ -24,6 +25,14 @@ import { SearchEmptyState } from "../components/screens/Search/EmptyStateWindows
 export default function SearchScreen({ navigation, route }) {
     const insets = useSafeAreaInsets();
     const [isCategorySelected, setIsCategorySelected] = useState(false);
+
+    const myCollection = useCollectionStore((state) => state.myCollection);
+
+    const normalizeItemId = useCallback((id) => {
+        if (!id) return "";
+        const parts = String(id).split("-");
+        return parts.length > 2 ? parts.slice(0, -1).join("-") : String(id);
+    }, []);
 
     const {
         query,
@@ -39,6 +48,23 @@ export default function SearchScreen({ navigation, route }) {
         clearCache,
         lastSearchedQuery,
     } = useMediaSearch("movie");
+
+    const collectionMapByBaseId = useMemo(() => {
+        const map = new Map();
+        myCollection.forEach((item) => {
+            map.set(normalizeItemId(item.id), item);
+        });
+        return map;
+    }, [myCollection, normalizeItemId]);
+
+    const mergedResults = useMemo(
+        () =>
+            results.map((item) => {
+                const savedItem = collectionMapByBaseId.get(normalizeItemId(item.id));
+                return savedItem ? { ...item, ...savedItem } : item;
+            }),
+        [results, collectionMapByBaseId, normalizeItemId],
+    );
 
     const handlePickCategory = (catId) => {
         setActiveCategory(catId);
@@ -64,10 +90,7 @@ export default function SearchScreen({ navigation, route }) {
             };
 
             // Создаем подписку
-            const subscription = BackHandler.addEventListener(
-                "hardwareBackPress",
-                onBackPress,
-            );
+            const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
 
             // Правильная очистка через .remove()
             return () => subscription.remove();
@@ -84,9 +107,7 @@ export default function SearchScreen({ navigation, route }) {
     }, [route.params?.reset, handleReset]);
 
     if (!isCategorySelected) {
-        return (
-            <CategorySelector onSelect={handlePickCategory} insets={insets} />
-        );
+        return <CategorySelector onSelect={handlePickCategory} insets={insets} />;
     }
 
     return (
@@ -105,7 +126,7 @@ export default function SearchScreen({ navigation, route }) {
             ) : (
                 <FlatList
                     key={activeCategory}
-                    data={results}
+                    data={mergedResults}
                     keyExtractor={(item) => item.id}
                     numColumns={2}
                     columnWrapperStyle={styles.row}
@@ -135,10 +156,7 @@ export default function SearchScreen({ navigation, route }) {
                     }}
                     ListFooterComponent={() =>
                         loadingMore && (
-                            <ActivityIndicator
-                                color="#7D8AFF"
-                                style={{ marginVertical: 20 }}
-                            />
+                            <ActivityIndicator color="#7D8AFF" style={{ marginVertical: 20 }} />
                         )
                     }
                     ListEmptyComponent={() => {

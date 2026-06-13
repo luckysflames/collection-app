@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, memo } from "react";
 import { View, FlatList, StyleSheet, Dimensions, Platform } from "react-native";
 import { MediaCard } from "../ui/MediaCard";
 import { EmptyState } from "./EmptyState";
@@ -11,7 +11,47 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 // 1. Выносим keyExtractor ЗА ПРЕДЕЛЫ компонента, чтобы он не пересоздавался
 const keyExtractor = (item) => `card-${item.id}`;
 
-export const CategoryPage = ({
+const shallowEqualObjects = (a, b) => {
+    if (a === b) return true;
+    if (!a || !b) return false;
+    const keysA = Object.keys(a);
+    const keysB = Object.keys(b);
+    if (keysA.length !== keysB.length) return false;
+    for (const key of keysA) {
+        if (a[key] !== b[key]) return false;
+    }
+    return true;
+};
+
+const shallowEqualArrays = (a, b) => {
+    if (a === b) return true;
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i += 1) {
+        if (a[i] !== b[i]) return false;
+    }
+    return true;
+};
+
+const arePropsEqual = (prev, next) => {
+    return (
+        prev.category === next.category &&
+        prev.searchQuery === next.searchQuery &&
+        prev.currentSection === next.currentSection &&
+        prev.sortType === next.sortType &&
+        prev.showFoldersOnly === next.showFoldersOnly &&
+        prev.isInsideFolder === next.isInsideFolder &&
+        prev.onCardPress === next.onCardPress &&
+        prev.onCardLongPress === next.onCardLongPress &&
+        prev.ListHeaderComponent === next.ListHeaderComponent &&
+        prev.data === next.data &&
+        shallowEqualObjects(prev.activeFilters, next.activeFilters) &&
+        prev.isReordering === next.isReordering &&
+        shallowEqualArrays(prev.reorderBuffer, next.reorderBuffer) &&
+        prev.folderOrder === next.folderOrder
+    );
+};
+
+const CategoryPageComponent = ({
     category,
     searchQuery,
     currentSection,
@@ -29,7 +69,6 @@ export const CategoryPage = ({
 }) => {
     const insets = useSafeAreaInsets();
     const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
-    const collectionVersion = useCollectionStore((state) => state.version);
 
     // 1. Получаем отфильтрованные и базово отсортированные данные из хука
     const filteredData = useFilteredCollection({
@@ -45,9 +84,7 @@ export const CategoryPage = ({
     });
 
     // 2. В режиме переупорядочивания оставляем порядок как есть (из filteredData)
-    const pageData = useMemo(() => {
-        return filteredData;
-    }, [filteredData]);
+    const pageData = useMemo(() => filteredData, [filteredData]);
 
     const handlePress = useCallback(
         (item) => {
@@ -56,7 +93,6 @@ export const CategoryPage = ({
         [onCardPress],
     );
 
-    // 2. Оптимизируем renderItem через useCallback
     const renderItem = useCallback(
         ({ item }) => {
             let currentOrder = null;
@@ -80,14 +116,12 @@ export const CategoryPage = ({
         [handlePress, onCardLongPress, isReordering, reorderBuffer, isInsideFolder],
     );
 
-    // 3. Используем стабильный объект для extraData
     const memoizedExtraData = useMemo(
         () => ({
             isReordering,
-            reorderBufferLength: reorderBuffer?.length, // Следим за длиной, а не за всем массивом
-            collectionVersion, // Следим за версией коллекции для перерисовки при изменении любого элемента
+            reorderBufferLength: reorderBuffer?.length,
         }),
-        [isReordering, reorderBuffer?.length, collectionVersion],
+        [isReordering, reorderBuffer?.length],
     );
 
     return (
@@ -123,6 +157,8 @@ export const CategoryPage = ({
         </View>
     );
 };
+
+export const CategoryPage = memo(CategoryPageComponent, arePropsEqual);
 
 const styles = StyleSheet.create({
     pageWrapper: { flex: 1, width: SCREEN_WIDTH },

@@ -185,6 +185,7 @@ export default function DetailsScreen({ route, navigation }) {
                     scrollEventThrottle={16}
                     keyboardShouldPersistTaps="handled"
                     nestedScrollEnabled={true}
+                    showsVerticalScrollIndicator={false}
                 >
                     <HeaderSection
                         isEditing={false}

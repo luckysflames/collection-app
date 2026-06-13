@@ -11,7 +11,9 @@ export const useCollectionCounter = (
     activeFilters = {}, // Не забываем фильтры
 ) => {
     return useMemo(() => {
-        // 1. Создаем функцию-предикат, которая проверяет, подходит ли один айтем под ВСЕ условия
+        // 1. Создаем карту родителей заранее, чтобы не пересоздавать её для каждого элемента
+        const parentMap = new Map(myCollection.map((item) => [String(item.id), item]));
+
         const filterFn = (item) => {
             // --- Базовая проверка раздела ---
             if (item.appSection !== currentSection) return false;
@@ -64,14 +66,10 @@ export const useCollectionCounter = (
                 if (isFolder) return true;
                 if (!hasParent) return true;
 
-                const hasSameStatusParent = item.parentFolderIds.some(
-                    (parentId) => {
-                        const parent = myCollection.find(
-                            (d) => String(d.id) === String(parentId),
-                        );
-                        return parent && parent.status === item.status;
-                    },
-                );
+                const hasSameStatusParent = item.parentFolderIds.some((parentId) => {
+                    const parent = parentMap.get(String(parentId));
+                    return parent && parent.status === item.status;
+                });
                 return !hasSameStatusParent;
             }
 

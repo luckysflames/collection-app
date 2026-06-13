@@ -179,12 +179,23 @@ export const useFilteredCollection = ({
         });
 
         // --- 3. СЧЕТЧИКИ ---
+        const folderChildCounts = new Map();
+        data.forEach((item) => {
+            const parents = item.parentFolderIds || [];
+            if (parents.length > 0) {
+                parents.forEach((parentId) => {
+                    const key = String(parentId);
+                    folderChildCounts.set(key, (folderChildCounts.get(key) || 0) + 1);
+                });
+            }
+        });
+
         return sorted.map((item) => {
             if (item.isFolder) {
-                const count = data.filter((i) =>
-                    i.parentFolderIds?.some((id) => String(id) === String(item.id)),
-                ).length;
-                return { ...item, _computedCount: count };
+                return {
+                    ...item,
+                    _computedCount: folderChildCounts.get(String(item.id)) || 0,
+                };
             }
             return item;
         });

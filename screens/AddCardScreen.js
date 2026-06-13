@@ -75,6 +75,7 @@ export default function AddCardScreen({ navigation }) {
             extraScrollHeight={150}
             enableOnAndroid={true}
             keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
         >
             <Text style={styles.header}>Создать карточку</Text>
 

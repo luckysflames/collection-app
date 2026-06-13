@@ -19,7 +19,7 @@ import { SortModal } from "../components/screens/Main/Modals/SortModal";
 export const StatusManagerScreen = ({ navigation }) => {
     const insets = useSafeAreaInsets();
     const store = useCollectionStore();
-    const isCompactMenu = useCollectionStore((state) => state.isCompactMenu)
+    const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
 
     const [selectedSection, setSelectedSection] = useState(SECTIONS[0].id);
     const [modalConfig, setModalConfig] = useState({ visible: false });
@@ -121,6 +121,7 @@ export const StatusManagerScreen = ({ navigation }) => {
                 enableOnAndroid
                 keyboardShouldPersistTaps="handled"
                 scrollEnabled={!isDragging}
+                showsVerticalScrollIndicator={false}
             >
                 {/* === ЗОНА 1: ПОРЯДОК КАТЕГОРИЙ === */}
                 <View style={styles.globalZone}>
