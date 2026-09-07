@@ -24,6 +24,7 @@ export const WarnModal = ({
     cancelText = "Отмена",
     confirmDisabled = false,
     type = "warning",
+    isProcessing = false,
     children,
 }) => {
     const { theme, createStyles } = useTheme();
@@ -71,11 +72,11 @@ export const WarnModal = ({
             visible={visible}
             transparent
             animationType="fade"
-            onRequestClose={onClose}
+            onRequestClose={isProcessing ? undefined : onClose}
             statusBarTranslucent
         >
             <View style={styles.overlay}>
-                <Pressable style={StyleSheet.absoluteFill} onPress={onClose}>
+                <Pressable style={StyleSheet.absoluteFill} onPress={isProcessing ? null : onClose}>
                     <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
                 </Pressable>
 
@@ -92,43 +93,46 @@ export const WarnModal = ({
 
                     {children && <View style={styles.childrenContainer}>{children}</View>}
 
-                    <View style={styles.buttonContainer}>
-                        {hasConfirmAction && (
-                            <TouchableOpacity
-                                style={[styles.button, styles.cancelButton]}
-                                onPress={onClose}
-                                activeOpacity={0.7}
-                            >
-                                <Text style={styles.cancelButtonText}>{cancelText}</Text>
-                            </TouchableOpacity>
-                        )}
+                    {!isProcessing && (
+                        <View style={styles.buttonContainer}>
+                            {hasConfirmAction && (
+                                <TouchableOpacity
+                                    style={[styles.button, styles.cancelButton]}
+                                    onPress={onClose}
+                                    activeOpacity={0.7}
+                                >
+                                    <Text style={styles.cancelButtonText}>{cancelText}</Text>
+                                </TouchableOpacity>
+                            )}
 
-                        <TouchableOpacity
-                            style={[
-                                styles.button,
-                                !hasConfirmAction ? styles.singleButton : styles.confirmButton,
-                                type === "error" && hasConfirmAction && styles.errorConfirmButton,
-                                confirmDisabled && styles.disabledButton,
-                            ]}
-                            onPress={hasConfirmAction ? onConfirm : onClose}
-                            disabled={confirmDisabled}
-                        >
-                            <Text
+                            <TouchableOpacity
                                 style={[
-                                    styles.buttonText,
-                                    confirmDisabled && styles.disabledButtonText,
+                                    styles.button,
+                                    !hasConfirmAction ? styles.singleButton : styles.confirmButton,
+                                    type === "error" &&
+                                        hasConfirmAction &&
+                                        styles.errorConfirmButton,
+                                    confirmDisabled && styles.disabledButton,
                                 ]}
+                                onPress={hasConfirmAction ? onConfirm : onClose}
+                                disabled={confirmDisabled}
                             >
-                                {finalConfirmText}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
+                                <Text
+                                    style={[
+                                        styles.buttonText,
+                                        confirmDisabled && styles.disabledButtonText,
+                                    ]}
+                                >
+                                    {finalConfirmText}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
                 </Pressable>
             </View>
         </Modal>
     );
 };
-
 const createLocalStyles = (theme) =>
     StyleSheet.create({
         overlay: {

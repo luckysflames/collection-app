@@ -3,10 +3,8 @@ import * as FileSystem from "expo-file-system/legacy";
 import * as DocumentPicker from "expo-document-picker";
 import * as Sharing from "expo-sharing";
 import { WarnModal } from "../components/ui/WarnModal";
-import { Text, TouchableOpacity } from "react-native";
+import { Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import {
-    collectImageFilesForExport,
-    restoreLocalImagesFromBackup,
     restoreCollectionImageUris,
     collectImageFilesForZip,
     moveImagesFromTemp,
@@ -17,6 +15,7 @@ import { useTheme } from "./useTheme";
 export const useFileManagement = (store) => {
     const { theme } = useTheme();
 
+    const [isProcessing, setIsProcessing] = useState(false);
     const [modalConfig, setModalConfig] = useState({
         visible: false,
         title: "",
@@ -42,6 +41,26 @@ export const useFileManagement = (store) => {
     };
 
     const handleExportCollection = async () => {
+        if (store.myCollection.length === 0) {
+            showWarn({
+                title: "Экспорт",
+                message: "Коллекция пуста. Нечего экспортировать.",
+                type: "warning",
+            });
+            return;
+        }
+
+        // Показываем лоадер
+        setIsProcessing(true);
+        showWarn({
+            title: "Экспорт коллекции",
+            message: "Подготовка данных и архивация изображений. Пожалуйста, подождите...",
+            type: "info",
+            children: (
+                <ActivityIndicator size="large" color={theme.accent} style={{ marginTop: 15 }} />
+            ),
+        });
+
         try {
             const {
                 myCollection,
@@ -49,19 +68,14 @@ export const useFileManagement = (store) => {
                 defaultTabs,
                 defaultSorts,
                 collectionGoal,
+                categoryOrder,
+                themeName,
+                deletionPassword,
                 isCompactMenu,
                 isVibration,
                 isSound,
+                isNotify,
             } = store;
-
-            if (myCollection.length === 0) {
-                showWarn({
-                    title: "Экспорт",
-                    message: "Коллекция пуста. Нечего экспортировать.",
-                    type: "warning",
-                });
-                return;
-            }
 
             // 1. Собираем данные и список путей картинок
             const { collection: normalizedCollection, imagePathsToCopy } =
@@ -77,10 +91,14 @@ export const useFileManagement = (store) => {
                     defaultTabs,
                     defaultSorts,
                     collectionGoal,
+                    categoryOrder,
+                    themeName,
+                    deletionPassword,
                     settings: {
                         isCompactMenu,
                         isVibration,
                         isSound,
+                        isNotify,
                     },
                 },
             };
@@ -109,6 +127,8 @@ export const useFileManagement = (store) => {
             const zipPath = `${FileSystem.cacheDirectory}geekly_backup_${new Date().toISOString().split("T")[0]}.zip`;
             await zip(exportFolder, zipPath);
 
+            hideModal();
+
             // 5. Делимся
             if (await Sharing.isAvailableAsync()) {
                 await Sharing.shareAsync(zipPath, {
@@ -118,10 +138,8 @@ export const useFileManagement = (store) => {
                 });
             }
 
-            // 6. ЧИСТКА
-            // Удаляем временную папку с картинками и json
+            // 6. Очистка кэша экспорта
             await FileSystem.deleteAsync(exportFolder, { idempotent: true });
-            // Удаляем сам созданный zip-файл, так как он уже не нужен
             await FileSystem.deleteAsync(zipPath, { idempotent: true });
         } catch (error) {
             console.error("Export Error:", error);
@@ -130,6 +148,8 @@ export const useFileManagement = (store) => {
                 message: "Не удалось создать архив.",
                 type: "error",
             });
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -141,6 +161,21 @@ export const useFileManagement = (store) => {
             });
 
             if (result.canceled) return;
+
+            // Показываем лоадер при распаковке
+            setIsProcessing(true);
+            showWarn({
+                title: "Импорт коллекции",
+                message: "Распаковка архива и обработка данных...",
+                type: "info",
+                children: (
+                    <ActivityIndicator
+                        size="large"
+                        color={theme.accent}
+                        style={{ marginTop: 15 }}
+                    />
+                ),
+            });
 
             const zipUri = result.assets[0].uri;
             const tempUnzipPath = `${FileSystem.cacheDirectory}unzip_${Date.now()}/`;
@@ -159,52 +194,95 @@ export const useFileManagement = (store) => {
             // 3. Перенос картинок и восстановление путей
             const restoredMap = await moveImagesFromTemp(`${tempUnzipPath}images/`);
             const newItems = restoreCollectionImageUris(backup.payload.myCollection, restoredMap);
-            // ВАЖНО: Подготовка данных с учетом старых версий (Fallback)
             const payload = backup.payload;
 
-            // 4. ТВОЯ ОРИГИНАЛЬНАЯ ЛОГИКА МОДАЛОК
+            setIsProcessing(false);
+
+            // Хелпер для сохранения настроек
+            const applySettings = (data) => {
+                if (data.collectionGoal !== undefined) store.setCollectionGoal(data.collectionGoal);
+                if (data.categoryOrder) store.setCategoryOrder(data.categoryOrder);
+                if (data.themeName) store.setThemeName(data.themeName);
+                if (data.deletionPassword !== undefined)
+                    store.setDeletionPassword(data.deletionPassword);
+
+                if (data.defaultTabs) {
+                    Object.keys(data.defaultTabs).forEach((key) =>
+                        store.setDefaultTab(key, data.defaultTabs[key]),
+                    );
+                }
+
+                if (data.defaultSorts) {
+                    Object.keys(data.defaultSorts).forEach((key) =>
+                        store.setDefaultSort(key, data.defaultSorts[key]),
+                    );
+                }
+
+                if (data.settings) {
+                    if (data.settings.isCompactMenu !== undefined)
+                        store.setIsCompactMenu(data.settings.isCompactMenu);
+                    if (data.settings.isVibration !== undefined)
+                        store.setIsVibration(data.settings.isVibration);
+                    if (data.settings.isSound !== undefined)
+                        store.setIsSound(data.settings.isSound);
+                    if (data.settings.isNotify !== undefined)
+                        store.setIsNotify(data.settings.isNotify);
+                }
+            };
+
+            // 4. Показ модального окна выбора типа импорта
             showWarn({
                 title: "Импорт данных",
                 message: `В архиве найдено ${newItems.length} элементов. Как выполнить импорт?`,
                 type: "warning",
                 confirmText: "Дополнить",
-                onConfirm: () => {
-                    hideModal();
-
-                    const current = store.myCollection;
-                    const currentIds = new Set(current.map((item) => String(item.id)));
-                    const uniqueNewItems = newItems.filter(
-                        (item) => !currentIds.has(String(item.id)),
-                    );
-
-                    if (uniqueNewItems.length === 0) {
-                        setTimeout(
-                            () =>
-                                showWarn({
-                                    title: "Инфо",
-                                    message: "Все элементы уже есть в коллекции.",
-                                }),
-                            500,
-                        );
-                        return;
-                    }
-
-                    uniqueNewItems.forEach((item) => {
-                        if (item.status && item.appSection)
-                            store.addCustomStatus(item.appSection, item.status);
+                onConfirm: async () => {
+                    setIsProcessing(true);
+                    showWarn({
+                        title: "Обновление коллекции",
+                        message: "Сохранение новых элементов...",
+                        type: "info",
+                        children: (
+                            <ActivityIndicator
+                                size="large"
+                                color={theme.accent}
+                                style={{ marginTop: 15 }}
+                            />
+                        ),
                     });
-                    store.setMyCollection([...current, ...uniqueNewItems]);
-                    applySettings(payload);
 
-                    setTimeout(
-                        () =>
+                    try {
+                        const current = store.myCollection;
+                        const currentIds = new Set(current.map((item) => String(item.id)));
+                        const uniqueNewItems = newItems.filter(
+                            (item) => !currentIds.has(String(item.id)),
+                        );
+
+                        if (uniqueNewItems.length === 0) {
                             showWarn({
-                                type: "success",
-                                title: "Успех",
-                                message: `Добавлено ${uniqueNewItems.length} элементов.`,
-                            }),
-                        500,
-                    );
+                                title: "Инфо",
+                                message: "Все элементы уже есть в коллекции.",
+                            });
+                            return;
+                        }
+
+                        uniqueNewItems.forEach((item) => {
+                            if (item.status && item.appSection)
+                                store.addCustomStatus(item.appSection, item.status);
+                        });
+
+                        store.setMyCollection([...current, ...uniqueNewItems]);
+                        applySettings(payload);
+
+                        showWarn({
+                            type: "success",
+                            title: "Успех",
+                            message: `Добавлено ${uniqueNewItems.length} элементов.`,
+                        });
+                    } finally {
+                        setIsProcessing(false);
+                        await FileSystem.deleteAsync(tempUnzipPath, { idempotent: true });
+                    }
                 },
                 children: (
                     <TouchableOpacity
@@ -216,26 +294,41 @@ export const useFileManagement = (store) => {
                             alignItems: "center",
                             marginTop: 10,
                         }}
-                        onPress={() => {
-                            hideModal();
+                        onPress={async () => {
+                            setIsProcessing(true);
+                            showWarn({
+                                title: "Перезапись коллекции",
+                                message: "Очистка текущих данных и запись новых...",
+                                type: "info",
+                                children: (
+                                    <ActivityIndicator
+                                        size="large"
+                                        color={theme.accent}
+                                        style={{ marginTop: 15 }}
+                                    />
+                                ),
+                            });
 
-                            store.setMyCollection(newItems);
-                            // Восстанавливаем статусы (если нет в бэкапе - будет пустой объект)
-                            const savedStatuses = payload.availableStatuses || {};
-                            Object.keys(savedStatuses).forEach((key) =>
-                                store.setStatusesForSection(key, savedStatuses[key]),
-                            );
-                            applySettings(payload);
+                            try {
+                                await store.clearCollection();
 
-                            setTimeout(
-                                () =>
-                                    showWarn({
-                                        type: "success",
-                                        title: "Успех",
-                                        message: "Коллекция полностью заменена.",
-                                    }),
-                                500,
-                            );
+                                store.setMyCollection(newItems);
+
+                                const savedStatuses = payload.availableStatuses || {};
+                                Object.keys(savedStatuses).forEach((key) =>
+                                    store.setStatusesForSection(key, savedStatuses[key]),
+                                );
+                                applySettings(payload);
+
+                                showWarn({
+                                    type: "success",
+                                    title: "Успех",
+                                    message: "Коллекция полностью заменена.",
+                                });
+                            } finally {
+                                setIsProcessing(false);
+                                await FileSystem.deleteAsync(tempUnzipPath, { idempotent: true });
+                            }
                         }}
                     >
                         <Text
@@ -250,42 +343,9 @@ export const useFileManagement = (store) => {
                     </TouchableOpacity>
                 ),
             });
-
-            // Функция-хелпер для наката настроек из бэкапа
-            const applySettings = (data) => {
-                // 1. Цель коллекции
-                if (data.collectionGoal) store.setCollectionGoal(data.collectionGoal);
-
-                // 2. Вкладки по умолчанию
-                if (data.defaultTabs) {
-                    Object.keys(data.defaultTabs).forEach((key) =>
-                        store.setDefaultTab(key, data.defaultTabs[key]),
-                    );
-                }
-
-                // 3. Сортировки (для старых бэкапов - пропускаем)
-                if (data.defaultSorts) {
-                    Object.keys(data.defaultSorts).forEach((key) =>
-                        store.setDefaultSort(key, data.defaultSorts[key]),
-                    );
-                }
-
-                // 4. Системные настройки (vibration, sound и т.д.)
-                // Если бэкап старый и поля settings нет, стор просто сохранит свои текущие значения
-                if (data.settings) {
-                    if (data.settings.isCompactMenu !== undefined)
-                        store.setIsCompactMenu(data.settings.isCompactMenu);
-                    if (data.settings.isVibration !== undefined)
-                        store.setIsVibration(data.settings.isVibration);
-                    if (data.settings.isSound !== undefined)
-                        store.setIsSound(data.settings.isSound);
-                }
-            };
-
-            // Чистим временную папку распаковки
-            await FileSystem.deleteAsync(tempUnzipPath, { idempotent: true });
         } catch (error) {
             console.error("Import Error:", error);
+            setIsProcessing(false);
             showWarn({
                 title: "Ошибка",
                 message: "Файл поврежден или имеет неверный формат.",
@@ -303,6 +363,7 @@ export const useFileManagement = (store) => {
             confirmText={modalConfig.confirmText}
             onConfirm={modalConfig.onConfirm}
             onClose={hideModal}
+            isProcessing={isProcessing}
         >
             {modalConfig.children}
         </WarnModal>

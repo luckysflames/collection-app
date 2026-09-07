@@ -39,6 +39,11 @@ export const useDetailsData = (item, fullDetails, savedItem) => {
                         item?.episodesAired ||
                         fullDetails?.episodesAired ||
                         "?",
+                    nextEpisodeAt:
+                        savedItem.nextEpisodeAt ||
+                        item.nextEpisodeAt ||
+                        fullDetails.nextEpisodeAt ||
+                        null,
                     airedOn: savedItem?.airedOn || item?.airedOn || fullDetails?.airedOn,
                     releasedOn:
                         savedItem?.releasedOn || item?.releasedOn || fullDetails?.releasedOn,
@@ -88,11 +93,6 @@ export const useDetailsData = (item, fullDetails, savedItem) => {
                         fullDetails?.originalTitle,
                 };
             case "tv": {
-                const seasons =
-                    savedItem?.seasons ?? item?.seasons ?? fullDetails?.seasons;
-                const episodes =
-                    savedItem?.episodes ?? item?.episodes ?? fullDetails?.episodes;
-
                 const seasonsCount =
                     savedItem?.seasonsCount ??
                     item?.seasonsCount ??

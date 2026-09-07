@@ -45,7 +45,7 @@ export const googleBooksService = {
             year: info.publishedDate,
             pageCount: info.pageCount || null,
             genres: processedGenres,
-            score: info.averageRating || "0.0",
+            score: ((info.averageRating || 0) * 2).toFixed(1) || "0.0",
             rating: info.maturityRating,
             description: cleanHtml(info.description) || "Описание отсутствует",
             isBook: true,

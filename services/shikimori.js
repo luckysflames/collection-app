@@ -56,6 +56,7 @@ export const shikimoriService = {
             status
             episodes
             episodesAired
+            nextEpisodeAt
             airedOn { date }
             releasedOn { date }
             rating
@@ -99,6 +100,7 @@ export const shikimoriService = {
             animeStatus: data.status,
             episodes: data.episodes,
             episodesAired: data.episodesAired,
+            nextEpisodeAt: data.nextEpisodeAt || null,
             airedOn: data.airedOn?.date,
             releasedOn: data.releasedOn?.date,
             rating: data.rating,

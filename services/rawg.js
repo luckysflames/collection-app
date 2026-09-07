@@ -25,7 +25,7 @@ export const rawgService = {
         return {
             type: "game",
             originalTitle: json.name_original,
-            score: json.rating?.toFixed(1) || "0.0",
+            score: ((json.rating || 0) * 2).toFixed(1) || "0.0",
             esrb: json.esrb_rating?.name || "N/A",
             metacritic: json.metacritic,
             year: json.released,

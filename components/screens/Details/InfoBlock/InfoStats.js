@@ -11,15 +11,50 @@ const StatSubItem = ({ label, value, styles }) => (
     </View>
 );
 
+const formatDayOfWeekWithTime = (date) => {
+    const dayIndex = date.getDay();
+
+    const daysMap = {
+        0: "каждое воскресенье",
+        1: "каждый понедельник",
+        2: "каждый вторник",
+        3: "каждую среду",
+        4: "каждый четверг",
+        5: "каждую пятницу",
+        6: "каждую субботу",
+    };
+
+    const timeStr = date.toLocaleTimeString("ru-RU", {
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+
+    const dayName = daysMap[dayIndex] || "";
+    return `${dayName} в ${timeStr}`;
+};
+
 export const InfoStats = ({ displayData }) => {
     if (!displayData) return null;
 
-    const { theme, createStyles } = useTheme();
+    const { createStyles } = useTheme();
     const styles = createStyles(createLocalStyles);
 
     const isAnimeMovie =
         displayData.type === "anime" &&
         (displayData.animeKind === "movie" || displayData.episodes === 1);
+
+    const getNextEpisodeInfo = (isoString) => {
+        if (!isoString) return null;
+        const date = new Date(isoString);
+
+        if (isNaN(date.getTime())) return null;
+
+        const scheduleWithTime = formatDayOfWeekWithTime(date);
+
+        return `Выходит ${scheduleWithTime}`;
+    };
+
+    const nextEpisodeText = getNextEpisodeInfo(displayData.nextEpisodeAt);
 
     const getLabelById = (id, options) => {
         if (!id) return "—";
@@ -28,7 +63,7 @@ export const InfoStats = ({ displayData }) => {
     };
 
     const formatDuration = (val, type) => {
-        if (!val || val === "?" || val === "—") return "—";
+        if (!val || val === "?" || val === "—") return "?";
         switch (type) {
             case "movie":
             case "tv":
@@ -90,96 +125,111 @@ export const InfoStats = ({ displayData }) => {
     };
 
     return (
-        <View style={styles.statsGrid}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                <StatSubItem
-                    styles={styles}
-                    label={
-                        (displayData.type === "anime" || displayData.type === "tv") && !isAnimeMovie
-                            ? "Период выхода"
-                            : "Дата выхода"
-                    }
-                    value={getPeriod()}
-                />
+        <View style={styles.container}>
+            <View style={styles.statsGrid}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                    <StatSubItem
+                        styles={styles}
+                        label={
+                            (displayData.type === "anime" || displayData.type === "tv") &&
+                            !isAnimeMovie
+                                ? "Период выхода"
+                                : "Дата выхода"
+                        }
+                        value={getPeriod()}
+                    />
 
-                {displayData.type === "movie" && (
-                    <StatSubItem
-                        styles={styles}
-                        label="Бюджет"
-                        value={formatBudget(displayData.budget)}
-                    />
-                )}
-                {displayData.type === "game" && (
-                    <StatSubItem
-                        styles={styles}
-                        label="Метакритик"
-                        value={displayData.metacritic}
-                    />
-                )}
-                {displayData.type === "book" && (
-                    <StatSubItem
-                        styles={styles}
-                        label="Объем"
-                        value={formatPages(displayData.pageCount)}
-                    />
-                )}
-                {displayData.type === "tv" && (
-                    <View style={{ flex: 0.5 }}>
+                    {displayData.type === "movie" && (
                         <StatSubItem
                             styles={styles}
-                            label="Сезонов"
-                            value={displayData.seasonsCount || "?"}
+                            label="Бюджет"
+                            value={formatBudget(displayData.budget)}
                         />
-                    </View>
-                )}
+                    )}
+                    {displayData.type === "game" && (
+                        <StatSubItem
+                            styles={styles}
+                            label="Метакритик"
+                            value={displayData.metacritic}
+                        />
+                    )}
+                    {displayData.type === "book" && (
+                        <StatSubItem
+                            styles={styles}
+                            label="Объем"
+                            value={formatPages(displayData.pageCount)}
+                        />
+                    )}
+                    {displayData.type === "tv" && (
+                        <View style={{ flex: 0.5 }}>
+                            <StatSubItem
+                                styles={styles}
+                                label="Сезонов"
+                                value={displayData.seasonsCount || "?"}
+                            />
+                        </View>
+                    )}
+                </View>
+
+                <View style={styles.statRowSeparator} />
+
+                <View style={styles.statSubGrid}>
+                    {displayData.type === "anime" && (
+                        <StatSubItem
+                            styles={styles}
+                            label="Эпизоды"
+                            value={`${displayData.episodesAired || "?"} / ${displayData.episodes || "?"}`}
+                        />
+                    )}
+                    {displayData.type === "tv" && (
+                        <StatSubItem
+                            styles={styles}
+                            label="Эпизодов"
+                            value={displayData.episodesCount || "?"}
+                        />
+                    )}
+                    {displayData.type !== "book" && (
+                        <StatSubItem
+                            styles={styles}
+                            label={displayData.type === "game" ? "Время" : "Длительность"}
+                            value={formatDuration(displayData.duration, displayData.type)}
+                        />
+                    )}
+
+                    {displayData.type === "game" ? (
+                        <StatSubItem styles={styles} label="ESRB" value={displayData.esrb} />
+                    ) : displayData.type === "book" ? (
+                        <StatSubItem
+                            styles={styles}
+                            label="Возраст"
+                            value={
+                                BOOK_MATURITY_RATINGS.find(
+                                    (r) => r.id === displayData.maturityRating,
+                                )?.label || "Для всех"
+                            }
+                        />
+                    ) : (
+                        <StatSubItem styles={styles} label="Статус" value={getAirStatus()} />
+                    )}
+                </View>
             </View>
 
-            <View style={styles.statRowSeparator} />
-
-            <View style={styles.statSubGrid}>
-                {displayData.type === "anime" && (
-                    <StatSubItem
-                        styles={styles}
-                        label="Эпизоды"
-                        value={`${displayData.episodesAired || "?"} / ${displayData.episodes || "?"}`}
-                    />
-                )}
-                {displayData.type === "tv" && (
-                    <StatSubItem
-                        styles={styles}
-                        label="Эпизодов"
-                        value={displayData.episodesCount || "?"}
-                    />
-                )}
-                {displayData.type !== "book" && (
-                    <StatSubItem
-                        styles={styles}
-                        label={displayData.type === "game" ? "Время" : "Длительность"}
-                        value={formatDuration(displayData.duration, displayData.type)}
-                    />
-                )}
-
-                {displayData.type === "game" ? (
-                    <StatSubItem styles={styles} label="ESRB" value={displayData.esrb} />
-                ) : displayData.type === "book" ? (
-                    <StatSubItem
-                        styles={styles}
-                        label="Возраст"
-                        value={
-                            BOOK_MATURITY_RATINGS.find((r) => r.id === displayData.maturityRating)
-                                ?.label || "Для всех"
-                        }
-                    />
-                ) : (
-                    <StatSubItem styles={styles} label="Статус" value={getAirStatus()} />
-                )}
-            </View>
+            {displayData.type === "anime" && nextEpisodeText && (
+                <View style={styles.nextEpisodeBanner}>
+                    <Text style={styles.nextEpisodeValue} numberOfLines={1}>
+                        {nextEpisodeText}
+                    </Text>
+                </View>
+            )}
         </View>
     );
 };
 
 const createLocalStyles = (theme) =>
     StyleSheet.create({
+        container: {
+            marginBottom: 15,
+        },
         subItem: { flex: 1 },
         statLabel: {
             color: theme.accent,
@@ -193,7 +243,7 @@ const createLocalStyles = (theme) =>
             backgroundColor: theme.main,
             borderRadius: 15,
             padding: 15,
-            marginBottom: 15,
+            zIndex: 2,
         },
         statSubGrid: {
             flexDirection: "row",
@@ -203,5 +253,26 @@ const createLocalStyles = (theme) =>
         statRowSeparator: {
             height: 1,
             marginVertical: 4,
+        },
+        nextEpisodeBanner: {
+            backgroundColor: theme.accent,
+            borderBottomLeftRadius: 15,
+            borderBottomRightRadius: 15,
+            marginTop: -12,
+            paddingTop: 18,
+            paddingBottom: 10,
+            paddingHorizontal: 16,
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            zIndex: 1,
+            elevation: 1,
+        },
+        nextEpisodeValue: {
+            flex: 1,
+            fontSize: 11,
+            fontWeight: "500",
+            color: theme.text,
+            textAlign: "center",
         },
     });
