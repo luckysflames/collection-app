@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import CommonField from "../../AddCard/Fields/CommonField";
 import { Check, List, Trash2 } from "lucide-react-native";
+import { useTheme } from "../../../../hooks/useTheme";
 
 export const FolderEditForm = ({
     form,
@@ -10,81 +11,82 @@ export const FolderEditForm = ({
     onDelete,
     isReordering,
     onToggleReorder,
-}) => (
-    <View style={styles.container}>
-        <CommonField
-            label="Название"
-            placeholder="Введите название папки"
-            form={form}
-            updateField={updateField}
-            fieldName="title"
-        />
+}) => {
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
 
-        <CommonField
-            label="Описание"
-            placeholder="О чем эта папка?"
-            form={form}
-            updateField={updateField}
-            fieldName="description"
-            multiline
-        />
+    return (
+        <View style={styles.container}>
+            <CommonField
+                label="Название"
+                placeholder="Введите название папки"
+                form={form}
+                updateField={updateField}
+                fieldName="title"
+            />
 
-        <TouchableOpacity style={styles.deleteButton} onPress={onDelete}>
-            <Trash2 size={20} color="#FF4F4F" />
-            <Text style={styles.deleteButtonText}>Удалить папку</Text>
-        </TouchableOpacity>
+            <CommonField
+                label="Описание"
+                placeholder="О чем эта папка?"
+                form={form}
+                updateField={updateField}
+                fieldName="description"
+                multiline
+            />
 
-        <TouchableOpacity
-            style={[
-                styles.reorderBtn,
-                isReordering && styles.reorderBtnActive,
-                disableReorder && { opacity: 0.3 },
-            ]}
-            onPress={onToggleReorder}
-            disabled={disableReorder}
-        >
-            {isReordering ? (
-                <Check size={20} color="#fff" />
-            ) : (
-                <List size={20} color="#7D8AFF" />
-            )}
-            <Text
-                style={[styles.reorderText, isReordering && { color: "#fff" }]}
+            <TouchableOpacity style={styles.deleteButton} onPress={onDelete}>
+                <Trash2 size={20} color={theme.red} />
+                <Text style={styles.deleteButtonText}>Удалить папку</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={[
+                    styles.reorderBtn,
+                    isReordering && styles.reorderBtnActive,
+                    disableReorder && { opacity: 0.3 },
+                ]}
+                onPress={onToggleReorder}
+                disabled={disableReorder}
             >
-                {isReordering
-                    ? "Применить порядок"
-                    : "Изменить порядок карточек"}
-            </Text>
-        </TouchableOpacity>
-    </View>
-);
+                {isReordering ? (
+                    <Check size={20} color={theme.text} />
+                ) : (
+                    <List size={20} color={theme.accent} />
+                )}
+                <Text style={[styles.reorderText, isReordering && { color: theme.text }]}>
+                    {isReordering ? "Применить порядок" : "Изменить порядок карточек"}
+                </Text>
+            </TouchableOpacity>
+        </View>
+    );
+};
 
-const styles = StyleSheet.create({
-    container: { width: "100%", paddingHorizontal: 20, paddingTop: 20 },
-    // Старые стили инпутов удалены — они теперь внутри CommonField
-    deleteButton: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        marginTop: 8, // Немного уменьшил, так как у CommonField есть свой marginBottom
-        padding: 12,
-        borderRadius: 12,
-        backgroundColor: "rgba(255, 79, 79, 0.1)",
-        borderWidth: 1,
-        borderColor: "rgba(255, 79, 79, 0.2)",
-    },
-    deleteButtonText: { color: "#FF4F4F", fontWeight: "700", marginLeft: 8 },
-    reorderBtn: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        marginVertical: 16,
-        padding: 12,
-        borderRadius: 12,
-        backgroundColor: "rgba(125, 138, 255, 0.1)",
-        borderWidth: 1,
-        borderColor: "rgba(125, 138, 255, 0.2)",
-    },
-    reorderBtnActive: { backgroundColor: "#7D8AFF" },
-    reorderText: { color: "#7D8AFF", fontWeight: "600", marginLeft: 8 },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        container: { width: "100%", paddingHorizontal: 20, paddingTop: 20 },
+        deleteButton: {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            marginTop: 8,
+            padding: 12,
+            borderRadius: 12,
+            backgroundColor: theme.redMuted,
+            borderWidth: 1,
+            borderColor: theme.red,
+        },
+        deleteButtonText: { color: theme.red, fontWeight: "700", marginLeft: 8 },
+        reorderBtn: {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            marginVertical: 16,
+            padding: 12,
+            borderRadius: 12,
+            backgroundColor: theme.accentMuted,
+            borderWidth: 1,
+            borderColor: theme.accent,
+        },
+        reorderBtnActive: { backgroundColor: theme.accent },
+        reorderText: { color: theme.accent, fontWeight: "600", marginLeft: 8 },
+    });

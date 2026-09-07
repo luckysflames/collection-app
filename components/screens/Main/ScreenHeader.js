@@ -1,27 +1,18 @@
 import React, { useState, useRef } from "react";
-import {
-    View,
-    Text,
-    TouchableOpacity,
-    StyleSheet,
-    TextInput,
-    Animated,
-} from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, TextInput } from "react-native";
 import { ChevronLeft, Search, X } from "lucide-react-native";
+import { useTheme } from "../../../hooks/useTheme";
 
-export const ScreenHeader = ({
-    title,
-    onAddPress,
-    onBack,
-    searchQuery,
-    setSearchQuery,
-}) => {
+export const ScreenHeader = ({ title, onBack, searchQuery, setSearchQuery }) => {
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const [isSearching, setIsSearching] = useState(false);
     const inputRef = useRef(null);
 
     const toggleSearch = () => {
         if (isSearching) {
-            setSearchQuery(""); // Сброс при закрытии
+            setSearchQuery("");
         }
         setIsSearching(!isSearching);
         if (!isSearching) {
@@ -33,29 +24,25 @@ export const ScreenHeader = ({
         <View style={styles.headerRow}>
             {isSearching ? (
                 <View style={styles.searchContainer}>
+                    <Search color={theme.accent} size={20} style={styles.searchIcon} />
                     <TextInput
                         ref={inputRef}
                         style={styles.searchInput}
                         placeholder="Поиск по названию..."
-                        placeholderTextColor="#4E5566"
+                        placeholderTextColor={theme.textDark}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
-                        selectionColor="#7D8AFF"
+                        returnKeyType="search"
+                        selectionColor={theme.accent}
                     />
-                    <TouchableOpacity
-                        onPress={toggleSearch}
-                        style={styles.closeButton}
-                    >
-                        <X size={20} color="#fff" />
+                    <TouchableOpacity onPress={toggleSearch} style={styles.closeButton}>
+                        <X size={20} color={theme.text} />
                     </TouchableOpacity>
                 </View>
             ) : (
                 <>
-                    <TouchableOpacity
-                        onPress={onBack}
-                        style={styles.headerButton}
-                    >
-                        <ChevronLeft size={24} color="#fff" />
+                    <TouchableOpacity onPress={onBack} style={styles.headerButton}>
+                        <ChevronLeft size={24} color={theme.text} />
                     </TouchableOpacity>
 
                     <Text style={styles.headerTitle} numberOfLines={1}>
@@ -64,7 +51,7 @@ export const ScreenHeader = ({
 
                     <View style={styles.headerButton}>
                         <TouchableOpacity onPress={toggleSearch}>
-                            <Search size={26} color="#7D8AFF" />
+                            <Search size={26} color={theme.accent} />
                         </TouchableOpacity>
                     </View>
                 </>
@@ -73,48 +60,51 @@ export const ScreenHeader = ({
     );
 };
 
-const styles = StyleSheet.create({
-    headerRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-        height: 75, // Фиксируем высоту, чтобы поиск не «прыгал»
-    },
-    headerButton: {
-        backgroundColor: "rgba(11, 21, 52, 0.8)",
-        width: 45,
-        height: 45,
-        borderRadius: 15,
-        justifyContent: "center",
-        alignItems: "center",
-        borderWidth: 1,
-        borderColor: "rgba(255,255,255,0.05)",
-    },
-    headerTitle: {
-        flex: 1,
-        textAlign: "center",
-        fontSize: 22,
-        fontWeight: "bold",
-        color: "#fff",
-        marginHorizontal: 10,
-    },
-    searchContainer: {
-        flex: 1,
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "rgba(255,255,255,0.05)",
-        borderRadius: 15,
-        paddingHorizontal: 15,
-        height: 50,
-    },
-    searchInput: {
-        flex: 1,
-        color: "#fff",
-        fontSize: 16,
-    },
-    closeButton: {
-        marginLeft: 10,
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        headerRow: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            paddingHorizontal: 16,
+            paddingVertical: 15,
+            height: 75,
+        },
+        headerButton: {
+            backgroundColor: theme.main,
+            width: 45,
+            height: 45,
+            borderRadius: 15,
+            justifyContent: "center",
+            alignItems: "center",
+        },
+        headerTitle: {
+            flex: 1,
+            textAlign: "center",
+            fontSize: 22,
+            fontWeight: "bold",
+            color: theme.text,
+            marginHorizontal: 10,
+        },
+        searchContainer: {
+            flex: 1,
+            flexDirection: "row",
+            alignItems: "center",
+            borderWidth: 1,
+            borderColor: theme.accent,
+            borderRadius: 15,
+            paddingHorizontal: 15,
+            height: 50,
+        },
+        searchIcon: {
+            marginRight: 8,
+        },
+        searchInput: {
+            flex: 1,
+            color: theme.text,
+            fontSize: 16,
+        },
+        closeButton: {
+            marginLeft: 8,
+        },
+    });

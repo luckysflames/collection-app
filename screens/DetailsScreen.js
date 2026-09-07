@@ -1,17 +1,7 @@
-import React, { useMemo, useState, useCallback, useEffect, useRef } from "react";
-import {
-    View,
-    StyleSheet,
-    Platform,
-    Vibration,
-    ScrollView,
-    KeyboardAvoidingView,
-    Dimensions,
-    Text,
-} from "react-native";
+import React, { useMemo, useState, useCallback, useEffect } from "react";
+import { View, StyleSheet, Vibration, ScrollView, KeyboardAvoidingView } from "react-native";
 import { useIsFocused } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import LottieView from "lottie-react-native";
 
 // Hooks
 import { useFetchDetails } from "../hooks/useFetchDetails";
@@ -19,6 +9,7 @@ import { useDetailsData } from "../hooks/useDetailsData";
 import { useDetailsActions } from "../hooks/useDetailsActions";
 import { useCollectionStore } from "../store/useCollectionStore";
 import { useDetailsModals } from "../hooks/useDetailsModals";
+import { useTheme } from "../hooks/useTheme";
 
 // Components
 import { ContentSection } from "../components/screens/Details/ContentSection";
@@ -30,11 +21,13 @@ import { DetailsSkeleton } from "../components/screens/Details/DetailsSkeleton";
 import { fetchDetailsById } from "../services/index";
 import { WarnModal } from "../components/ui/WarnModal";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const DATA_LOAD_DELAY = 300;
 const SKELETON_FADE_DELAY = 600;
 
 export default function DetailsScreen({ route, navigation }) {
+    const { createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const insets = useSafeAreaInsets();
     const isFocused = useIsFocused();
     const { item, category } = route.params;
@@ -46,8 +39,6 @@ export default function DetailsScreen({ route, navigation }) {
         visible: false,
         message: "",
     });
-
-    const lottieRef = useRef(null);
 
     useEffect(() => {
         let idleHandle = null;
@@ -80,7 +71,6 @@ export default function DetailsScreen({ route, navigation }) {
     const setUserScore = useCollectionStore((state) => state.setUserScore);
     const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
     const isVibration = useCollectionStore((state) => state.isVibration);
-    const setRaining = useCollectionStore((state) => state.setRaining);
 
     // Data Fetching
     const initialSavedItem = useMemo(
@@ -111,7 +101,6 @@ export default function DetailsScreen({ route, navigation }) {
     const { modals, openModal, modalActions } = useDetailsModals(category, createFolder);
 
     const isBrilliant = savedItem?.isBrilliant || false;
-    const isPeak = savedItem?.userScore === 10 || isBrilliant;
 
     // Handlers
     const handleEditPress = useCallback(() => {
@@ -136,8 +125,7 @@ export default function DetailsScreen({ route, navigation }) {
     const handleToggleBrilliant = useCallback(() => {
         const newIsBrilliant = !isBrilliant;
         updateCard(item.id, { isBrilliant: newIsBrilliant });
-        setRaining(newIsBrilliant);
-    }, [isBrilliant, updateCard, item.id, setRaining]);
+    }, [isBrilliant, updateCard, item.id]);
 
     const handleScoreWithHaptics = useCallback(
         (score) => {
@@ -145,7 +133,6 @@ export default function DetailsScreen({ route, navigation }) {
 
             if (score !== 10 && isBrilliant) {
                 updateCard(item.id, { isBrilliant: false });
-                setRaining(false);
             }
 
             if (isVibration && score !== 0) {
@@ -154,7 +141,7 @@ export default function DetailsScreen({ route, navigation }) {
                 Vibration.vibrate(pattern);
             }
         },
-        [item.id, isVibration, setUserScore, isBrilliant, updateCard, setRaining],
+        [item.id, isVibration, setUserScore, isBrilliant, updateCard],
     );
 
     const parentFolders = useMemo(() => {
@@ -167,12 +154,6 @@ export default function DetailsScreen({ route, navigation }) {
         if (parentFolders.length === 1) return parentFolders[0].title;
         return `В папках: ${parentFolders.length}`;
     }, [parentFolders]);
-
-    useEffect(() => {
-        if (isLogicReady) {
-            setRaining(item.id, isFocused && isBrilliant);
-        }
-    }, [isFocused, isBrilliant, item.id, setRaining, isLogicReady]);
 
     const showSkeleton = !isAnimationFinished || (loading && !fullDetails && !savedItem);
 
@@ -281,16 +262,17 @@ export default function DetailsScreen({ route, navigation }) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#050B18",
-    },
-    infoContainer: {
-        padding: 20,
-        backgroundColor: "#050B18",
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
-        minHeight: 500,
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: theme.dark,
+        },
+        infoContainer: {
+            padding: 20,
+            backgroundColor: theme.dark,
+            borderTopLeftRadius: 30,
+            borderTopRightRadius: 30,
+            minHeight: 500,
+        },
+    });

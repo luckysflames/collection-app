@@ -1,12 +1,5 @@
-import React, { useCallback, useEffect, useState, useRef } from "react";
-import {
-    View,
-    StyleSheet,
-    Platform,
-    Vibration,
-    KeyboardAvoidingView,
-    BackHandler,
-} from "react-native";
+import React, { useCallback, useState } from "react";
+import { View, StyleSheet, Vibration, KeyboardAvoidingView, BackHandler } from "react-native";
 import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCollectionStore } from "../store/useCollectionStore";
@@ -21,24 +14,26 @@ import { SortModal } from "../components/screens/Main/Modals/SortModal";
 import { AddItemsToFolderModal } from "../components/screens/Main/Folder/AddItemsToFolderModal";
 import DeleteFolderModal from "../components/screens/Main/Folder/DeleteFolderModal";
 import { WarnModal } from "../components/ui/WarnModal";
+import { useTheme } from "../hooks/useTheme";
 
 export default function FolderDetailScreen({ route, navigation }) {
+    const { createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const insets = useSafeAreaInsets();
     const isFocused = useIsFocused();
     const { folderId } = route.params;
 
     // --- UI & ANIMATION FLAGS ---
-    const [isDeleting, setIsDeleting] = useState(false); // 1. Флаг удаления для предотвращения моргания
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const addItemsToFolder = useCollectionStore((state) => state.addItemsToFolder);
     const updateCard = useCollectionStore((state) => state.updateCard);
     const setUserScore = useCollectionStore((state) => state.setUserScore);
     const setFavorite = useCollectionStore((state) => state.setFavorite);
     const isVibration = useCollectionStore((state) => state.isVibration);
-    const setRaining = useCollectionStore((state) => state.setRaining);
 
     // --- LOGIC & DATA ---
-    // 2. Если папка удаляется, передаем null во избежание реактивных ошибок рендеринга
     const { folder, folderItems, availableItems } = useFolderData(isDeleting ? null : folderId);
 
     // --- UI STATE ---
@@ -117,33 +112,25 @@ export default function FolderDetailScreen({ route, navigation }) {
     const handleRatingUpdate = (newScore) => {
         setUserScore(folder.id, newScore);
 
-        // Если оценка не 10, забираем бриллиант и выключаем дождь
         if (newScore !== 10 && isBrilliant) {
             updateCard(folder.id, { isBrilliant: false });
-            setRaining(false);
         }
 
         if (isVibration && newScore !== 0) {
-            if (Platform.OS === "android") {
-                const pattern = [0, 1];
-                for (let i = 0; i < newScore; i++) {
-                    pattern.push(30);
-                    pattern.push(100);
-                }
-                Vibration.vibrate(pattern);
-            } else {
-                Vibration.vibrate(10);
+            const pattern = [0, 1];
+            for (let i = 0; i < newScore; i++) {
+                pattern.push(30);
+                pattern.push(100);
             }
+            Vibration.vibrate(pattern);
         }
     };
 
     const isBrilliant = folder?.isBrilliant || false;
-    const isPeak = folder?.userScore === 10 || isBrilliant;
 
     const handleToggleBrilliant = () => {
         const newIsBrilliant = !isBrilliant;
         updateCard(folder.id, { isBrilliant: newIsBrilliant });
-        setRaining(newIsBrilliant);
     };
 
     useFocusEffect(
@@ -167,21 +154,13 @@ export default function FolderDetailScreen({ route, navigation }) {
         }, [isEditing, isReordering, handleCancel]),
     );
 
-    // Эффект контроля эффекта "дождя"
-    useEffect(() => {
-        if (folder?.id && !isDeleting) {
-            setRaining(folder.id, isFocused && isBrilliant);
-        }
-    }, [isFocused, isBrilliant, folder?.id, setRaining, isDeleting]);
-
-    // Безопасный выход из экрана при удалении
     const safeNavigateBackAfterDelete = (deleteCallback) => {
-        setIsDeleting(true); // Включаем флаг, чтобы закоммитить пустой рендер
+        setIsDeleting(true);
         setModals((p) => ({ ...p, delete: false }));
-        navigation.goBack(); // Сначала плавно уходим назад
+        navigation.goBack();
 
         setTimeout(() => {
-            deleteCallback(); // И только после этого стираем данные из Zustand
+            deleteCallback();
         }, 150);
     };
 
@@ -191,8 +170,8 @@ export default function FolderDetailScreen({ route, navigation }) {
         <View style={styles.container}>
             <KeyboardAvoidingView
                 style={styles.container}
-                behavior={Platform.OS === "ios" ? "padding" : undefined}
-                keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+                behavior="padding"
+                keyboardVerticalOffset={0}
             >
                 <CategoryPage
                     data={folderItems}
@@ -239,7 +218,6 @@ export default function FolderDetailScreen({ route, navigation }) {
                 />
             </KeyboardAvoidingView>
 
-            {/* MODALS */}
             <WarnModal
                 visible={isInfoModalVisible}
                 title="О личной оценке"
@@ -282,9 +260,10 @@ export default function FolderDetailScreen({ route, navigation }) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#050B18",
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: theme.dark,
+        },
+    });

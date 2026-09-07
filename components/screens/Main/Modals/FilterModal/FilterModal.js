@@ -1,35 +1,17 @@
-import React, {
-    useState,
-    useEffect,
-    useRef,
-    useCallback,
-    useMemo,
-} from "react";
-import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    Animated,
-    Dimensions,
-} from "react-native";
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions } from "react-native";
 import { ChevronLeft } from "lucide-react-native";
 
 import { BottomSheet } from "../../../../ui/BottomSheet";
 import { FILTER_CONFIG } from "../../../../../constants/index";
 import { useCollectionStore } from "../../../../../store/useCollectionStore";
 
-// Импорт компонентов страниц
 import { FilterMainPage } from "./FilterMainPage";
 import { FilterSelectPage } from "./FilterSelectPage";
 import { FilterRangePage } from "./FilterRangePage";
 
-// Импорт хелперов (предположим, ты вынес их)
-import {
-    renderFilterValue,
-    getPresetsForFilter,
-    generateDynamicFilters,
-} from "./helpers";
+import { renderFilterValue, getPresetsForFilter, generateDynamicFilters } from "./helpers";
+import { useTheme } from "../../../../../hooks/useTheme";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -40,27 +22,25 @@ export const FilterModal = ({
     activeFilters = {},
     onApplyFilters,
 }) => {
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const { myCollection } = useCollectionStore();
 
     const [localFilters, setLocalFilters] = useState({});
     const [viewLevel, setViewLevel] = useState("main"); // 'main' | 'detail'
     const [selectedFilter, setSelectedFilter] = useState(null);
-    const [activeDetailId, setActiveDetailId] = useState(null); // Тот, что реально рендерится
+    const [activeDetailId, setActiveDetailId] = useState(null);
     const [isAnimating, setIsAnimating] = useState(false);
 
     const slideAnim = useRef(new Animated.Value(0)).current;
 
-    // Генерация фильтров
     const filters = useMemo(() => {
         const staticFilters = FILTER_CONFIG[currentSection] || [];
-        const dynamicFilters = generateDynamicFilters(
-            myCollection,
-            currentSection,
-        );
+        const dynamicFilters = generateDynamicFilters(myCollection, currentSection);
         return [...staticFilters, ...dynamicFilters];
     }, [currentSection, myCollection]);
 
-    // Сброс состояния при открытии
     useEffect(() => {
         if (isVisible) {
             setViewLevel("main");
@@ -71,7 +51,6 @@ export const FilterModal = ({
 
     const animatePage = (toValue, callback) => {
         Animated.spring(slideAnim, {
-            // Spring приятнее для UI, чем timing
             toValue,
             tension: 50,
             friction: 10,
@@ -80,16 +59,12 @@ export const FilterModal = ({
     };
 
     const goToFilterDetail = (filterId) => {
-        if (isAnimating) return; // Блокируем быстрые клики во время анимации
+        if (isAnimating) return;
 
         setIsAnimating(true);
-        // 1. Устанавливаем ID для ХЕДЕРА (чтобы текст сменился сразу или плавно)
         setSelectedFilter(filterId);
-
-        // 2. Устанавливаем ID для КОНТЕНТА
         setActiveDetailId(filterId);
 
-        // 3. Запускаем анимацию
         animatePage(-SCREEN_WIDTH, () => {
             setViewLevel("detail");
             setIsAnimating(false);
@@ -103,7 +78,7 @@ export const FilterModal = ({
         animatePage(0, () => {
             setViewLevel("main");
             setSelectedFilter(null);
-            setActiveDetailId(null); // Очищаем контент только в конце
+            setActiveDetailId(null);
             setIsAnimating(false);
         });
     };
@@ -113,19 +88,18 @@ export const FilterModal = ({
         onClose();
     };
 
-    // Находим текущий фильтр для детальной страницы
     const currentFilterData = useMemo(() => {
         return filters.find((f) => f.id === selectedFilter);
     }, [filters, selectedFilter]);
 
     const headerOpacity = slideAnim.interpolate({
         inputRange: [-SCREEN_WIDTH, 0],
-        outputRange: [1, 0], // Показываем заголовок детали, когда уехали влево
+        outputRange: [1, 0],
     });
 
     const mainTitleOpacity = slideAnim.interpolate({
         inputRange: [-SCREEN_WIDTH, 0],
-        outputRange: [0, 1], // Показываем "Фильтры", когда мы в центре
+        outputRange: [0, 1],
     });
 
     return (
@@ -134,45 +108,37 @@ export const FilterModal = ({
             onClose={onClose}
             containerStyle={styles.bottomSheetCustom}
         >
-            {/* Header */}
             <View style={styles.header}>
-                {/* Заголовок основной страницы */}
                 <Animated.View
-                    style={{
-                        alignItems: "center",
-                        opacity: mainTitleOpacity,
-                    }}
+                    style={[styles.titleContainer, { opacity: mainTitleOpacity }]}
+                    pointerEvents={viewLevel === "main" ? "auto" : "none"}
                 >
                     <Text style={styles.title}>Фильтры</Text>
                 </Animated.View>
 
-                {/* Заголовок детальной страницы */}
-                <Animated.View style={{ opacity: headerOpacity }}>
+                <Animated.View
+                    style={[styles.detailHeaderContainer, { opacity: headerOpacity }]}
+                    pointerEvents={viewLevel === "detail" ? "auto" : "none"}
+                >
                     <TouchableOpacity
                         onPress={goBack}
-                        style={styles.backBtn}
-                        disabled={isAnimating} // Важно!
+                        style={styles.roundBackButton}
+                        disabled={isAnimating}
+                        activeOpacity={0.7}
                     >
-                        <ChevronLeft size={24} color="#7D8AFF" />
-                        <Text
-                            style={styles.headerTitleSecondary}
-                            numberOfLines={1}
-                        >
-                            {currentFilterData?.label || ""}
-                        </Text>
+                        <ChevronLeft size={24} color={theme.text} />
                     </TouchableOpacity>
+
+                    <Text style={styles.headerTitleSecondary} numberOfLines={1}>
+                        {currentFilterData?.label || ""}
+                    </Text>
                 </Animated.View>
             </View>
 
-            {/* Content Area */}
             <View style={styles.contentWrapper}>
                 <Animated.View
-                    style={[
-                        styles.animatedContainer,
-                        { transform: [{ translateX: slideAnim }] },
-                    ]}
+                    style={[styles.animatedContainer, { transform: [{ translateX: slideAnim }] }]}
                 >
-                    {/* Первая страница */}
                     <View style={styles.pageContainer}>
                         <FilterMainPage
                             filters={filters}
@@ -184,12 +150,8 @@ export const FilterModal = ({
                         />
                     </View>
 
-                    {/* Вторая страница (Детали) */}
                     {activeDetailId && currentFilterData && (
-                        <View
-                            key={`page-${activeDetailId}`}
-                            style={styles.pageContainer}
-                        >
+                        <View key={`page-${activeDetailId}`} style={styles.pageContainer}>
                             {currentFilterData?.type === "select" && (
                                 <FilterSelectPage
                                     filter={currentFilterData}
@@ -215,47 +177,69 @@ export const FilterModal = ({
     );
 };
 
-const styles = StyleSheet.create({
-    bottomSheetCustom: {
-        backgroundColor: "#0B1534",
-        paddingHorizontal: 0,
-        borderTopLeftRadius: 32,
-        borderTopRightRadius: 32,
-    },
-    header: {
-        height: 60,
-        justifyContent: "center",
-        paddingHorizontal: 24,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: "700",
-        color: "#fff",
-    },
-    headerTitleSecondary: {
-        fontSize: 18,
-        color: "#7D8AFF",
-        fontWeight: "600",
-        marginLeft: 4,
-    },
-    backBtn: {
-        flexDirection: "row",
-        alignItems: "center",
-        top: -30,
-        left: -8,
-    },
-    contentWrapper: {
-        overflow: "hidden",
-        width: SCREEN_WIDTH,
-        height: 530,
-    },
-    animatedContainer: {
-        flexDirection: "row",
-        width: SCREEN_WIDTH * 2,
-        height: "100%",
-    },
-    pageContainer: {
-        width: SCREEN_WIDTH,
-        height: "100%",
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        bottomSheetCustom: {
+            backgroundColor: theme.main,
+            paddingHorizontal: 0,
+            borderTopLeftRadius: 32,
+            borderTopRightRadius: 32,
+        },
+        header: {
+            height: 60,
+            justifyContent: "center",
+            paddingHorizontal: 20,
+            position: "relative",
+        },
+        titleContainer: {
+            ...StyleSheet.absoluteFillObject,
+            justifyContent: "center",
+            alignItems: "center",
+        },
+        title: {
+            fontSize: 20,
+            fontWeight: "700",
+            color: theme.text,
+        },
+        detailHeaderContainer: {
+            ...StyleSheet.absoluteFillObject,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            paddingHorizontal: 16,
+        },
+        roundBackButton: {
+            position: "absolute",
+            left: 16,
+            zIndex: 10,
+            backgroundColor: theme.main,
+            width: 42,
+            height: 42,
+            borderRadius: 14,
+            justifyContent: "center",
+            alignItems: "center",
+            borderWidth: 1.5,
+            borderColor: theme.accentMuted,
+        },
+        headerTitleSecondary: {
+            fontSize: 18,
+            color: theme.text,
+            fontWeight: "700",
+            textAlign: "center",
+            maxWidth: "60%",
+        },
+        contentWrapper: {
+            overflow: "hidden",
+            width: SCREEN_WIDTH,
+            height: 530,
+        },
+        animatedContainer: {
+            flexDirection: "row",
+            width: SCREEN_WIDTH * 2,
+            height: "100%",
+        },
+        pageContainer: {
+            width: SCREEN_WIDTH,
+            height: "100%",
+        },
+    });

@@ -1,17 +1,7 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react";
-import {
-    View,
-    StyleSheet,
-    FlatList,
-    TouchableOpacity,
-    Text,
-    ActivityIndicator,
-    BackHandler,
-} from "react-native";
+import { View, StyleSheet, FlatList, ActivityIndicator, BackHandler } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
-import { ChevronLeft } from "lucide-react-native";
 
 import { useCollectionStore } from "../store/useCollectionStore";
 import { useMediaSearch } from "../hooks/useMediaSearch";
@@ -21,8 +11,12 @@ import { SearchSkeleton } from "../components/ui/Skeleton/SearchSkeleton";
 import { CategorySelector } from "../components/screens/Search/CategorySelector";
 import { NoResultsFooter } from "../components/screens/Search/EmptyStateWindows/NoResultsFooter";
 import { SearchEmptyState } from "../components/screens/Search/EmptyStateWindows/SearchEmptyState";
+import { useTheme } from "../hooks/useTheme";
 
 export default function SearchScreen({ navigation, route }) {
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const insets = useSafeAreaInsets();
     const [isCategorySelected, setIsCategorySelected] = useState(false);
 
@@ -71,7 +65,6 @@ export default function SearchScreen({ navigation, route }) {
         setIsCategorySelected(true);
     };
 
-    // Логика сброса (вынесем в отдельную функцию для удобства)
     const handleReset = useCallback(() => {
         setIsCategorySelected(false);
         setQuery("");
@@ -83,16 +76,14 @@ export default function SearchScreen({ navigation, route }) {
         useCallback(() => {
             const onBackPress = () => {
                 if (isCategorySelected) {
-                    handleReset(); // Если категория выбрана, сбрасываем её
-                    return true; // Блокируем стандартный переход назад
+                    handleReset();
+                    return true;
                 }
-                return false; // Позволяем стандартное поведение
+                return false;
             };
 
-            // Создаем подписку
             const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
 
-            // Правильная очистка через .remove()
             return () => subscription.remove();
         }, [isCategorySelected, handleReset]),
     );
@@ -101,7 +92,6 @@ export default function SearchScreen({ navigation, route }) {
     useEffect(() => {
         if (route.params?.reset) {
             handleReset();
-            // Опционально: очищаем параметр, чтобы не срабатывало повторно при других действиях
             navigation.setParams({ reset: undefined });
         }
     }, [route.params?.reset, handleReset]);
@@ -156,18 +146,19 @@ export default function SearchScreen({ navigation, route }) {
                     }}
                     ListFooterComponent={() =>
                         loadingMore && (
-                            <ActivityIndicator color="#7D8AFF" style={{ marginVertical: 20 }} />
+                            <ActivityIndicator
+                                color={theme.accent}
+                                style={{ marginVertical: 20 }}
+                            />
                         )
                     }
                     ListEmptyComponent={() => {
-                        if (loading) return null; // Если идет загрузка, ничего не показываем (работает Skeleton)
+                        if (loading) return null;
 
-                        // Если поисковая строка пуста (пользователь еще не начал искать)
                         if (query.trim().length === 0) {
                             return <SearchEmptyState />;
                         }
 
-                        // Если запрос был сделан, но результатов 0
                         return (
                             <NoResultsFooter
                                 onPress={() =>
@@ -184,9 +175,23 @@ export default function SearchScreen({ navigation, route }) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "#050B18" },
-    backText: { color: "#7D8AFF", marginLeft: 10, fontSize: 14 },
-    row: { justifyContent: "space-between", paddingHorizontal: 16 },
-    listPadding: { paddingBottom: 100, paddingTop: 10 },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: theme.dark,
+        },
+        backText: {
+            color: theme.accent,
+            marginLeft: 10,
+            fontSize: 14,
+        },
+        row: {
+            justifyContent: "space-between",
+            paddingHorizontal: 16,
+        },
+        listPadding: {
+            paddingBottom: 100,
+            paddingTop: 10,
+        },
+    });

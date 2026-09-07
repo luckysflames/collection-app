@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StyleSheet, View, Animated, TouchableOpacity } from "react-native";
+import { StyleSheet, View, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FolderPlus } from "lucide-react-native";
 
@@ -20,6 +20,7 @@ import { useMediaCategories } from "../hooks/useMediaCategories";
 import { useCollectionCounter } from "../hooks/useCollectionCounter";
 import { useMainActions } from "../hooks/useMainActions";
 import { useMainNavigation } from "../hooks/useMainNavigation";
+import { useTheme } from "../hooks/useTheme";
 import {
     SECTIONS,
     DEFAULT_STATUS_BY_SECTION,
@@ -30,6 +31,9 @@ import {
 export default function MainScreen({ route, navigation }) {
     const insets = useSafeAreaInsets();
 
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     // --- Store Data ---
     const myCollection = useCollectionStore((state) => state.myCollection);
     const createFolder = useCollectionStore((state) => state.createFolder);
@@ -37,8 +41,7 @@ export default function MainScreen({ route, navigation }) {
     const defaultSorts = useCollectionStore((state) => state.defaultSorts);
 
     // --- Section & Category Logic ---
-    const currentSection =
-        route.params?.category || route.params?.appSection || "movie";
+    const currentSection = route.params?.category || route.params?.appSection || "movie";
     const { CATEGORIES, defaultActive } = useMediaCategories(currentSection);
 
     // --- Local State ---
@@ -56,32 +59,16 @@ export default function MainScreen({ route, navigation }) {
     const [isFolderModalVisible, setIsFolderModalVisible] = useState(false);
 
     // --- Custom Hooks (Isolated Logic) ---
+    const { chipsRef, pagerRef, scrollX, handleChipPress, handleMomentumScrollEnd, onScrollEvent } =
+        useMainNavigation(CATEGORIES, defaultActive, currentSection, setActiveCategory);
 
-    // 1. Navigation, Pager and Scroll Sync
-    const {
-        chipsRef,
-        pagerRef,
-        scrollX,
-        handleChipPress,
-        handleMomentumScrollEnd,
-        onScrollEvent,
-    } = useMainNavigation(
-        CATEGORIES,
-        defaultActive,
+    const { handleCardPress, handleCardLongPress, handleRandomCard } = useMainActions(
         currentSection,
-        setActiveCategory,
+        activeCategory,
+        navigation,
+        activeFilters,
     );
 
-    // 2. Interaction Actions (Press, Long Press, Random)
-    const { handleCardPress, handleCardLongPress, handleRandomCard } =
-        useMainActions(
-            currentSection,
-            activeCategory,
-            navigation,
-            activeFilters,
-        );
-
-    // 3. Counter Logic
     const currentItemsCount = useCollectionCounter(
         myCollection,
         currentSection,
@@ -92,8 +79,7 @@ export default function MainScreen({ route, navigation }) {
     );
 
     // --- UI Helpers ---
-    const displayTitle =
-        SECTIONS.find((s) => s.id === currentSection)?.label || "Коллекция";
+    const displayTitle = SECTIONS.find((s) => s.id === currentSection)?.label || "Коллекция";
     const hasActiveFilters = Object.keys(activeFilters).length > 0;
 
     return (
@@ -146,13 +132,11 @@ export default function MainScreen({ route, navigation }) {
                 style={[
                     styles.folderCreateBtn,
                     {
-                        bottom: isCompactMenu
-                            ? insets.bottom + 100
-                            : insets.bottom + 130,
+                        bottom: isCompactMenu ? insets.bottom + 100 : insets.bottom + 130,
                     },
                 ]}
             >
-                <FolderPlus size={28} color="#7D8AFF" />
+                <FolderPlus size={28} color={theme.accent} />
             </TouchableOpacity>
 
             <SortModal
@@ -178,9 +162,7 @@ export default function MainScreen({ route, navigation }) {
                     const folderStatus =
                         activeCategory === "Всё" || activeCategory === "Папки"
                             ? FAVORITE_STATUS ||
-                              DEFAULT_STATUS_BY_SECTION[
-                                  SECTION_MAPPING[currentSection]
-                              ]
+                              DEFAULT_STATUS_BY_SECTION[SECTION_MAPPING[currentSection]]
                             : activeCategory;
 
                     createFolder(name, currentSection, folderStatus, []);
@@ -191,21 +173,20 @@ export default function MainScreen({ route, navigation }) {
     );
 }
 
-const styles = StyleSheet.create({
-    mainContainer: {
-        flex: 1,
-        backgroundColor: "#050B18",
-    },
-    folderCreateBtn: {
-        position: "absolute",
-        alignItems: "center",
-        justifyContent: "center",
-        height: 60,
-        width: 60,
-        right: 20,
-        borderRadius: 30,
-        backgroundColor: "#0B1534",
-        borderWidth: 1,
-        borderColor: "#1b264e",
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        mainContainer: {
+            flex: 1,
+            backgroundColor: theme.dark,
+        },
+        folderCreateBtn: {
+            position: "absolute",
+            alignItems: "center",
+            justifyContent: "center",
+            height: 60,
+            width: 60,
+            right: 20,
+            borderRadius: 30,
+            backgroundColor: theme.main,
+        },
+    });

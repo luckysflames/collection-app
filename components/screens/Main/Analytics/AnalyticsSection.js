@@ -5,14 +5,13 @@ import {
     StyleSheet,
     TouchableOpacity,
     LayoutAnimation,
-    Platform,
-    UIManager,
     ScrollView,
 } from "react-native";
 import { ChevronDown, ChevronUp } from "lucide-react-native";
 import { PieChart } from "react-native-gifted-charts";
 import { CATEGORY_CONFIG, SUB_CATEGORIES } from "../../../..//constants/index";
 import { COUNTRIES_MAP, COUNTRIES_MAP_FULL_NAME_MAP } from "../../../../constants/countries";
+import { useTheme } from "../../../../hooks/useTheme";
 
 // Вспомогательная функция для заглавной буквы
 const capitalize = (str, forceLower = true) => {
@@ -22,9 +21,11 @@ const capitalize = (str, forceLower = true) => {
         : str.charAt(0).toUpperCase() + str.slice(1);
 };
 
-const colorScale = ["#7D8AFF", "#110a8c", "#35398c", "#2b0d87", "#180255"];
-
 export default function AnalyticsSection({ category, stats, itemCount }) {
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+    const colorScale = theme.chartColors;
+
     const [isExpanded, setIsExpanded] = useState(false);
     const [activeTab, setActiveTab] = useState("topStatuses");
 
@@ -52,7 +53,7 @@ export default function AnalyticsSection({ category, stats, itemCount }) {
         const rawData = stats[activeTab] || [];
 
         if (rawData.length === 0) {
-            return [{ value: 1, color: "#444E72", text: "Пусто" }];
+            return [{ value: 1, color: theme.textDark, text: "Пусто" }];
         }
 
         const isCountryTab = activeTab === "topCountries";
@@ -96,9 +97,9 @@ export default function AnalyticsSection({ category, stats, itemCount }) {
                     </View>
                 </View>
                 {isExpanded ? (
-                    <ChevronUp color="#7D8AFF" size={20} />
+                    <ChevronUp color={theme.accent} size={20} />
                 ) : (
-                    <ChevronDown color="#7D8AFF" size={20} />
+                    <ChevronDown color={theme.accent} size={20} />
                 )}
             </TouchableOpacity>
 
@@ -116,14 +117,7 @@ export default function AnalyticsSection({ category, stats, itemCount }) {
                                 style={[styles.tab, activeTab === tab.id && styles.activeTab]}
                                 onPress={() => setActiveTab(tab.id)}
                             >
-                                <Text
-                                    style={[
-                                        styles.tabText,
-                                        activeTab === tab.id && styles.activeTabText,
-                                    ]}
-                                >
-                                    {tab.label}
-                                </Text>
+                                <Text style={styles.tabText}>{tab.label}</Text>
                             </TouchableOpacity>
                         ))}
                     </ScrollView>
@@ -135,7 +129,7 @@ export default function AnalyticsSection({ category, stats, itemCount }) {
                                 data={chartData}
                                 radius={65}
                                 innerRadius={40}
-                                innerCircleColor={"#0B1534"}
+                                innerCircleColor={theme.main}
                                 centerLabelComponent={() => (
                                     <Text style={styles.centerLabel}>Топ-5</Text>
                                 )}
@@ -227,164 +221,158 @@ export default function AnalyticsSection({ category, stats, itemCount }) {
     );
 }
 
-const styles = StyleSheet.create({
-    section: {
-        backgroundColor: "#0B1534",
-        borderRadius: 24,
-        borderWidth: 1,
-        borderColor: "rgba(125, 138, 255, 0.15)",
-        overflow: "hidden",
-    },
-    sectionHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: 20,
-    },
-    titleWrapper: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 10,
-    },
-    accentBar: {
-        width: 4,
-        height: 18,
-        backgroundColor: "#7D8AFF",
-        borderRadius: 2,
-    },
-    sectionTitle: {
-        color: "#FFF",
-        fontSize: 18,
-        fontWeight: "700",
-    },
-    countBadge: {
-        backgroundColor: "rgba(125, 138, 255, 0.1)",
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 8,
-    },
-    itemCount: {
-        color: "#7D8AFF",
-        fontSize: 12,
-        fontWeight: "700",
-    },
-    content: {
-        paddingBottom: 20,
-    },
-    tabsScroll: {
-        marginBottom: 15,
-    },
-    tab: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 12,
-        marginRight: 8,
-        backgroundColor: "rgba(125, 138, 255, 0.05)",
-        borderWidth: 1,
-        borderColor: "rgba(125, 138, 255, 0.1)",
-    },
-    activeTab: {
-        backgroundColor: "#7D8AFF",
-        borderColor: "#7D8AFF",
-    },
-    tabText: {
-        color: "#8E94A4",
-        fontSize: 13,
-        fontWeight: "600",
-    },
-    activeTabText: {
-        color: "#FFF",
-    },
-    chartContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingHorizontal: 20,
-        height: 160, // Фиксированная высота для стабильности при скролле легенды
-    },
-    pieWrapper: {
-        width: 130,
-        height: 130,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    centerLabel: {
-        color: "white",
-        fontSize: 16,
-        fontWeight: "bold",
-    },
-    legendWrapper: {
-        flex: 1,
-        height: "100%", // Занимает всю высоту chartContainer
-        marginLeft: 15,
-    },
-    legendScroll: {
-        flex: 1,
-    },
-    legendScrollContent: {
-        // Это заставляет элементы центрироваться, если их мало
-        flexGrow: 1,
-        justifyContent: "center",
-        paddingVertical: 10, // Небольшой отступ сверху/снизу для красоты при скролле
-        paddingRight: 10,
-    },
-    legendItem: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginBottom: 8, // Отступ между строками легенды
-    },
-    colorDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        marginRight: 8,
-    },
-    legendName: {
-        color: "#A5A6F6",
-        fontSize: 12,
-        flex: 1,
-    },
-    legendCount: {
-        color: "#FFF",
-        fontSize: 12,
-        fontWeight: "700",
-        marginLeft: 5,
-        minWidth: 20,
-        textAlign: "right",
-    },
-    moreText: {
-        color: "#444E72",
-        fontSize: 10,
-        textAlign: "center",
-        marginTop: 4,
-        fontStyle: "italic",
-    },
-    timeFooter: {
-        flexDirection: "row",
-        marginTop: 20,
-        marginHorizontal: 20,
-        padding: 15,
-        backgroundColor: "rgba(125, 138, 255, 0.05)",
-        borderRadius: 16,
-        alignItems: "center",
-    },
-    timeBlock: {
-        flex: 1,
-        alignItems: "center",
-    },
-    timeValue: {
-        color: "#FFF",
-        fontSize: 16,
-        fontWeight: "800",
-    },
-    timeLabel: {
-        color: "#8E94A4",
-        fontSize: 10,
-        textTransform: "uppercase",
-        marginTop: 2,
-    },
-    timeDivider: {
-        width: 1,
-        height: 30,
-        backgroundColor: "rgba(125, 138, 255, 0.1)",
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        section: {
+            backgroundColor: theme.main,
+            borderRadius: 24,
+        },
+        sectionHeader: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: 20,
+        },
+        titleWrapper: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 10,
+        },
+        accentBar: {
+            width: 4,
+            height: 18,
+            backgroundColor: theme.accent,
+            borderRadius: 2,
+        },
+        sectionTitle: {
+            color: theme.text,
+            fontSize: 18,
+            fontWeight: "700",
+        },
+        countBadge: {
+            backgroundColor: theme.accentMuted,
+            paddingHorizontal: 10,
+            paddingVertical: 4,
+            borderRadius: 8,
+        },
+        itemCount: {
+            color: theme.accent,
+            fontSize: 12,
+            fontWeight: "700",
+        },
+        content: {
+            paddingBottom: 20,
+        },
+        tabsScroll: {
+            marginBottom: 15,
+        },
+        tab: {
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            borderRadius: 12,
+            marginRight: 8,
+            borderWidth: 1,
+            borderColor: theme.accent,
+        },
+        activeTab: {
+            backgroundColor: theme.accent,
+            borderColor: theme.accent,
+        },
+        tabText: {
+            color: theme.text,
+            fontSize: 13,
+            fontWeight: "600",
+        },
+        chartContainer: {
+            flexDirection: "row",
+            alignItems: "center",
+            paddingHorizontal: 20,
+            height: 160,
+        },
+        pieWrapper: {
+            width: 130,
+            height: 130,
+            justifyContent: "center",
+            alignItems: "center",
+        },
+        centerLabel: {
+            color: "white",
+            fontSize: 16,
+            fontWeight: "bold",
+        },
+        legendWrapper: {
+            flex: 1,
+            height: "100%",
+            marginLeft: 15,
+        },
+        legendScroll: {
+            flex: 1,
+        },
+        legendScrollContent: {
+            flexGrow: 1,
+            justifyContent: "center",
+            paddingVertical: 10,
+            paddingRight: 10,
+        },
+        legendItem: {
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: 8,
+        },
+        colorDot: {
+            width: 8,
+            height: 8,
+            borderRadius: 4,
+            marginRight: 8,
+        },
+        legendName: {
+            color: theme.text,
+            fontSize: 12,
+            flex: 1,
+        },
+        legendCount: {
+            color: theme.accent,
+            fontSize: 12,
+            fontWeight: "700",
+            marginLeft: 5,
+            minWidth: 20,
+            textAlign: "right",
+        },
+        moreText: {
+            color: theme.textDark,
+            fontSize: 10,
+            textAlign: "center",
+            marginTop: 4,
+            fontStyle: "italic",
+        },
+        timeFooter: {
+            flexDirection: "row",
+            marginTop: 20,
+            marginHorizontal: 20,
+            padding: 15,
+            borderWidth: 1,
+            borderColor: theme.accent,
+            borderRadius: 16,
+            alignItems: "center",
+        },
+        timeBlock: {
+            flex: 1,
+            alignItems: "center",
+        },
+        timeValue: {
+            color: theme.text,
+            fontSize: 16,
+            fontWeight: "800",
+        },
+        timeLabel: {
+            color: theme.textDark,
+            fontSize: 10,
+            textTransform: "uppercase",
+            marginTop: 2,
+        },
+        timeDivider: {
+            width: 1,
+            height: 30,
+            backgroundColor: theme.textDark,
+        },
+    });

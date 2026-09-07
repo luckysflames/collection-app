@@ -18,6 +18,19 @@ export const SORT_LABELS = {
     status_change_asc: "Сначала старые изменения",
 };
 
+export const FOLDER_SORT_LABELS = {
+    manual: "Вручную (↓)",
+    manual_desc: "Вручную (↑)",
+    date_desc: "По дате (↓)",
+    date_asc: "По дате (↑)",
+    rating_desc: "По рейтингу (↓)",
+    rating_asc: "По рейтингу (↑)",
+    alphabet_asc: "По алфавиту (А-Я)",
+    alphabet_desc: "По алфавиту (Я-А)",
+    status_change_desc: "По изменениям (↓)",
+    status_change_asc: "По изменениям (↑)",
+};
+
 export const SORT_TYPES = [
     { id: "date", label: "По дате", icon: "Clock" },
     { id: "rating", label: "По рейтингу", icon: "Star" },

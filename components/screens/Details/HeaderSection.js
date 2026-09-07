@@ -1,9 +1,10 @@
 import React, { useRef, useEffect } from "react";
-import { Animated, Easing, View, StyleSheet } from "react-native";
+import { Animated, Easing, StyleSheet } from "react-native";
 import LottieView from "lottie-react-native";
 import { X, ChevronLeft, Check, Pen, RefreshCcw } from "lucide-react-native";
 import { BaseHeroLayout } from "../../layout/BaseHeroLayout";
 import { HeroPoster } from "../../ui/HeroPoster";
+import { useTheme } from "../../../hooks/useTheme";
 
 export const HeaderSection = ({
     isEditing,
@@ -15,13 +16,15 @@ export const HeaderSection = ({
     showEditButton,
     showRefreshButton,
     isRefreshing,
-    isBrilliant, // Используем только для отображения крутящегося алмаза
+    isBrilliant,
     isFocused,
 }) => {
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const spinValue = useRef(new Animated.Value(0)).current;
     const headerLottieRef = useRef(null);
 
-    // Вращение для иконки обновления (Refresh)
     useEffect(() => {
         if (isRefreshing) {
             Animated.loop(
@@ -37,7 +40,6 @@ export const HeaderSection = ({
         }
     }, [isRefreshing]);
 
-    // Контроль воспроизведения Lottie-анимации алмаза
     useEffect(() => {
         if (isBrilliant && isFocused) {
             headerLottieRef.current?.play();
@@ -58,13 +60,11 @@ export const HeaderSection = ({
             leftButton={{
                 onPress: onLeftPress,
                 icon: isEditing ? (
-                    <X size={24} color="#FF6B6B" />
+                    <X size={24} color={theme.red} />
                 ) : (
-                    <ChevronLeft size={24} color="#fff" />
+                    <ChevronLeft size={24} color={theme.text} />
                 ),
             }}
-            // Если у карточки активирован статус шедевра,
-            // рендерим парящий и крутящийся алмаз без подложки и экшенов
             centerButton={
                 isBrilliant
                     ? {
@@ -88,9 +88,9 @@ export const HeaderSection = ({
                     ? {
                           onPress: onRightPress,
                           icon: isEditing ? (
-                              <Check size={24} color="#7D8AFF" />
+                              <Check size={24} color={theme.accent} />
                           ) : (
-                              <Pen size={22} color="#fff" />
+                              <Pen size={22} color={theme.text} />
                           ),
                       }
                     : showRefreshButton
@@ -100,7 +100,7 @@ export const HeaderSection = ({
                                 <Animated.View style={{ transform: [{ rotate: spin }] }}>
                                     <RefreshCcw
                                         size={22}
-                                        color={isRefreshing ? "#7D8AFF" : "#fff"}
+                                        color={isRefreshing ? theme.accent : theme.text}
                                     />
                                 </Animated.View>
                             ),
@@ -113,17 +113,18 @@ export const HeaderSection = ({
     );
 };
 
-const styles = StyleSheet.create({
-    lottieContainer: {
-        width: 100,
-        height: 100,
-        marginLeft: -50,
-        marginTop: -15,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    headerLottie: {
-        width: "100%",
-        height: "100%",
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        lottieContainer: {
+            width: 100,
+            height: 100,
+            marginLeft: -50,
+            marginTop: -15,
+            justifyContent: "center",
+            alignItems: "center",
+        },
+        headerLottie: {
+            width: "100%",
+            height: "100%",
+        },
+    });

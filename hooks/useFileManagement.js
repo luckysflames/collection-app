@@ -12,8 +12,11 @@ import {
     moveImagesFromTemp,
 } from "../utils/imageStorage";
 import { unzip, zip } from "react-native-zip-archive";
+import { useTheme } from "./useTheme";
 
 export const useFileManagement = (store) => {
+    const { theme } = useTheme();
+
     const [modalConfig, setModalConfig] = useState({
         visible: false,
         title: "",
@@ -206,7 +209,7 @@ export const useFileManagement = (store) => {
                 children: (
                     <TouchableOpacity
                         style={{
-                            backgroundColor: "#FF6B6B",
+                            backgroundColor: theme.red,
                             height: 58,
                             borderRadius: 18,
                             justifyContent: "center",
@@ -237,7 +240,7 @@ export const useFileManagement = (store) => {
                     >
                         <Text
                             style={{
-                                color: "#FFF",
+                                color: theme.text,
                                 fontWeight: "700",
                                 fontSize: 16,
                             }}

@@ -1,6 +1,4 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { WarnModal } from "../../ui/WarnModal";
 import { useCollectionStore } from "../../../store/useCollectionStore";
 import { useNotificationStore } from "../../../store/useNotificationStore";
 import { calculateAchievements } from "../../../utils/achievements/index";
@@ -28,8 +26,6 @@ export const AchivementNotifier = () => {
             const wasShownBefore = shownAchievements.includes(achievement.id);
             const isInQueue = achievementQueue.some((item) => item.id === achievement.id);
 
-            // Кейс один и единственный: Выполнил условия прямо сейчас,
-            // но никогда раньше эту ачивку не получал и её нет в очереди
             if (isCompletedNow && !wasShownBefore && !isInQueue) {
                 showAchievement({
                     ...achievement,
@@ -50,17 +46,3 @@ export const AchivementNotifier = () => {
         />
     );
 };
-
-const styles = StyleSheet.create({
-    achievementInfo: {
-        width: "100%",
-        alignItems: "center",
-        marginBottom: 6,
-    },
-    achievementTitle: {
-        color: "#FFFFFF",
-        fontSize: 18,
-        fontWeight: "700",
-        textAlign: "center",
-    },
-});

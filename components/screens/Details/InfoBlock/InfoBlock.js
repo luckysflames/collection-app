@@ -1,12 +1,5 @@
-import React, { useRef, useState } from "react";
-import {
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import React, { useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { TitlesModal } from "./TitlesModal";
 import {
@@ -22,7 +15,8 @@ import {
     TVQuickData,
 } from "./Sections";
 import { InfoStats } from "./InfoStats";
-import { Bookmark, Folder, Info, Star } from "lucide-react-native";
+import { Bookmark, Folder, Info } from "lucide-react-native";
+import { useTheme } from "../../../../hooks/useTheme";
 
 export const InfoBlock = ({
     displayData,
@@ -35,6 +29,9 @@ export const InfoBlock = ({
     onFolderPress,
     onToggleFavorite,
 }) => {
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const [modalVisible, setModalVisible] = useState(false);
 
     // Выбираем, что рисовать под блоком основной информации
@@ -75,48 +72,31 @@ export const InfoBlock = ({
 
     return (
         <View style={styles.container}>
-            {/* Общий заголовок для всех типов */}
             <View style={styles.headerRow}>
                 <Text style={styles.title}>{displayData.title}</Text>
                 <TouchableOpacity onPress={() => setModalVisible(true)}>
-                    <Info color="#7D8AFF" size={25} />
+                    <Info color={theme.accent} size={25} />
                 </TouchableOpacity>
             </View>
 
-            {/* Быстрая информация */}
             {renderQuickInfo()}
 
-            {/* Кнопка статуса */}
             <TouchableOpacity
                 onPress={onStatusPress}
-                style={
-                    status || isInCollection
-                        ? styles.statusBadge
-                        : styles.statusBadgeCollect
-                }
+                style={status || isInCollection ? styles.statusBadge : styles.statusBadgeCollect}
             >
                 <Text style={styles.statusText}>
-                    {status ??
-                        (isInCollection
-                            ? "Без статуса"
-                            : "Добавить в коллекцию")}
+                    {status ?? (isInCollection ? "Без статуса" : "Добавить в коллекцию")}
                 </Text>
             </TouchableOpacity>
 
-            {/* --- НОВЫЙ БЛОК КНОПОК ПОД СТАТУСОМ --- */}
             <View style={styles.actionButtonsRow}>
-                <TouchableOpacity
-                    style={styles.actionBtn}
-                    onPress={onFolderPress}
-                >
-                    <Folder
-                        color={isAnyFolderSelected ? "#7D8AFF" : "#8E94A4"}
-                        size={18}
-                    />
+                <TouchableOpacity style={styles.actionBtn} onPress={onFolderPress}>
+                    <Folder color={isAnyFolderSelected ? theme.accent : theme.textDark} size={18} />
                     <Text
                         style={[
                             styles.actionBtnText,
-                            isAnyFolderSelected && { color: "#7D8AFF" },
+                            isAnyFolderSelected && { color: theme.accent },
                         ]}
                         numberOfLines={1}
                         ellipsizeMode="tail"
@@ -125,36 +105,22 @@ export const InfoBlock = ({
                     </Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                    style={[
-                        styles.actionBtn,
-                        isFavorite && styles.actionBtnActive,
-                    ]}
-                    onPress={onToggleFavorite}
-                >
+                <TouchableOpacity style={styles.actionBtn} onPress={onToggleFavorite}>
                     <Bookmark
                         size={18}
-                        color={isFavorite ? "#FFD700" : "#8E94A4"}
-                        fill={isFavorite ? "#FFD700" : "transparent"}
+                        color={isFavorite ? theme.yellow : theme.textDark}
+                        fill={isFavorite ? theme.yellow : "transparent"}
                     />
-                    <Text
-                        style={[
-                            styles.actionBtnText,
-                            isFavorite && { color: "#FFD700" },
-                        ]}
-                    >
+                    <Text style={[styles.actionBtnText, isFavorite && { color: theme.yellow }]}>
                         {isFavorite ? "В избранном" : "Избранное"}
                     </Text>
                 </TouchableOpacity>
             </View>
 
-            {/* Блок с основной информацией */}
             <InfoStats displayData={displayData} />
 
-            {/* Дополнительные поля */}
             {renderExtraInfo()}
 
-            {/* Жанры (общие для всех) */}
             <View style={styles.genreRow}>
                 {displayData.genres?.map((g, i) => (
                     <View key={i} style={styles.badge}>
@@ -163,7 +129,6 @@ export const InfoBlock = ({
                 ))}
             </View>
 
-            {/* Модальное окно с доп. названиями */}
             <TitlesModal
                 visible={modalVisible}
                 onClose={() => setModalVisible(false)}
@@ -174,73 +139,71 @@ export const InfoBlock = ({
     );
 };
 
-const styles = StyleSheet.create({
-    container: { marginBottom: 10 },
-    headerRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 8,
-        gap: 10,
-    },
-    title: {
-        color: "#fff",
-        fontSize: 24,
-        fontWeight: "bold",
-        flex: 1,
-    },
-    statusBadge: {
-        borderColor: "#7D8AFF",
-        borderWidth: 1.5,
-        padding: 12,
-        borderRadius: 12,
-        marginBottom: 20,
-    },
-    statusBadgeCollect: {
-        backgroundColor: "#7D8AFF",
-        padding: 12,
-        borderRadius: 12,
-        marginBottom: 20,
-    },
-    statusText: {
-        color: "#fff",
-        textAlign: "center",
-        fontWeight: "bold",
-        fontSize: 15,
-    },
-    actionButtonsRow: {
-        flexDirection: "row",
-        gap: 10,
-        marginBottom: 20,
-        marginTop: -5,
-        alignItems: "center",
-    },
-    actionBtn: {
-        flex: 1, // Чтобы кнопки делили место поровну
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "rgba(255, 255, 255, 0.05)",
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-        borderRadius: 12,
-        gap: 8,
-    },
-    actionBtnActive: {
-        backgroundColor: "rgba(255, 215, 0, 0.08)",
-    },
-    actionBtnText: {
-        color: "#8E94A4",
-        fontSize: 13,
-        fontWeight: "600",
-        flexShrink: 1,
-    },
-    genreRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-    badge: {
-        backgroundColor: "rgba(125, 138, 255, 0.08)",
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 8,
-    },
-    badgeText: { color: "#7D8AFF", fontSize: 12, fontWeight: "600" },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        container: { marginBottom: 10 },
+        headerRow: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 8,
+            gap: 10,
+        },
+        title: {
+            color: theme.text,
+            fontSize: 24,
+            fontWeight: "bold",
+            flex: 1,
+        },
+        statusBadge: {
+            borderColor: theme.accent,
+            borderWidth: 2,
+            padding: 12,
+            borderRadius: 12,
+            marginBottom: 20,
+        },
+        statusBadgeCollect: {
+            backgroundColor: theme.accent,
+            padding: 12,
+            borderRadius: 12,
+            marginBottom: 20,
+        },
+        statusText: {
+            color: theme.text,
+            textAlign: "center",
+            fontWeight: "bold",
+            fontSize: 15,
+        },
+        actionButtonsRow: {
+            flexDirection: "row",
+            gap: 10,
+            marginBottom: 20,
+            marginTop: -5,
+            alignItems: "center",
+        },
+        actionBtn: {
+            flex: 1,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: theme.main,
+            paddingVertical: 10,
+            paddingHorizontal: 15,
+            borderRadius: 12,
+            gap: 8,
+        },
+        actionBtnText: {
+            color: theme.textDark,
+            fontSize: 13,
+            fontWeight: "600",
+            flexShrink: 1,
+        },
+        genreRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+        badge: {
+            backgroundColor: theme.accentMuted,
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+            borderRadius: 8,
+        },
+        badgeText: { color: theme.accent, fontSize: 12, fontWeight: "600" },
+    });

@@ -5,10 +5,14 @@ import { TabMenuItem } from "./TabMenuItem";
 import { useCollectionStore } from "../../../store/useCollectionStore";
 import { TAB_ICONS } from "../../../constants/index";
 import { CommonActions, StackActions } from "@react-navigation/native";
+import { useTheme } from "../../../hooks/useTheme";
 
 export default function MyCustomTabBar({ state, descriptors, navigation }) {
     const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
     const insets = useSafeAreaInsets();
+
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
 
     const BAR_HEIGHT = isCompactMenu ? 55 : 85;
     const TOTAL_BAR_HEIGHT = BAR_HEIGHT + (insets.bottom > 0 ? insets.bottom : 10);
@@ -72,27 +76,22 @@ export default function MyCustomTabBar({ state, descriptors, navigation }) {
     );
 }
 
-const styles = StyleSheet.create({
-    wrapper: {
-        position: "absolute",
-        right: 20,
-        left: 20,
-        bottom: 20,
-        alignItems: "center",
-    },
-    mainContainer: {
-        flexDirection: "row",
-        backgroundColor: "#0B1534",
-        alignItems: "center",
-        justifyContent: "space-between",
-        borderWidth: 1.5,
-        borderColor: "#1b264e",
-        borderRadius: 35,
-        width: "100%",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: -4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 10,
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        wrapper: {
+            position: "absolute",
+            right: 20,
+            left: 20,
+            bottom: 20,
+            alignItems: "center",
+        },
+        mainContainer: {
+            flexDirection: "row",
+            backgroundColor: theme.main,
+            alignItems: "center",
+            justifyContent: "space-between",
+            borderRadius: 35,
+            width: "100%",
+            boxShadow: `0px 0px 24px ${theme.dark}`,
+        },
+    });

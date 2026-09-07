@@ -12,9 +12,9 @@ import {
     Vibrate,
     Download,
     Upload,
-    Sparkles,
     Volume2,
     Bell,
+    Palette,
 } from "lucide-react-native";
 
 import { getBugReportTemplate } from "../utils/bugReportHelper";
@@ -24,14 +24,17 @@ import { DevelopersModal } from "../components/screens/Settings/DevelopersModal"
 import { ApiInfoModal } from "../components/screens/Settings/ApiInfoModal";
 import { useDataManagement } from "../hooks/useDataManagement";
 import { useFileManagement } from "../hooks/useFileManagement";
+import { useTheme } from "../hooks/useTheme";
+import ThemeSelectModal from "../components/screens/Settings/Modals/ThemeSelectModal";
 
 export default function SettingsScreen({ navigation }) {
+    const { createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const insets = useSafeAreaInsets();
     const store = useCollectionStore();
     const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
-    const setIsCompactMenu = useCollectionStore(
-        (state) => state.setIsCompactMenu,
-    );
+    const setIsCompactMenu = useCollectionStore((state) => state.setIsCompactMenu);
     const isVibration = useCollectionStore((state) => state.isVibration);
     const setIsVibration = useCollectionStore((state) => state.setIsVibration);
     const isSound = useCollectionStore((state) => state.isSound);
@@ -40,9 +43,9 @@ export default function SettingsScreen({ navigation }) {
     const setIsNotify = useCollectionStore((state) => state.setIsNotify);
 
     const { actions } = useDataManagement(store);
-    const { handleExportCollection, handleImportCollection, FileModal } =
-        useFileManagement(store);
+    const { handleExportCollection, handleImportCollection, FileModal } = useFileManagement(store);
 
+    const [isThemeModalVisible, setThemeModalVisible] = useState(false);
     const [isDevModalVisible, setDevModalVisible] = useState(false);
     const [isApiModalVisible, setApiModalVisible] = useState(false);
 
@@ -50,9 +53,7 @@ export default function SettingsScreen({ navigation }) {
 
     const handleReportBug = () => {
         const { recipient, subject, body } = getBugReportTemplate();
-        Linking.openURL(
-            `mailto:${recipient}?subject=${subject}&body=${encodeURIComponent(body)}`,
-        );
+        Linking.openURL(`mailto:${recipient}?subject=${subject}&body=${encodeURIComponent(body)}`);
     };
 
     return (
@@ -98,6 +99,12 @@ export default function SettingsScreen({ navigation }) {
                     />
                     <View style={styles.separator} />
                     <SettingItem
+                        icon={Palette}
+                        label="Темы"
+                        onPress={() => setThemeModalVisible(true)}
+                    />
+                    <View style={styles.separator} />
+                    <SettingItem
                         icon={List}
                         label="Настройки интерфейса"
                         onPress={() => navigation.navigate("StatusManager")}
@@ -107,13 +114,13 @@ export default function SettingsScreen({ navigation }) {
                 <Text style={styles.sectionTitle}>Управление данными</Text>
                 <View style={styles.card}>
                     <SettingItem
-                        icon={Download}
+                        icon={Upload}
                         label="Экспорт коллекции"
                         onPress={handleExportCollection}
                     />
                     <View style={styles.separator} />
                     <SettingItem
-                        icon={Upload}
+                        icon={Download}
                         label="Импорт коллекции"
                         onPress={handleImportCollection}
                     />
@@ -136,11 +143,7 @@ export default function SettingsScreen({ navigation }) {
 
                 <Text style={styles.sectionTitle}>Поддержка и связь</Text>
                 <View style={styles.card}>
-                    <SettingItem
-                        icon={Bug}
-                        label="Сообщить об ошибке"
-                        onPress={handleReportBug}
-                    />
+                    <SettingItem icon={Bug} label="Сообщить об ошибке" onPress={handleReportBug} />
                     <View style={styles.separator} />
                     <SettingItem
                         icon={Users}
@@ -149,87 +152,85 @@ export default function SettingsScreen({ navigation }) {
                     />
                 </View>
 
-                {/* Версия приложения */}
                 <View
                     style={[
                         styles.versionFooter,
                         {
-                            marginBottom: isCompactMenu
-                                ? insets.bottom + 40
-                                : insets.bottom + 50,
+                            marginBottom: isCompactMenu ? insets.bottom + 40 : insets.bottom + 50,
                         },
                     ]}
                 >
                     <Text style={styles.versionText}>Geekly v{version}</Text>
-                    <Text style={styles.buildText}>
-                        Сделано с ❤️ для коллекционеров
-                    </Text>
+                    <Text style={styles.buildText}>Сделано с ❤️ к коллекциям</Text>
                 </View>
             </ScrollView>
+
+            <ThemeSelectModal
+                visible={isThemeModalVisible}
+                onClose={() => setThemeModalVisible(false)}
+            />
 
             <DevelopersModal
                 visible={isDevModalVisible}
                 onClose={() => setDevModalVisible(false)}
                 onSecretReset={actions.handleRemovePassword}
             />
-            <ApiInfoModal
-                visible={isApiModalVisible}
-                onClose={() => setApiModalVisible(false)}
-            />
+
+            <ApiInfoModal visible={isApiModalVisible} onClose={() => setApiModalVisible(false)} />
+
             <FileModal />
         </View>
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#050B18",
-        paddingHorizontal: 20,
-    },
-    headerTitle: {
-        color: "#fff",
-        fontSize: 24,
-        fontWeight: "bold",
-        marginTop: 7.5,
-        marginBottom: 20,
-    },
-    sectionTitle: {
-        color: "#8E94A4",
-        fontSize: 14,
-        fontWeight: "600",
-        textTransform: "uppercase",
-        marginBottom: 10,
-        marginLeft: 10,
-        letterSpacing: 1,
-    },
-    card: {
-        backgroundColor: "#0B1534",
-        borderRadius: 25,
-        paddingVertical: 10,
-        marginBottom: 25,
-        borderWidth: 1,
-        borderColor: "rgba(125, 138, 255, 0.1)",
-    },
-    separator: {
-        height: 1,
-        backgroundColor: "rgba(255,255,255,0.05)",
-        marginHorizontal: 16,
-        marginVertical: 5,
-    },
-    versionFooter: {
-        marginTop: 10,
-        alignItems: "center",
-        opacity: 0.5,
-    },
-    versionText: {
-        color: "#8E94A4",
-        fontSize: 14,
-        fontWeight: "bold",
-    },
-    buildText: {
-        color: "#8E94A4",
-        fontSize: 12,
-        marginTop: 4,
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: theme.dark,
+            paddingHorizontal: 20,
+        },
+        headerTitle: {
+            color: theme.text,
+            fontSize: 24,
+            fontWeight: "bold",
+            marginTop: 7.5,
+            marginBottom: 20,
+        },
+        sectionTitle: {
+            color: theme.textDark,
+            fontSize: 14,
+            fontWeight: "600",
+            textTransform: "uppercase",
+            marginBottom: 10,
+            marginLeft: 10,
+            letterSpacing: 1,
+        },
+        card: {
+            backgroundColor: theme.main,
+            borderRadius: 25,
+            paddingVertical: 10,
+            marginBottom: 25,
+        },
+        separator: {
+            height: 1,
+            backgroundColor: theme.accentMuted,
+            marginHorizontal: 16,
+            marginVertical: 5,
+        },
+        versionFooter: {
+            marginTop: 10,
+            alignItems: "center",
+            opacity: 0.5,
+        },
+        versionText: {
+            color: theme.text,
+            fontSize: 14,
+            fontWeight: "bold",
+        },
+        buildText: {
+            color: theme.textDark,
+            fontSize: 12,
+            marginTop: 4,
+        },
+    });

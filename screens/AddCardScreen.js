@@ -23,31 +23,30 @@ import { useCollectionStore } from "../store/useCollectionStore";
 import { useImagePicker } from "../hooks/useImagePicker";
 import { useShallow } from "zustand/shallow";
 import MaskedDateInput from "../components/screens/AddCard/Fields/MaskedDateInput";
+import { useTheme } from "../hooks/useTheme";
 
-// Универсальный заголовок для сворачиваемых секций
-const CollapsibleHeader = ({ title, isOpen, onPress }) => (
+const CollapsibleHeader = ({ title, isOpen, onPress, styles, theme }) => (
     <TouchableOpacity style={styles.collapsibleHeader} onPress={onPress} activeOpacity={0.7}>
         <Text style={styles.label}>{title}</Text>
         {isOpen ? (
-            <ChevronUp size={20} color="#8E94A4" />
+            <ChevronUp size={20} color={theme.text} />
         ) : (
-            <ChevronDown size={20} color="#8E94A4" />
+            <ChevronDown size={20} color={theme.text} />
         )}
     </TouchableOpacity>
 );
 
 export default function AddCardScreen({ navigation }) {
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const insets = useSafeAreaInsets();
     const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
-
-    // Состояния для сворачивания блоков
-    const [isStatusVisible, setIsStatusVisible] = useState(false); // Для статусов
-    const [isOptionalVisible, setIsOptionalVisible] = useState(false); // Для доп. инфо
-
-    // 1. Получаем кастомный порядок категорий из стора
     const categoryOrder = useCollectionStore((state) => state.categoryOrder);
 
-    // 2. Вычисляем последний элемент в пользовательском порядке категорий
+    const [isStatusVisible, setIsStatusVisible] = useState(false);
+    const [isOptionalVisible, setIsOptionalVisible] = useState(false);
+
     const lastCategoryType =
         categoryOrder && categoryOrder.length > 0 ? categoryOrder[categoryOrder.length - 1] : null;
 
@@ -55,22 +54,17 @@ export default function AddCardScreen({ navigation }) {
         useShallow((state) => getOrderedCategories(state.categoryOrder)),
     );
 
-    // 3. Передаем вычисленный тип по умолчанию в ваш хук формы
     const { form, updateField, handleSave, errorModal, closeError } = useAddCardForm(
         navigation,
         lastCategoryType,
     );
     const { pickImage } = useImagePicker();
-
-    const currentSection = SECTIONS.find((s) => (s.id || s.value) === form.type);
-    const sectionLabel = currentSection?.title || currentSection?.label || "Фильмы";
-
     const { statuses } = useMediaCategories(form.type);
     const filteredStatuses = statuses.filter((s) => !STATUS_SELECTION_EXCLUDE.includes(s));
 
     return (
         <KeyboardAwareScrollView
-            style={{ flex: 1, backgroundColor: "#050B18" }}
+            style={{ flex: 1, backgroundColor: theme.dark }}
             contentContainerStyle={[styles.scrollContainer, { paddingTop: insets.top - 20 }]}
             extraScrollHeight={150}
             enableOnAndroid={true}
@@ -79,7 +73,6 @@ export default function AddCardScreen({ navigation }) {
         >
             <Text style={styles.header}>Создать карточку</Text>
 
-            {/* === БЛОК 1: ОБЛОЖКА И КАТЕГОРИЯ === */}
             <View style={styles.section}>
                 <ImageUploader
                     image={form.image}
@@ -95,13 +88,13 @@ export default function AddCardScreen({ navigation }) {
                 />
             </View>
 
-            {/* === БЛОК 2: СТАТУС И НАЗВАНИЕ === */}
             <View style={styles.section}>
-                {/* Коллапс для выбора статуса */}
                 <CollapsibleHeader
                     title={`Статус в коллекции: ${form.status || "Выбрать"}`}
                     isOpen={isStatusVisible}
                     onPress={() => setIsStatusVisible(!isStatusVisible)}
+                    styles={styles}
+                    theme={theme}
                 />
 
                 {isStatusVisible && (
@@ -112,7 +105,7 @@ export default function AddCardScreen({ navigation }) {
                             type={form.type}
                             onSelect={(status) => {
                                 updateField("status", status);
-                                setIsStatusVisible(false); // Автоматически закрываем после выбора для удобства
+                                setIsStatusVisible(false);
                             }}
                         />
                     </View>
@@ -127,12 +120,13 @@ export default function AddCardScreen({ navigation }) {
                 />
             </View>
 
-            {/* === БЛОК 3: ДОПОЛНИТЕЛЬНАЯ ИНФОРМАЦИЯ === */}
             <View style={styles.section}>
                 <CollapsibleHeader
                     title="Дополнительная информация"
                     isOpen={isOptionalVisible}
                     onPress={() => setIsOptionalVisible(!isOptionalVisible)}
+                    styles={styles}
+                    theme={theme}
                 />
 
                 {isOptionalVisible && (
@@ -181,7 +175,6 @@ export default function AddCardScreen({ navigation }) {
                 )}
             </View>
 
-            {/* КНОПКА СОХРАНЕНИЯ */}
             <TouchableOpacity
                 style={[
                     styles.saveButton,
@@ -206,45 +199,53 @@ export default function AddCardScreen({ navigation }) {
     );
 }
 
-const styles = StyleSheet.create({
-    scrollContainer: { paddingHorizontal: 20, flexGrow: 1 },
-    header: {
-        color: "#fff",
-        fontSize: 24,
-        fontWeight: "800",
-        marginTop: 7.5,
-        marginBottom: 25,
-        letterSpacing: -0.5,
-    },
-    section: {
-        marginBottom: 20,
-        gap: 20,
-    },
-    collapsibleHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: "rgba(142, 148, 164, 0.2)",
-        marginBottom: 15,
-    },
-    label: {
-        color: "#8E94A4",
-        fontSize: 13,
-        fontWeight: "600",
-        textTransform: "uppercase",
-        letterSpacing: 1,
-    },
-    collapsibleContent: {
-        marginTop: 5,
-    },
-    saveButton: {
-        backgroundColor: "#7D8AFF",
-        padding: 18,
-        borderRadius: 16,
-        alignItems: "center",
-        marginTop: 10,
-    },
-    saveButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        scrollContainer: {
+            paddingHorizontal: 20,
+            flexGrow: 1,
+        },
+        header: {
+            color: theme.text,
+            fontSize: 24,
+            fontWeight: "800",
+            marginTop: 7.5,
+            marginBottom: 25,
+            letterSpacing: -0.5,
+        },
+        section: {
+            marginBottom: 20,
+            gap: 20,
+        },
+        collapsibleHeader: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            paddingVertical: 12,
+            borderBottomWidth: 1,
+            borderBottomColor: theme.accentMuted,
+            marginBottom: 15,
+        },
+        label: {
+            color: theme.text,
+            fontSize: 13,
+            fontWeight: "600",
+            textTransform: "uppercase",
+            letterSpacing: 1,
+        },
+        collapsibleContent: {
+            marginTop: 5,
+        },
+        saveButton: {
+            backgroundColor: theme.accent,
+            padding: 18,
+            borderRadius: 16,
+            alignItems: "center",
+            marginTop: 10,
+        },
+        saveButtonText: {
+            color: theme.text,
+            fontSize: 16,
+            fontWeight: "bold",
+        },
+    });

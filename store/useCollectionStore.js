@@ -3,15 +3,13 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { sqliteZustandStorage } from "../utils/sqliteStorage";
 
 import {
-    DEFAULT_FALLBACK_STATUS,
     DEFAULT_STATUSES,
     SECTION_MAPPING,
     FAVORITE_STATUS,
-    DEFAULT_STATUS_BY_SECTION,
     DEFAULT_CATEGORY_ORDER,
-    getOrderedCategories,
 } from "../constants/index";
 import { deletePersistentImageAsync, isPersistentImageUri } from "../utils/imageStorage";
+import { DEFAULT_THEME_NAME } from "../theme/themes";
 
 // --- HELPERS ---
 const getSectionKey = (section) => SECTION_MAPPING[section] || section;
@@ -46,30 +44,12 @@ export const useCollectionStore = create(
             deletionPassword: null,
             version: 0,
             activeRainScreens: [],
+            themeName: DEFAULT_THEME_NAME,
+            setThemeName: (newThemeName) => set({ themeName: newThemeName }),
 
             // --- SYSTEM ACTIONS ---
             setHasHydrated: (state) => set({ _hasHydrated: state }),
             incVersion: () => set((state) => ({ version: state.version + 1 })),
-            setRaining: (id, isActive) =>
-                set((state) => {
-                    const exists = state.activeRainScreens.includes(id);
-
-                    if (isActive && !exists) {
-                        return {
-                            activeRainScreens: [...state.activeRainScreens, id],
-                        };
-                    }
-                    if (!isActive && exists) {
-                        return {
-                            activeRainScreens: state.activeRainScreens.filter(
-                                (screenId) => screenId !== id,
-                            ),
-                        };
-                    }
-                    return state;
-                }),
-
-            isRainGlobalActive: (state) => state.activeRainScreens.length > 0,
 
             // --- GETTERS ---
             getStatusesForSection: (section) => {

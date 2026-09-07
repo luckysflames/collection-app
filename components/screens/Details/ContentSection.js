@@ -1,10 +1,10 @@
 import React, { useState, memo, useCallback } from "react";
 import { StyleSheet, Text, TextInput, View, TouchableOpacity } from "react-native";
-import { Star } from "lucide-react-native";
 import { InfoBlock } from "./InfoBlock/InfoBlock";
 import { UserRating } from "../../shared/UserRating";
 import { RelatedCarousel } from "./InfoBlock/RelatedCarousel";
 import { ScreenshotCarousel } from "./InfoBlock/ScreenshotCarousel";
+import { useTheme } from "../../../hooks/useTheme";
 
 const ContentSectionComponent = ({
     displayData,
@@ -23,9 +23,11 @@ const ContentSectionComponent = ({
     onInfoPress,
     onNavigateToDetails,
 }) => {
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const [isExpanded, setIsExpanded] = useState(false);
 
-    // Оптимизируем обработчики с useCallback чтобы не пересоздавали их каждый раз
     const handleDescriptionPress = useCallback(() => {
         setIsExpanded((prev) => !prev);
     }, []);
@@ -113,7 +115,6 @@ const ContentSectionComponent = ({
                 </View>
             )}
 
-            {/* Связанное аниме и сезоны сериалов */}
             {(displayData.type === "anime" || displayData.type === "tv") && (
                 <RelatedCarousel
                     related={displayData.related}
@@ -130,7 +131,7 @@ const ContentSectionComponent = ({
                         value={savedItem.userNotes || ""}
                         onChangeText={handleNotesUpdate}
                         placeholder="Ваши мысли..."
-                        placeholderTextColor="#444"
+                        placeholderTextColor={theme.textDark}
                         textAlignVertical="top"
                     />
                 </View>
@@ -139,36 +140,36 @@ const ContentSectionComponent = ({
     );
 };
 
-// Мемоизируем компонент с правильным сравнением (shallow по умолчанию)
 export const ContentSection = memo(ContentSectionComponent);
 
-const styles = StyleSheet.create({
-    sectionTitle: {
-        color: "#fff",
-        fontSize: 20,
-        fontWeight: "bold",
-        marginTop: 25,
-        marginBottom: 12,
-    },
-    description: {
-        color: "#8E94A4",
-        fontSize: 16,
-        lineHeight: 24,
-    },
-    moreText: {
-        color: "#7D8AFF",
-        fontSize: 14,
-        marginTop: 5,
-        fontWeight: "500",
-    },
-    userSection: {
-        paddingBottom: 20,
-    },
-    notesInput: {
-        backgroundColor: "rgba(255,255,255,0.05)",
-        borderRadius: 15,
-        padding: 15,
-        color: "#fff",
-        minHeight: 120,
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        sectionTitle: {
+            color: theme.text,
+            fontSize: 20,
+            fontWeight: "bold",
+            marginTop: 25,
+            marginBottom: 12,
+        },
+        description: {
+            color: theme.textDark,
+            fontSize: 16,
+            lineHeight: 24,
+        },
+        moreText: {
+            color: theme.accent,
+            fontSize: 14,
+            marginTop: 5,
+            fontWeight: "500",
+        },
+        userSection: {
+            paddingBottom: 20,
+        },
+        notesInput: {
+            backgroundColor: theme.main,
+            borderRadius: 15,
+            padding: 15,
+            color: theme.text,
+            minHeight: 120,
+        },
+    });

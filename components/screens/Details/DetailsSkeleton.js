@@ -1,9 +1,10 @@
-// components/screens/Details/DetailsSkeleton.js
 import React, { useEffect, useRef } from "react";
-import { View, StyleSheet, Animated, Dimensions } from "react-native";
+import { View, StyleSheet, Animated } from "react-native";
+import { useTheme } from "../../../hooks/useTheme";
 
 export const DetailsSkeleton = () => {
-    // Анимация пульсации (изменение прозрачности)
+    const { createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
     const pulseAnim = useRef(new Animated.Value(0.3)).current;
 
     useEffect(() => {
@@ -25,20 +26,20 @@ export const DetailsSkeleton = () => {
 
     return (
         <Animated.View style={[styles.container, { opacity: pulseAnim }]}>
-            {/* 1. Хедер: Название карточки + иконка Info */}
+            {/* 1. Хедер: Название карточки + круглый Info */}
             <View style={styles.headerRow}>
                 <View style={styles.titleMock} />
                 <View style={styles.infoIconMock} />
             </View>
 
-            {/* 2. Быстрая дата (Рейтинг, Эпизоды/Главы) */}
+            {/* 2. Быстрая дата (Рейтинг, Тип, Ограничение) */}
             <View style={styles.quickInfoRow}>
-                <View style={[styles.textMock, { width: "25%" }]} />
+                <View style={[styles.textMock, { width: "16%" }]} />
                 <View style={[styles.textMock, { width: "20%" }]} />
-                <View style={[styles.textMock, { width: "15%" }]} />
+                <View style={[styles.textMock, { width: "14%" }]} />
             </View>
 
-            {/* 3. Кнопка "Добавить в коллекцию" / Статус */}
+            {/* 3. Статусная плашка "Смотрю" */}
             <View style={styles.statusBadgeMock} />
 
             {/* 4. Кнопки действий (Папка + Избранное) */}
@@ -47,134 +48,174 @@ export const DetailsSkeleton = () => {
                 <View style={styles.actionBtnMock} />
             </View>
 
-            {/* 5. Блок основной информации (InfoStats) */}
+            {/* 5. Блок основной информации (Период выхода, Эпизоды, Длительность, Статус) */}
             <View style={styles.statsBoxMock}>
+                {/* Период выхода */}
+                <View style={[styles.textMock, { width: "35%", height: 10, marginBottom: 6 }]} />
+                <View style={[styles.textMock, { width: "65%", height: 16, marginBottom: 16 }]} />
+
+                {/* Эпизоды / Длительность / Статус */}
                 <View style={styles.statsRow}>
-                    <View style={styles.statsItem} />
-                    <View style={styles.statsItem} />
-                    <View style={styles.statsItem} />
+                    <View style={styles.statsColumn}>
+                        <View
+                            style={[styles.textMock, { width: "70%", height: 10, marginBottom: 6 }]}
+                        />
+                        <View style={[styles.textMock, { width: "85%", height: 14 }]} />
+                    </View>
+                    <View style={styles.statsColumn}>
+                        <View
+                            style={[styles.textMock, { width: "80%", height: 10, marginBottom: 6 }]}
+                        />
+                        <View style={[styles.textMock, { width: "90%", height: 14 }]} />
+                    </View>
+                    <View style={styles.statsColumn}>
+                        <View
+                            style={[styles.textMock, { width: "60%", height: 10, marginBottom: 6 }]}
+                        />
+                        <View style={[styles.textMock, { width: "75%", height: 14 }]} />
+                    </View>
                 </View>
             </View>
 
-            {/* 6. Жанры (Значки / Баджи) */}
-            <View style={styles.genreRow}>
-                <View style={[styles.badgeMock, { width: 70 }]} />
-                <View style={[styles.badgeMock, { width: 90 }]} />
-                <View style={[styles.badgeMock, { width: 60 }]} />
+            {/* 6. Текстовые метаданные (Автор, Студия, Первоисточник) */}
+            <View style={styles.metaBlock}>
+                <View style={styles.metaRow}>
+                    <View style={[styles.textMock, { width: "18%" }]} />
+                    <View style={[styles.textMock, { width: "30%" }]} />
+                </View>
+                <View style={styles.metaRow}>
+                    <View style={[styles.textMock, { width: "22%" }]} />
+                    <View style={[styles.textMock, { width: "45%" }]} />
+                </View>
+                <View style={styles.metaRow}>
+                    <View style={[styles.textMock, { width: "32%" }]} />
+                    <View style={[styles.textMock, { width: "20%" }]} />
+                </View>
             </View>
 
-            {/* 7. Заголовок Описания */}
-            <View style={[styles.sectionTitleMock, { width: "35%" }]} />
+            {/* 7. Жанры (Баджи) */}
+            <View style={styles.genreRow}>
+                <View style={[styles.badgeMock, { width: 72 }]} />
+                <View style={[styles.badgeMock, { width: 88 }]} />
+                <View style={[styles.badgeMock, { width: 130 }]} />
+                <View style={[styles.badgeMock, { width: 95 }]} />
+            </View>
 
-            {/* 8. Строки Описания */}
+            {/* 8. Заголовок Описания */}
+            <View style={[styles.sectionTitleMock, { width: "32%" }]} />
+
+            {/* 9. Текст Описания + Линк "Показать полностью..." */}
             <View style={styles.descriptionBlock}>
                 <View style={styles.descLine} />
                 <View style={styles.descLine} />
-                <View style={[styles.descLine, { width: "70%" }]} />
+                <View style={[styles.descLine, { width: "85%" }]} />
+                <View style={[styles.textMock, { width: "40%", height: 14, marginTop: 4 }]} />
             </View>
         </Animated.View>
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        width: "100%",
-    },
-    // Вся подложка использует полупрозрачный белый поверх глубокого синего #050B18
-    mockBase: {
-        backgroundColor: "rgba(255, 255, 255, 0.05)",
-        borderRadius: 8,
-    },
-    headerRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 12,
-        gap: 10,
-    },
-    titleMock: {
-        height: 28,
-        flex: 1,
-        backgroundColor: "rgba(255, 255, 255, 0.08)",
-        borderRadius: 8,
-    },
-    infoIconMock: {
-        height: 25,
-        width: 25,
-        backgroundColor: "rgba(125, 138, 255, 0.15)", // Слегка фиолетовый оттенок lucide иконки
-        borderRadius: 50,
-    },
-    quickInfoRow: {
-        flexDirection: "row",
-        gap: 12,
-        marginBottom: 18,
-    },
-    textMock: {
-        height: 14,
-        backgroundColor: "rgba(255, 255, 255, 0.04)",
-        borderRadius: 4,
-    },
-    statusBadgeMock: {
-        height: 46,
-        backgroundColor: "rgba(125, 138, 255, 0.2)", // Имитирует яркую кнопку/бордер
-        borderRadius: 12,
-        marginBottom: 20,
-    },
-    actionButtonsRow: {
-        flexDirection: "row",
-        gap: 10,
-        marginBottom: 20,
-        marginTop: -5,
-    },
-    actionBtnMock: {
-        flex: 1,
-        height: 38,
-        backgroundColor: "rgba(255, 255, 255, 0.04)",
-        borderRadius: 12,
-    },
-    statsBoxMock: {
-        backgroundColor: "rgba(255, 255, 255, 0.02)",
-        borderRadius: 15,
-        padding: 15,
-        marginBottom: 20,
-        borderWidth: 1,
-        borderColor: "rgba(255, 255, 255, 0.03)",
-    },
-    statsRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        gap: 10,
-    },
-    statsItem: {
-        flex: 1,
-        height: 45,
-        backgroundColor: "rgba(255, 255, 255, 0.04)",
-        borderRadius: 8,
-    },
-    genreRow: {
-        flexDirection: "row",
-        flexWrap: "wrap",
-        gap: 6,
-        marginBottom: 25,
-    },
-    badgeMock: {
-        height: 24,
-        backgroundColor: "rgba(125, 138, 255, 0.06)", // Оттенок твоих жанровых баджей
-        borderRadius: 8,
-    },
-    sectionTitleMock: {
-        height: 22,
-        backgroundColor: "rgba(255, 255, 255, 0.08)",
-        borderRadius: 6,
-        marginBottom: 14,
-    },
-    descriptionBlock: {
-        gap: 8,
-    },
-    descLine: {
-        height: 14,
-        backgroundColor: "rgba(255, 255, 255, 0.04)",
-        borderRadius: 4,
-        width: "100%",
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        container: {
+            width: "100%",
+        },
+        headerRow: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 8,
+            gap: 12,
+        },
+        titleMock: {
+            height: 26,
+            flex: 1,
+            backgroundColor: theme.textDark,
+            borderRadius: 6,
+        },
+        infoIconMock: {
+            height: 26,
+            width: 26,
+            backgroundColor: theme.accentMuted,
+            borderRadius: 13,
+        },
+        quickInfoRow: {
+            flexDirection: "row",
+            gap: 10,
+            marginBottom: 16,
+            alignItems: "center",
+        },
+        textMock: {
+            height: 12,
+            backgroundColor: theme.textDark,
+            borderRadius: 4,
+        },
+        statusBadgeMock: {
+            height: 48,
+            backgroundColor: theme.accentMuted,
+            borderRadius: 14,
+            marginBottom: 12,
+        },
+        actionButtonsRow: {
+            flexDirection: "row",
+            gap: 10,
+            marginBottom: 16,
+        },
+        actionBtnMock: {
+            flex: 1,
+            height: 44,
+            backgroundColor: theme.accentMuted,
+            borderRadius: 12,
+        },
+        statsBoxMock: {
+            backgroundColor: theme.dark,
+            borderRadius: 16,
+            padding: 16,
+            marginBottom: 18,
+            borderWidth: 1,
+            borderColor: theme.accentMuted,
+        },
+        statsRow: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            gap: 8,
+        },
+        statsColumn: {
+            flex: 1,
+        },
+        metaBlock: {
+            gap: 8,
+            marginBottom: 14,
+        },
+        metaRow: {
+            flexDirection: "row",
+            gap: 8,
+            alignItems: "center",
+        },
+        genreRow: {
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: 8,
+            marginBottom: 24,
+        },
+        badgeMock: {
+            height: 28,
+            backgroundColor: theme.accentMuted,
+            borderRadius: 8,
+        },
+        sectionTitleMock: {
+            height: 22,
+            backgroundColor: theme.textDark,
+            borderRadius: 6,
+            marginBottom: 12,
+        },
+        descriptionBlock: {
+            gap: 8,
+        },
+        descLine: {
+            height: 13,
+            backgroundColor: theme.textDark,
+            borderRadius: 4,
+            width: "100%",
+        },
+    });

@@ -1,5 +1,6 @@
 import React from "react";
 import { TouchableOpacity, View, Text, Image, StyleSheet, Animated } from "react-native";
+import { useTheme } from "../../../hooks/useTheme";
 
 export const TabMenuItem = ({
     onPress,
@@ -9,8 +10,8 @@ export const TabMenuItem = ({
     iconSet,
     ICON_CONTAINER_SIZE,
 }) => {
-    let containerStyle = [styles.iconContainer];
-    let textIconColor = "#FFF";
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
 
     const scaleValue = React.useRef(new Animated.Value(1)).current;
 
@@ -28,68 +29,67 @@ export const TabMenuItem = ({
         }).start();
     };
 
-    if (isFocused) {
-        containerStyle.push(styles.activeIconContainer);
-    }
+    const borderRadius = isCompactMenu ? 15 : 20;
 
     return (
         <TouchableOpacity
             onPress={onPress}
             onPressIn={onPressIn}
             onPressOut={onPressOut}
-            activeOpacity={1} // Убираем стандартное мигание
+            activeOpacity={1}
             style={styles.tabItem}
         >
-            <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
-                <View
+            <Animated.View
+                style={[
+                    styles.iconContainer,
+                    isFocused && styles.activeIconContainer,
+                    {
+                        width: ICON_CONTAINER_SIZE,
+                        height: ICON_CONTAINER_SIZE,
+                        borderRadius: borderRadius,
+                        transform: [{ scale: scaleValue }],
+                    },
+                ]}
+            >
+                <Image
+                    source={isFocused ? iconSet.active : iconSet.inactive}
                     style={[
-                        ...containerStyle,
+                        styles.iconStyle,
                         {
-                            width: ICON_CONTAINER_SIZE,
-                            height: ICON_CONTAINER_SIZE,
-                            borderRadius: isCompactMenu ? 15 : 20,
+                            tintColor: theme.text,
+                            width: isCompactMenu ? 22 : 24,
+                            height: isCompactMenu ? 22 : 24,
                         },
                     ]}
-                >
-                    <Image
-                        source={isFocused ? iconSet.active : iconSet.inactive}
-                        style={[
-                            styles.iconStyle,
-                            {
-                                tintColor: textIconColor,
-                                width: isCompactMenu ? 22 : 24,
-                                height: isCompactMenu ? 22 : 24,
-                            },
-                        ]}
-                    />
-                    {!isCompactMenu && (
-                        <Text style={[styles.tabText, { color: textIconColor }]}>{routeName}</Text>
-                    )}
-                </View>
+                />
+                {!isCompactMenu && <Text style={styles.tabText}>{routeName}</Text>}
             </Animated.View>
         </TouchableOpacity>
     );
 };
 
-const styles = StyleSheet.create({
-    tabItem: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    iconContainer: {
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    activeIconContainer: {
-        backgroundColor: "#7D8AFF",
-    },
-    iconStyle: {
-        resizeMode: "contain",
-    },
-    tabText: {
-        fontSize: 10,
-        fontWeight: "600",
-        marginTop: 5,
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        tabItem: {
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+        },
+        iconContainer: {
+            justifyContent: "center",
+            alignItems: "center",
+            overflow: "hidden",
+        },
+        activeIconContainer: {
+            backgroundColor: theme.accent,
+        },
+        iconStyle: {
+            resizeMode: "contain",
+        },
+        tabText: {
+            fontSize: 10,
+            fontWeight: "600",
+            marginTop: 5,
+            color: theme.text,
+        },
+    });

@@ -1,12 +1,14 @@
 import React from "react";
 import { View } from "react-native";
 
-import { formStyles } from "../styles/formStyles";
+import { useFormStyles } from "../styles/formStyles";
 import CommonField from "./CommonField";
 import SelectField from "./SelectField";
-import { BOOK_MATURITY_RATINGS } from "../../../..//constants/index";
+import { BOOK_MATURITY_RATINGS } from "../../../../constants/index";
 
 export default function BookFields({ form, updateField }) {
+    const formStyles = useFormStyles();
+
     return (
         <View>
             <CommonField

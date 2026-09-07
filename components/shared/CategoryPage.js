@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, memo } from "react";
-import { View, FlatList, StyleSheet, Dimensions, Platform } from "react-native";
+import { View, FlatList, StyleSheet, Dimensions } from "react-native";
 import { MediaCard } from "../ui/MediaCard";
 import { EmptyState } from "./EmptyState";
 import { useFilteredCollection } from "../../hooks/useFilteredCollection";
@@ -8,7 +8,6 @@ import { useCollectionStore } from "../../store/useCollectionStore";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-// 1. Выносим keyExtractor ЗА ПРЕДЕЛЫ компонента, чтобы он не пересоздавался
 const keyExtractor = (item) => `card-${item.id}`;
 
 const shallowEqualObjects = (a, b) => {
@@ -70,7 +69,6 @@ const CategoryPageComponent = ({
     const insets = useSafeAreaInsets();
     const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
 
-    // 1. Получаем отфильтрованные и базово отсортированные данные из хука
     const filteredData = useFilteredCollection({
         data,
         category,
@@ -83,7 +81,6 @@ const CategoryPageComponent = ({
         activeFilters,
     });
 
-    // 2. В режиме переупорядочивания оставляем порядок как есть (из filteredData)
     const pageData = useMemo(() => filteredData, [filteredData]);
 
     const handlePress = useCallback(

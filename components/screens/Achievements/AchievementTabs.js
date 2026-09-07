@@ -1,9 +1,13 @@
 import React, { useRef, useEffect } from "react";
 import { ScrollView, TouchableOpacity, Text, StyleSheet, Dimensions } from "react-native";
+import { useTheme } from "../../../hooks/useTheme";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export function AchievementTabs({ tabs, activeTab, onTabPress }) {
+    const { createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const scrollViewRef = useRef(null);
     const itemLayouts = useRef({}).current;
 
@@ -37,9 +41,7 @@ export function AchievementTabs({ tabs, activeTab, onTabPress }) {
                         onPress={() => onTabPress(tab.id)}
                         style={[styles.tab, isActive && styles.activeTab]}
                     >
-                        <Text style={[styles.tabText, isActive && styles.activeTabText]}>
-                            {tab.title}
-                        </Text>
+                        <Text style={styles.tabText}>{tab.title}</Text>
                     </TouchableOpacity>
                 );
             })}
@@ -47,38 +49,28 @@ export function AchievementTabs({ tabs, activeTab, onTabPress }) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        paddingHorizontal: 20,
-        paddingVertical: 12,
-        alignItems: "center",
-        flexDirection: "row",
-    },
-    tab: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 14,
-        backgroundColor: "rgba(255, 255, 255, 0.04)",
-        marginRight: 8,
-        borderWidth: 1,
-        borderColor: "rgba(255, 255, 255, 0.03)",
-    },
-    activeTab: {
-        backgroundColor: "#7D8AFF",
-        borderColor: "#7D8AFF",
-        shadowColor: "#7D8AFF",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 6,
-        elevation: 3,
-    },
-    tabText: {
-        color: "rgba(255, 255, 255, 0.6)",
-        fontSize: 14,
-        fontWeight: "600",
-    },
-    activeTabText: {
-        color: "#ffffff",
-        fontWeight: "700",
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        container: {
+            paddingHorizontal: 20,
+            paddingVertical: 12,
+            alignItems: "center",
+            flexDirection: "row",
+        },
+        tab: {
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            borderRadius: 14,
+            marginRight: 8,
+            borderWidth: 1,
+            borderColor: theme.accent,
+        },
+        activeTab: {
+            backgroundColor: theme.accent,
+        },
+        tabText: {
+            color: theme.text,
+            fontSize: 14,
+            fontWeight: "600",
+        },
+    });

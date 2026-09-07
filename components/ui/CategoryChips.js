@@ -4,7 +4,7 @@ import React, {
     forwardRef,
     useState,
     useEffect,
-    useMemo,
+    useCallback,
 } from "react";
 import {
     ScrollView,
@@ -15,171 +15,153 @@ import {
     Dimensions,
     Animated,
 } from "react-native";
+import { useTheme } from "../../hooks/useTheme";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-export const CategoryChips = forwardRef(
-    ({ categories, activeCategory, onPress, scrollX }, ref) => {
-        const scrollViewRef = useRef(null);
-        const [itemLayouts, setItemLayouts] = useState({});
+export const CategoryChips = forwardRef(({ categories, activeCategory, onPress, scrollX }, ref) => {
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
 
-        // Сбрасываем замеры только если список категорий физически изменился
-        useEffect(() => {
-            setItemLayouts({});
-        }, [categories]);
+    const scrollViewRef = useRef(null);
+    const layoutsRef = useRef({});
 
-        useEffect(() => {
-            const activeIndex = categories.indexOf(activeCategory);
-            const layout = itemLayouts[activeIndex];
+    const [isMeasured, setIsMeasured] = useState(false);
 
-            // Ключевое изменение: скроллим ТОЛЬКО когда замеры для ЭТОГО индекса готовы
-            if (activeIndex !== -1 && layout) {
-                const scrollToX =
-                    layout.x - SCREEN_WIDTH / 2 + layout.width / 2;
+    const scrollToCategory = useCallback((index) => {
+        const layout = layoutsRef.current[index];
+        if (layout && scrollViewRef.current) {
+            const scrollToX = layout.x - SCREEN_WIDTH / 2 + layout.width / 2;
+            scrollViewRef.current.scrollTo({
+                x: Math.max(0, scrollToX),
+                animated: true,
+            });
+        }
+    }, []);
 
-                // Используем requestAnimationFrame, чтобы дождаться окончания отрисовки
-                requestAnimationFrame(() => {
-                    scrollViewRef.current?.scrollTo({
-                        x: Math.max(0, scrollToX),
-                        animated: true,
-                    });
-                });
-            }
-        }, [activeCategory, itemLayouts]);
+    useEffect(() => {
+        const activeIndex = categories.indexOf(activeCategory);
+        if (activeIndex !== -1) {
+            requestAnimationFrame(() => scrollToCategory(activeIndex));
+        }
+    }, [activeCategory, categories, scrollToCategory]);
 
-        const { input, outX, outW } = useMemo(() => {
-            const keys = Object.keys(itemLayouts);
-            // Если замеров еще нет или их мало — индикатор просто не виден (width: 0)
-            if (keys.length < categories.length || keys.length === 0) {
-                return { input: [0, 1], outX: [0, 0], outW: [0, 0] };
-            }
+    useImperativeHandle(ref, () => ({
+        scrollToIndex: (index) => scrollToCategory(index),
+    }));
 
-            const measuredIndices = keys.map(Number).sort((a, b) => a - b);
+    const handleLayout = (index, event) => {
+        const { x, width } = event.nativeEvent.layout;
+        layoutsRef.current[index] = { x, width };
+
+        if (Object.keys(layoutsRef.current).length === categories.length) {
+            if (!isMeasured) setIsMeasured(true);
+        }
+    };
+
+    const getInterpolationRanges = () => {
+        const total = categories.length;
+        const measuredKeys = Object.keys(layoutsRef.current).map(Number);
+
+        if (measuredKeys.length < total) {
             return {
-                input: measuredIndices.map((i) => i * SCREEN_WIDTH),
-                outX: measuredIndices.map((i) => itemLayouts[i].x),
-                outW: measuredIndices.map((i) => itemLayouts[i].width),
+                inputRange: [0, SCREEN_WIDTH],
+                outputX: [0, 0],
+                outputW: [0, 0],
             };
-        }, [itemLayouts, categories.length]);
+        }
 
-        const translateX = scrollX.interpolate({
-            inputRange: input,
-            outputRange: outX,
-            extrapolate: "clamp",
-        });
+        const inputRange = categories.map((_, i) => i * SCREEN_WIDTH);
+        const outputX = categories.map((_, i) => layoutsRef.current[i]?.x || 0);
+        const outputW = categories.map((_, i) => layoutsRef.current[i]?.width || 0);
 
-        const chipWidth = scrollX.interpolate({
-            inputRange: input,
-            outputRange: outW,
-            extrapolate: "clamp",
-        });
+        return { inputRange, outputX, outputW };
+    };
 
-        useImperativeHandle(ref, () => ({
-            scrollToIndex: (index) => {
-                const layout = itemLayouts[index];
-                if (layout) {
-                    const scrollToX =
-                        layout.x - SCREEN_WIDTH / 2 + layout.width / 2;
-                    scrollViewRef.current?.scrollTo({
-                        x: Math.max(0, scrollToX),
-                        animated: true,
-                    });
-                }
-            },
-        }));
+    const { inputRange, outputX, outputW } = getInterpolationRanges();
 
-        return (
-            <View style={styles.container}>
-                <ScrollView
-                    ref={scrollViewRef}
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.contentContainer}
-                >
-                    <Animated.View
-                        style={[
-                            styles.activeIndicator,
-                            {
-                                width: chipWidth,
-                                transform: [{ translateX }],
-                                // Показываем индикатор только когда есть расчетные данные
-                                opacity: input.length > 1 ? 1 : 0,
-                            },
-                        ]}
-                    />
+    const translateX = scrollX.interpolate({
+        inputRange,
+        outputRange: outputX,
+        extrapolate: "clamp",
+    });
 
-                    {categories.map((cat, index) => (
+    const chipWidth = scrollX.interpolate({
+        inputRange,
+        outputRange: outputW,
+        extrapolate: "clamp",
+    });
+
+    return (
+        <View style={styles.container}>
+            <ScrollView
+                ref={scrollViewRef}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.contentContainer}
+            >
+                <Animated.View
+                    style={[
+                        styles.activeIndicator,
+                        {
+                            width: chipWidth,
+                            transform: [{ translateX }],
+                            opacity: isMeasured ? 1 : 0,
+                        },
+                    ]}
+                />
+
+                {categories.map((cat, index) => {
+                    return (
                         <TouchableOpacity
                             key={`${cat}-${index}`}
-                            onLayout={(e) => {
-                                const { x, width } = e.nativeEvent.layout;
-                                setItemLayouts((prev) => ({
-                                    ...prev,
-                                    [index]: { x, width },
-                                }));
-                            }}
+                            onLayout={(e) => handleLayout(index, e)}
                             onPress={() => onPress(cat, index)}
                             activeOpacity={0.7}
                             style={styles.chip}
                         >
-                            <Text
-                                style={[
-                                    styles.chipText,
-                                    activeCategory === cat && styles.activeText,
-                                ]}
-                            >
-                                {cat}
-                            </Text>
+                            <Text style={styles.chipText}>{cat}</Text>
                         </TouchableOpacity>
-                    ))}
-                </ScrollView>
-            </View>
-        );
-    },
-);
-
-const styles = StyleSheet.create({
-    container: {
-        height: 50,
-        marginBottom: 10,
-    },
-    contentContainer: {
-        paddingHorizontal: 16,
-        alignItems: "center",
-        flexDirection: "row",
-    },
-    activeIndicator: {
-        position: "absolute",
-        height: 38,
-        backgroundColor: "#7D8AFF",
-        borderRadius: 20,
-        shadowColor: "#7D8AFF",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 5,
-        // Добавляем left: 0, чтобы translateX считал позицию от начала контейнера
-        left: 0,
-    },
-    chip: {
-        paddingHorizontal: 18,
-        paddingVertical: 8,
-        borderRadius: 20,
-        backgroundColor: "rgba(255, 255, 255, 0.08)",
-        marginRight: 10,
-        borderWidth: 1,
-        borderColor: "rgba(255, 255, 255, 0.05)",
-        justifyContent: "center",
-        alignItems: "center",
-        minWidth: 60,
-    },
-    chipText: {
-        color: "#ffffff",
-        fontSize: 14,
-        fontWeight: "500",
-        zIndex: 2,
-    },
-    activeChipText: {
-        color: "#FFFFFF",
-    },
+                    );
+                })}
+            </ScrollView>
+        </View>
+    );
 });
+
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        container: {
+            height: 50,
+            marginBottom: 10,
+        },
+        contentContainer: {
+            paddingHorizontal: 16,
+            alignItems: "center",
+            flexDirection: "row",
+        },
+        activeIndicator: {
+            position: "absolute",
+            left: 0,
+            height: 38,
+            backgroundColor: theme.accent,
+            borderRadius: 20,
+        },
+        chip: {
+            paddingHorizontal: 18,
+            paddingVertical: 8,
+            borderRadius: 20,
+            marginRight: 10,
+            borderWidth: 1,
+            borderColor: theme.accent,
+            justifyContent: "center",
+            alignItems: "center",
+            minWidth: 60,
+        },
+        chipText: {
+            color: theme.text,
+            fontSize: 14,
+            fontWeight: "500",
+            zIndex: 2,
+        },
+    });

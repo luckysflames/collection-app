@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -9,9 +9,13 @@ import { useImagePicker } from "../hooks/useImagePicker";
 import { prepareDataForSave } from "../utils/prepareDetailsData";
 
 import { HeaderSection } from "../components/screens/Details/HeaderSection";
-import { EditForm } from "../components/screens/Details/Edit/EditForm";
+import { EditSection } from "../components/screens/Details/Edit/EditSection";
+import { useTheme } from "../hooks/useTheme";
 
 export default function EditCardScreen({ route, navigation }) {
+    const { createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const insets = useSafeAreaInsets();
     const { item, category, displayData } = route.params;
     const { pickImage } = useImagePicker();
@@ -19,7 +23,6 @@ export default function EditCardScreen({ route, navigation }) {
     const updateCard = useCollectionStore((state) => state.updateCard);
     const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
 
-    // Инициализируем форму. Передаем true, так как мы всегда в режиме редактирования
     const [editForm, updateField] = useEditForm(true, {
         ...displayData,
         status: displayData.status || item?.status || "",
@@ -30,7 +33,7 @@ export default function EditCardScreen({ route, navigation }) {
         const finalData = prepareDataForSave(editForm, cardType);
         updateCard(item.id, finalData);
         navigation.goBack();
-    }, [editForm, item, category, navigation]);
+    }, [editForm, item, category, navigation, updateCard]);
 
     return (
         <View style={styles.container}>
@@ -55,22 +58,13 @@ export default function EditCardScreen({ route, navigation }) {
                     }}
                 />
                 <View style={styles.infoContainer}>
-                    <EditForm
+                    <EditSection
                         form={editForm}
                         updateField={updateField}
                         type={item.type || category}
+                        onSave={onSave}
+                        onCancel={() => navigation.goBack()}
                     />
-
-                    <TouchableOpacity style={styles.saveButton} onPress={onSave}>
-                        <Text style={styles.saveButtonText}>Сохранить изменения</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={styles.cancelButton}
-                        onPress={() => navigation.goBack()}
-                    >
-                        <Text style={styles.cancelButtonText}>Отмена</Text>
-                    </TouchableOpacity>
                 </View>
 
                 <View
@@ -83,30 +77,15 @@ export default function EditCardScreen({ route, navigation }) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "#050B18" },
-    infoContainer: {
-        padding: 20,
-        backgroundColor: "#050B18",
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
-        minHeight: 500,
-    },
-    scroll: { flex: 1 },
-    saveButton: {
-        backgroundColor: "#7D8AFF",
-        height: 58,
-        borderRadius: 18,
-        justifyContent: "center",
-        alignItems: "center",
-        marginTop: 20,
-    },
-    saveButtonText: { color: "#FFF", fontSize: 16, fontWeight: "700" },
-    cancelButton: {
-        height: 58,
-        justifyContent: "center",
-        alignItems: "center",
-        marginTop: 10,
-    },
-    cancelButtonText: { color: "#8E94A4", fontSize: 16, fontWeight: "600" },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        container: { flex: 1, backgroundColor: theme.dark },
+        infoContainer: {
+            padding: 20,
+            backgroundColor: theme.dark,
+            borderTopLeftRadius: 30,
+            borderTopRightRadius: 30,
+            minHeight: 500,
+        },
+        scroll: { flex: 1 },
+    });

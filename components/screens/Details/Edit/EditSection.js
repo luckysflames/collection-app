@@ -3,8 +3,12 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { EditForm } from "./EditForm";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTheme } from "../../../../hooks/useTheme";
 
 export const EditSection = ({ form, updateField, type, onSave, onCancel }) => {
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const insets = useSafeAreaInsets();
 
     return (
@@ -25,22 +29,28 @@ export const EditSection = ({ form, updateField, type, onSave, onCancel }) => {
     );
 };
 
-const styles = StyleSheet.create({
-    saveButton: {
-        backgroundColor: "#7D8AFF",
-        padding: 15,
-        borderRadius: 12,
-        alignItems: "center",
-        marginTop: 15,
-    },
-    saveButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-    cancelButton: {
-        padding: 15,
-        alignItems: "center",
-        marginTop: 10,
-    },
-    cancelButtonText: {
-        color: "#8E94A4",
-        fontSize: 14,
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        saveButton: {
+            alignItems: "center",
+            padding: 15,
+            marginTop: 15,
+            borderRadius: 12,
+            backgroundColor: theme.accent,
+        },
+        saveButtonText: { color: theme.text, fontSize: 16, fontWeight: "bold" },
+        cancelButton: {
+            alignItems: "center",
+            padding: 15,
+            marginTop: 10,
+            borderWidth: 1,
+            borderRadius: 12,
+            borderColor: theme.red,
+            backgroundColor: theme.redMuted,
+        },
+        cancelButtonText: {
+            color: theme.red,
+            fontSize: 16,
+            fontWeight: "bold",
+        },
+    });

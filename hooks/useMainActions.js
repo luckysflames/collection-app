@@ -1,7 +1,6 @@
 import { useCallback, useRef } from "react";
 import { useCollectionStore } from "../store/useCollectionStore";
-import { Platform, Vibration } from "react-native";
-import * as Haptics from "expo-haptics";
+import { Vibration } from "react-native";
 import { FAVORITE_STATUS } from "../constants/index";
 import { matchesFilterValue } from "../utils/filterUtils";
 
@@ -9,7 +8,7 @@ export const useMainActions = (
     currentSection,
     activeCategory,
     navigation,
-    activeFilters = {}, // Добавляем фильтры в аргументы
+    activeFilters = {},
 ) => {
     const myCollection = useCollectionStore((state) => state.myCollection);
     const updateCard = useCollectionStore((state) => state.updateCard);
@@ -34,10 +33,7 @@ export const useMainActions = (
 
     const handleCardLongPress = useCallback(
         async (item) => {
-            Platform.OS === "android"
-                ? Vibration.vibrate([0, 30, 1, 30])
-                : Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
+            Vibration.vibrate([0, 30, 1, 30]);
             updateCard(item.id, { isPinned: !item.isPinned });
         },
         [updateCard],
@@ -48,9 +44,7 @@ export const useMainActions = (
         const matchesFilters = (item) => {
             if (Object.keys(activeFilters).length === 0) return true;
 
-            for (const [filterKey, filterValue] of Object.entries(
-                activeFilters,
-            )) {
+            for (const [filterKey, filterValue] of Object.entries(activeFilters)) {
                 if (!matchesFilterValue(item, filterKey, filterValue)) {
                     return false;
                 }
@@ -61,8 +55,7 @@ export const useMainActions = (
         // --- 2. Фильтруем доступные элементы ---
         const availableItems = myCollection.filter((item) => {
             // Базовые исключения: папки никогда не участвуют в рандоме, только текущий раздел
-            if (item.isFolder || item.appSection !== currentSection)
-                return false;
+            if (item.isFolder || item.appSection !== currentSection) return false;
 
             // Применяем активные фильтры (жанры, рейтинг и т.д.)
             if (!matchesFilters(item)) return false;
@@ -88,8 +81,7 @@ export const useMainActions = (
                 ? availableItems.filter((i) => i.id !== lastRandomId.current)
                 : availableItems;
 
-        const randomItem =
-            finalPool[Math.floor(Math.random() * finalPool.length)];
+        const randomItem = finalPool[Math.floor(Math.random() * finalPool.length)];
 
         // Сохраняем ID для следующего исключения
         lastRandomId.current = randomItem.id;
@@ -98,13 +90,7 @@ export const useMainActions = (
             item: randomItem,
             category: currentSection,
         });
-    }, [
-        myCollection,
-        currentSection,
-        activeCategory,
-        navigation,
-        activeFilters,
-    ]);
+    }, [myCollection, currentSection, activeCategory, navigation, activeFilters]);
 
     return { handleCardPress, handleCardLongPress, handleRandomCard };
 };

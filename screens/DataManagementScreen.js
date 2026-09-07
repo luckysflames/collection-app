@@ -1,20 +1,20 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Keyboard } from "react-native";
+import React from "react";
+import { View, StyleSheet, TextInput } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { Ionicons } from "@expo/vector-icons";
 
 import { useCollectionStore } from "../store/useCollectionStore";
 import { WarnModal } from "../components/ui/WarnModal";
 import { StatusManagerHeader } from "../components/screens/Settings/Statuses/StatusManagerHeader";
-import { DangerItem } from "../components/screens/Settings/DataManagement/DangerItem";
 import { DangerZone } from "../components/screens/Settings/DataManagement/DangerZone";
 import { PasswordCard } from "../components/screens/Settings/DataManagement/PasswordCard/PasswordCard";
 import { useDataManagement } from "../hooks/useDataManagement";
-
-const MASTER_KEY = process.env.EXPO_PUBLIC_MY_SUPER_PUPER_SECRET_KEY_WORD;
+import { useTheme } from "../hooks/useTheme";
 
 export const DataManagementScreen = ({ navigation }) => {
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const insets = useSafeAreaInsets();
     const store = useCollectionStore();
     const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
@@ -61,7 +61,6 @@ export const DataManagementScreen = ({ navigation }) => {
             <WarnModal
                 {...state.modalConfig}
                 onClose={actions.closeModal}
-                // Блокируем, если нужен пароль и введено меньше 4 символов
                 confirmDisabled={state.modalConfig.needsPassword && state.confirmInput.length < 4}
                 onConfirm={
                     state.modalConfig.onConfirm
@@ -73,7 +72,7 @@ export const DataManagementScreen = ({ navigation }) => {
                     <TextInput
                         style={styles.modalInput}
                         placeholder="Введите мастер-пароль"
-                        placeholderTextColor="#666"
+                        placeholderTextColor={theme.textDark}
                         secureTextEntry
                         autoFocus
                         value={state.confirmInput}
@@ -85,19 +84,20 @@ export const DataManagementScreen = ({ navigation }) => {
     );
 };
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "#050B18" },
-    flex1: { flex: 1 },
-    scrollContent: { paddingHorizontal: 20, paddingTop: 10 },
-    modalInput: {
-        backgroundColor: "rgba(255,255,255,0.05)",
-        borderRadius: 14,
-        color: "#FFF",
-        padding: 16,
-        width: "100%",
-        borderWidth: 1,
-        borderColor: "rgba(255,107,107,0.3)",
-        textAlign: "center",
-        fontSize: 18,
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        container: { flex: 1, backgroundColor: theme.dark },
+        flex1: { flex: 1 },
+        scrollContent: { paddingHorizontal: 20, paddingTop: 10 },
+        modalInput: {
+            backgroundColor: theme.main,
+            borderRadius: 14,
+            color: theme.text,
+            padding: 16,
+            width: "100%",
+            borderWidth: 1,
+            borderColor: theme.red,
+            textAlign: "center",
+            fontSize: 18,
+        },
+    });

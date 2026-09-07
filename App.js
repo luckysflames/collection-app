@@ -2,11 +2,12 @@ import React, { useEffect, useRef, useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { createStackNavigator, CardStyleInterpolators } from "@react-navigation/stack";
+import { createStackNavigator } from "@react-navigation/stack";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-// Stores & Components
+// Stores, Hooks & Components
 import { useCollectionStore } from "./store/useCollectionStore";
+import { useTheme } from "./hooks/useTheme"; // 1. Импортируем useTheme
 import MyCustomTabBar from "./components/layout/TabBar/MyCustomTabBar";
 import { SecurityAlertModal } from "./components/ui/SecurityAlertModal";
 import { AchivementNotifier } from "./components/screens/Achievements/AchivementNotifier";
@@ -26,29 +27,17 @@ import AchievementsScreen from "./screens/AchievementsScreen";
 
 const Tab = createBottomTabNavigator();
 
-// Создаем изолированные стеки для каждой вкладки
 const SearchStack = createStackNavigator();
 const CreateStack = createStackNavigator();
 const CollectionStack = createStackNavigator();
 const SettingsStack = createStackNavigator();
 
-const THEME_COLOR = "#050B18";
-
-const AppTheme = {
-    ...DefaultTheme,
-    colors: { ...DefaultTheme.colors, background: THEME_COLOR },
-};
-
-const DEFAULT_STACK_OPTIONS = {
-    headerShown: false,
-    cardStyle: { backgroundColor: THEME_COLOR },
-    animationEnabled: true,
-};
+const FALLBACK_MAIN_COLOR = "#050B18";
 
 // --- СТЕК ВКЛАДКИ: ПОИСК ---
-function SearchStackScreen() {
+function SearchStackScreen({ screenOptions }) {
     return (
-        <SearchStack.Navigator screenOptions={DEFAULT_STACK_OPTIONS}>
+        <SearchStack.Navigator screenOptions={screenOptions}>
             <SearchStack.Screen name="SearchMain" component={SearchScreen} />
             <SearchStack.Screen name="Details" component={DetailsScreen} />
         </SearchStack.Navigator>
@@ -56,18 +45,18 @@ function SearchStackScreen() {
 }
 
 // --- СТЕК ВКЛАДКИ: СОЗДАТЬ ---
-function CreateStackScreen() {
+function CreateStackScreen({ screenOptions }) {
     return (
-        <CreateStack.Navigator screenOptions={DEFAULT_STACK_OPTIONS}>
+        <CreateStack.Navigator screenOptions={screenOptions}>
             <CreateStack.Screen name="CreateMain" component={AddCardScreen} />
         </CreateStack.Navigator>
     );
 }
 
 // --- СТЕК ВКЛАДКИ: КОЛЛЕКЦИЯ ---
-function CollectionStackScreen() {
+function CollectionStackScreen({ screenOptions }) {
     return (
-        <CollectionStack.Navigator screenOptions={DEFAULT_STACK_OPTIONS}>
+        <CollectionStack.Navigator screenOptions={screenOptions}>
             <CollectionStack.Screen name="Дашборд" component={CollectionDashboard} />
             <CollectionStack.Screen name="MainScreen" component={MainScreen} />
             <CollectionStack.Screen name="Details" component={DetailsScreen} />
@@ -76,8 +65,7 @@ function CollectionStackScreen() {
                 name="EditCard"
                 component={EditCardScreen}
                 options={{
-                    animationEnabled: true,
-                    cardStyleInterpolator: CardStyleInterpolators.forFadeFromBottomAndroid,
+                    animation: "fade",
                 }}
             />
             <CollectionStack.Screen name="Achievements" component={AchievementsScreen} />
@@ -86,9 +74,9 @@ function CollectionStackScreen() {
 }
 
 // --- СТЕК ВКЛАДКИ: НАСТРОЙКИ ---
-function SettingsStackScreen() {
+function SettingsStackScreen({ screenOptions }) {
     return (
-        <SettingsStack.Navigator screenOptions={DEFAULT_STACK_OPTIONS}>
+        <SettingsStack.Navigator screenOptions={screenOptions}>
             <SettingsStack.Screen name="SettingsMain" component={SettingsScreen} />
             <SettingsStack.Screen name="StatusManager" component={StatusManagerScreen} />
             <SettingsStack.Screen name="DataManagement" component={DataManagementScreen} />
@@ -103,6 +91,31 @@ export default function App() {
 
     const { _hasHydrated, deletionPassword } = useCollectionStore();
 
+    // 2. Получаем текущие динамические цвета темы
+    const { theme } = useTheme();
+    const currentMainColor = theme?.dark || FALLBACK_MAIN_COLOR;
+    const currentAccentColor = theme?.accent || "#7D8AFF";
+
+    // 3. Собираем объект темы NavigationContainer с учетом вычисляемых цветов
+    const AppTheme = {
+        ...DefaultTheme,
+        colors: {
+            ...DefaultTheme.colors,
+            background: currentMainColor,
+            card: currentMainColor,
+            primary: currentAccentColor,
+            text: theme?.text || "#FFFFFF",
+            border: currentAccentColor,
+        },
+    };
+
+    // 4. Генерируем опции для стеков с динамическим фоном
+    const defaultStackOptions = {
+        headerShown: false,
+        cardStyle: { backgroundColor: currentMainColor },
+        animationEnabled: true,
+    };
+
     useEffect(() => {
         if (_hasHydrated && !deletionPassword) {
             const timer = setTimeout(() => setShowSecurityModal(true), 1000);
@@ -110,7 +123,6 @@ export default function App() {
         }
     }, [_hasHydrated, deletionPassword]);
 
-    // Важно: Теперь роут DataManagement находится внутри стека Настроек
     const handleGoToSettings = () => {
         setShowSecurityModal(false);
         navigationRef.current?.navigate("Настройки", {
@@ -121,31 +133,37 @@ export default function App() {
 
     if (!_hasHydrated) {
         return (
-            <SafeAreaProvider style={{ backgroundColor: THEME_COLOR }}>
+            <SafeAreaProvider style={{ backgroundColor: currentMainColor }}>
                 <StatusBar style="light" />
             </SafeAreaProvider>
         );
     }
 
     return (
-        <SafeAreaProvider>
-            <SafeAreaView style={{ flex: 1, backgroundColor: THEME_COLOR }} edges={["top"]}>
+        <SafeAreaProvider style={{ backgroundColor: currentMainColor }}>
+            <SafeAreaView style={{ flex: 1, backgroundColor: currentMainColor }} edges={["top"]}>
                 <NavigationContainer theme={AppTheme} ref={navigationRef}>
                     <StatusBar style="light" />
 
-                    {/* Табы теперь являются КОРНЕМ всей навигации приложения */}
                     <Tab.Navigator
                         tabBar={(props) => <MyCustomTabBar {...props} />}
                         screenOptions={{ headerShown: false, animation: "fade" }}
                         initialRouteName="Коллекция"
                     >
-                        <Tab.Screen name="Поиск" component={SearchStackScreen} />
-                        <Tab.Screen name="Создать" component={CreateStackScreen} />
-                        <Tab.Screen name="Коллекция" component={CollectionStackScreen} />
-                        <Tab.Screen name="Настройки" component={SettingsStackScreen} />
+                        <Tab.Screen name="Коллекция">
+                            {() => <CollectionStackScreen screenOptions={defaultStackOptions} />}
+                        </Tab.Screen>
+                        <Tab.Screen name="Поиск">
+                            {() => <SearchStackScreen screenOptions={defaultStackOptions} />}
+                        </Tab.Screen>
+                        <Tab.Screen name="Создать">
+                            {() => <CreateStackScreen screenOptions={defaultStackOptions} />}
+                        </Tab.Screen>
+                        <Tab.Screen name="Настройки">
+                            {() => <SettingsStackScreen screenOptions={defaultStackOptions} />}
+                        </Tab.Screen>
                     </Tab.Navigator>
 
-                    {/* Глобальные оверлеи остаются поверх табов */}
                     <AchivementNotifier />
 
                     <SecurityAlertModal

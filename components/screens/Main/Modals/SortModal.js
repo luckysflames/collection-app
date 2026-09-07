@@ -1,12 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    Animated,
-    Dimensions,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions } from "react-native";
 import {
     Check,
     Clock,
@@ -23,6 +16,7 @@ import {
 } from "lucide-react-native";
 import { BottomSheet } from "../../../ui/BottomSheet";
 import { SORT_TYPES, SORT_SUB_OPTIONS } from "../../../..//constants/index";
+import { useTheme } from "../../../../hooks/useTheme";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -47,6 +41,9 @@ export const SortModal = ({
     onSelectSort,
     isInsideFolder = false,
 }) => {
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const [viewLevel, setViewLevel] = useState("main");
     const [selectedType, setSelectedType] = useState(null);
     const [pendingSort, setPendingSort] = useState(currentSort);
@@ -99,42 +96,26 @@ export const SortModal = ({
                 key={item.id}
                 onPress={onPress}
                 activeOpacity={0.7}
-                style={[
-                    styles.optionItem,
-                    isSelected && styles.optionItemActive,
-                ]}
+                style={[styles.optionItem, isSelected && styles.optionItemActive]}
             >
                 <View style={styles.optionLeft}>
-                    <View
-                        style={[
-                            styles.iconBox,
-                            isSelected && styles.iconBoxActive,
-                        ]}
-                    >
+                    <View style={[styles.iconBox, isSelected && styles.iconBoxActive]}>
                         {IconComponent && (
                             <IconComponent
                                 size={20}
-                                // Иконка становится ярко-синей при выборе
-                                color={isSelected ? "#7D8AFF" : "#8E94A4"}
+                                color={isSelected ? theme.text : theme.textDark}
                             />
                         )}
                     </View>
-                    <Text
-                        style={[
-                            styles.optionLabel,
-                            isSelected && styles.optionLabelActive,
-                        ]}
-                    >
+                    <Text style={[styles.optionLabel, isSelected && styles.optionLabelActive]}>
                         {item.label}
                     </Text>
                 </View>
 
                 {viewLevel === "main" ? (
-                    <ChevronRight size={20} color="rgba(142, 148, 164, 0.3)" />
+                    <ChevronRight size={20} color={theme.textDark} />
                 ) : (
-                    isSelected && (
-                        <Check size={20} color="#7D8AFF" strokeWidth={3} />
-                    )
+                    isSelected && <Check size={20} color={theme.accent} strokeWidth={3} />
                 )}
             </TouchableOpacity>
         );
@@ -146,27 +127,17 @@ export const SortModal = ({
             onClose={onClose}
             containerStyle={styles.bottomSheetCustom}
         >
-            {/* Header */}
             <View style={styles.header}>
                 {viewLevel === "sub" && (
                     <TouchableOpacity onPress={goBack} style={styles.backBtn}>
-                        <ChevronLeft size={24} color="#fff" />
+                        <ChevronLeft size={24} color={theme.text} />
                     </TouchableOpacity>
                 )}
-                <Text style={styles.title}>
-                    {viewLevel === "sub" ? "Параметры" : "Сортировка"}
-                </Text>
+                <Text style={styles.title}>{viewLevel === "sub" ? "Параметры" : "Сортировка"}</Text>
             </View>
 
-            {/* Content */}
             <View style={styles.overflowHidden}>
-                <Animated.View
-                    style={[
-                        styles.flexRow,
-                        { transform: [{ translateX: slideAnim }] },
-                    ]}
-                >
-                    {/* Page 1: Main Categories */}
+                <Animated.View style={[styles.flexRow, { transform: [{ translateX: slideAnim }] }]}>
                     <View style={styles.page}>
                         <View style={styles.optionsContainer}>
                             {visibleSortTypes.map((type) => {
@@ -175,22 +146,17 @@ export const SortModal = ({
                                     SORT_SUB_OPTIONS[type.id]?.some(
                                         (sub) => sub.id === currentSort,
                                     );
-                                return renderOption(type, isActive, () =>
-                                    goToSubLevel(type.id),
-                                );
+                                return renderOption(type, isActive, () => goToSubLevel(type.id));
                             })}
                         </View>
                     </View>
 
-                    {/* Page 2: Sub Options */}
                     <View style={styles.page}>
                         <View style={styles.optionsContainer}>
                             {selectedType &&
                                 SORT_SUB_OPTIONS[selectedType]?.map((sub) =>
-                                    renderOption(
-                                        sub,
-                                        pendingSort === sub.id,
-                                        () => handleSelect(sub.id),
+                                    renderOption(sub, pendingSort === sub.id, () =>
+                                        handleSelect(sub.id),
                                     ),
                                 )}
                         </View>
@@ -201,86 +167,85 @@ export const SortModal = ({
     );
 };
 
-const styles = StyleSheet.create({
-    bottomSheetCustom: {
-        backgroundColor: "#0B1534",
-        paddingHorizontal: 0,
-    },
-    header: {
-        height: 60,
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        paddingHorizontal: 20,
-        marginBottom: 10,
-    },
-    title: {
-        fontSize: 20,
-        fontWeight: "bold",
-        color: "#fff",
-    },
-    backBtn: {
-        position: "absolute",
-        left: 20,
-        width: 40,
-        height: 40,
-        justifyContent: "center",
-        alignItems: "flex-start",
-        zIndex: 10,
-    },
-    overflowHidden: {
-        overflow: "hidden",
-        width: SCREEN_WIDTH,
-    },
-    flexRow: {
-        flexDirection: "row",
-        width: SCREEN_WIDTH * 2,
-    },
-    page: {
-        width: SCREEN_WIDTH,
-        paddingHorizontal: 20,
-    },
-    optionsContainer: {
-        gap: 8,
-    },
-    optionItem: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        paddingVertical: 12,
-        paddingHorizontal: 12,
-        borderRadius: 18,
-        backgroundColor: "rgba(255, 255, 255, 0.02)",
-        borderWidth: 1,
-        borderColor: "transparent",
-    },
-    optionItemActive: {
-        backgroundColor: "rgba(125, 138, 255, 0.06)",
-        borderColor: "rgba(125, 138, 255, 0.15)",
-    },
-    optionLeft: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
-    iconBox: {
-        width: 44,
-        height: 44,
-        borderRadius: 12,
-        backgroundColor: "rgba(255, 255, 255, 0.03)",
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    iconBoxActive: {
-        backgroundColor: "rgba(125, 138, 255, 0.1)",
-    },
-    optionLabel: {
-        fontSize: 16,
-        color: "#8E94A4",
-        marginLeft: 15,
-        fontWeight: "500",
-    },
-    optionLabelActive: {
-        color: "#fff",
-        fontWeight: "600",
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        bottomSheetCustom: {
+            backgroundColor: theme.main,
+        },
+        header: {
+            height: 60,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            paddingHorizontal: 20,
+            marginBottom: 10,
+        },
+        title: {
+            fontSize: 20,
+            fontWeight: "bold",
+            color: theme.text,
+        },
+        backBtn: {
+            position: "absolute",
+            left: 20,
+            width: 40,
+            height: 40,
+            justifyContent: "center",
+            alignItems: "flex-start",
+            zIndex: 10,
+        },
+        overflowHidden: {
+            overflow: "hidden",
+            width: SCREEN_WIDTH,
+        },
+        flexRow: {
+            flexDirection: "row",
+            width: SCREEN_WIDTH * 2,
+        },
+        page: {
+            width: SCREEN_WIDTH,
+            paddingHorizontal: 20,
+        },
+        optionsContainer: {
+            gap: 8,
+        },
+        optionItem: {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingVertical: 12,
+            paddingHorizontal: 12,
+            borderRadius: 18,
+            borderWidth: 1,
+            borderColor: theme.accentMuted,
+        },
+        optionItemActive: {
+            backgroundColor: theme.accentMuted,
+            borderColor: theme.accent,
+        },
+        optionLeft: {
+            flexDirection: "row",
+            alignItems: "center",
+        },
+        iconBox: {
+            width: 44,
+            height: 44,
+            borderRadius: 12,
+            backgroundColor: theme.accentMuted,
+            justifyContent: "center",
+            alignItems: "center",
+        },
+        iconBoxActive: {
+            backgroundColor: theme.accent,
+        },
+        optionLabel: {
+            fontSize: 16,
+            color: theme.textDark,
+            marginLeft: 15,
+            fontWeight: "500",
+        },
+        optionLabelActive: {
+            color: theme.text,
+            fontWeight: "600",
+        },
+    });

@@ -15,8 +15,12 @@ import { CategoryOrderList } from "../components/screens/Settings/Statuses/Categ
 import { StatusInput } from "../components/screens/Settings/Statuses/StatusInput";
 import { WarnModal } from "../components/ui/WarnModal";
 import { SortModal } from "../components/screens/Main/Modals/SortModal";
+import { useTheme } from "../hooks/useTheme";
 
 export const StatusManagerScreen = ({ navigation }) => {
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const insets = useSafeAreaInsets();
     const store = useCollectionStore();
     const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
@@ -24,8 +28,6 @@ export const StatusManagerScreen = ({ navigation }) => {
     const [selectedSection, setSelectedSection] = useState(SECTIONS[0].id);
     const [modalConfig, setModalConfig] = useState({ visible: false });
     const [isSortModalVisible, setIsSortModalVisible] = useState(false);
-
-    // Блокировщик скролла при перетаскивании элементов
     const [isDragging, setIsDragging] = useState(false);
 
     const {
@@ -44,7 +46,6 @@ export const StatusManagerScreen = ({ navigation }) => {
         updateCategoryOrder,
     } = useStatusManager(store);
 
-    // Сортируем секции для нижних табов на основе измененного порядка сверху
     const orderedSections = useMemo(() => {
         return allLocalCategoryOrder
             .map((categoryId) => SECTIONS.find((s) => s.id === categoryId))
@@ -123,7 +124,6 @@ export const StatusManagerScreen = ({ navigation }) => {
                 scrollEnabled={!isDragging}
                 showsVerticalScrollIndicator={false}
             >
-                {/* === ЗОНА 1: ПОРЯДОК КАТЕГОРИЙ === */}
                 <View style={styles.globalZone}>
                     <Text style={styles.zoneBadge}>Глобальные настройки</Text>
                     <Text style={styles.sectionTitle}>Порядок разделов</Text>
@@ -140,15 +140,12 @@ export const StatusManagerScreen = ({ navigation }) => {
                     </View>
                 </View>
 
-                {/* РАЗДЕЛИТЕЛЬ */}
                 <View style={styles.divider} />
 
-                {/* === ЗОНА 2: НАСТРОЙКИ СЕКЦИИ === */}
                 <View style={styles.contextZone}>
                     <Text style={styles.zoneBadge}>Контекстные настройки</Text>
                     <Text style={styles.sectionTitle}>Выберите раздел для редактирования</Text>
 
-                    {/* ТЕПЕРЬ ПЕРЕДАЕМ СОРТИРОВАННЫЙ МАССИВ */}
                     <SectionTabs
                         sections={orderedSections}
                         selectedSection={selectedSection}
@@ -169,7 +166,7 @@ export const StatusManagerScreen = ({ navigation }) => {
                             <Text style={styles.sortValue}>
                                 {SORT_LABELS[currentSort] || "Не выбрана"}
                             </Text>
-                            <ChevronRight size={20} color="#7D8AFF" />
+                            <ChevronRight size={20} color={theme.accent} />
                         </TouchableOpacity>
                     </View>
 
@@ -219,73 +216,87 @@ export const StatusManagerScreen = ({ navigation }) => {
     );
 };
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "#050B18" },
-    flex1: { flex: 1 },
-    scrollContent: {
-        paddingHorizontal: 20,
-        paddingTop: 10,
-        paddingBottom: 40,
-    },
-    globalZone: { marginBottom: 10 },
-    contextZone: { marginTop: 10 },
-    divider: {
-        height: 1,
-        backgroundColor: "rgba(125, 138, 255, 0.12)",
-        marginVertical: 20,
-        borderStyle: "dashed",
-    },
-    zoneBadge: {
-        color: "#4E5564",
-        fontSize: 10,
-        fontWeight: "800",
-        textTransform: "uppercase",
-        letterSpacing: 1.5,
-        marginBottom: 8,
-        marginLeft: 4,
-    },
-    sectionTitle: {
-        color: "#fff",
-        fontSize: 16,
-        fontWeight: "700",
-        marginBottom: 14,
-        marginLeft: 4,
-    },
-    subSectionTitle: {
-        color: "#8E94A4",
-        fontSize: 12,
-        fontWeight: "700",
-        textTransform: "uppercase",
-        letterSpacing: 1.0,
-        marginBottom: 10,
-        marginLeft: 8,
-    },
-    contextHeader: {
-        color: "#8E94A4",
-        fontSize: 14,
-        fontWeight: "600",
-        marginTop: 10,
-        marginBottom: 20,
-        textAlign: "center",
-        backgroundColor: "rgba(125, 138, 255, 0.05)",
-        paddingVertical: 10,
-        borderRadius: 14,
-    },
-    highlightText: { color: "#7D8AFF", fontWeight: "800" },
-    card: {
-        backgroundColor: "#0B1534",
-        borderRadius: 24,
-        paddingVertical: 14,
-        paddingHorizontal: 12,
-        borderWidth: 1,
-        borderColor: "rgba(125, 138, 255, 0.08)",
-        marginBottom: 20,
-    },
-    sortButton: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        paddingHorizontal: 6,
-    },
-    sortValue: { color: "#FFF", fontSize: 15, fontWeight: "700" },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: theme.dark,
+        },
+        flex1: {
+            flex: 1,
+        },
+        scrollContent: {
+            paddingHorizontal: 20,
+            paddingTop: 10,
+            paddingBottom: 40,
+        },
+        globalZone: {
+            marginBottom: 10,
+        },
+        contextZone: {
+            marginTop: 10,
+        },
+        divider: {
+            height: 1,
+            backgroundColor: theme.accentMuted,
+            marginVertical: 20,
+        },
+        zoneBadge: {
+            color: theme.textDark,
+            fontSize: 10,
+            fontWeight: "800",
+            textTransform: "uppercase",
+            letterSpacing: 1.5,
+            marginBottom: 8,
+            marginLeft: 4,
+        },
+        sectionTitle: {
+            color: theme.text,
+            fontSize: 16,
+            fontWeight: "700",
+            marginBottom: 14,
+            marginLeft: 4,
+        },
+        subSectionTitle: {
+            color: theme.text,
+            fontSize: 12,
+            fontWeight: "700",
+            textTransform: "uppercase",
+            letterSpacing: 1.0,
+            marginBottom: 10,
+            marginLeft: 8,
+        },
+        contextHeader: {
+            color: theme.text,
+            fontSize: 14,
+            fontWeight: "600",
+            marginTop: 10,
+            marginBottom: 20,
+            textAlign: "center",
+            backgroundColor: theme.main,
+            paddingVertical: 10,
+            borderRadius: 14,
+        },
+        highlightText: {
+            color: theme.accent,
+            fontWeight: "800",
+        },
+        card: {
+            backgroundColor: theme.main,
+            borderRadius: 24,
+            paddingVertical: 14,
+            paddingHorizontal: 12,
+            marginBottom: 20,
+        },
+        sortButton: {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingHorizontal: 6,
+        },
+        sortValue: {
+            color: theme.accent,
+            fontSize: 15,
+            fontWeight: "700",
+        },
+    });

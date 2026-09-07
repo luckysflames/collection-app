@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Trash2, FolderX, AlertCircle } from "lucide-react-native";
 import { BottomSheet } from "../../../ui/BottomSheet";
+import { useTheme } from "../../../../hooks/useTheme";
 
 export default function DeleteFolderModal({
     visible,
@@ -10,55 +11,42 @@ export default function DeleteFolderModal({
     onDeleteAll,
     onDeleteOnlyFolder,
 }) {
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     return (
-        <BottomSheet
-            visible={visible}
-            onClose={onClose}
-            containerStyle={styles.sheetContainer}
-        >
+        <BottomSheet visible={visible} onClose={onClose} containerStyle={styles.sheetContainer}>
             <View style={styles.iconHeader}>
-                <AlertCircle color="#FF4B4B" size={40} strokeWidth={1.5} />
+                <AlertCircle color={theme.red} size={40} strokeWidth={1.5} />
             </View>
 
             <Text style={styles.header}>Удаление папки</Text>
 
             {isEmpty ? (
                 <View>
-                    <Text style={styles.subHeader}>
-                        Вы уверены, что хотите удалить папку?
-                    </Text>
+                    <Text style={styles.subHeader}>Вы уверены, что хотите удалить папку?</Text>
                     <TouchableOpacity
-                        style={styles.optionBtn}
+                        style={[styles.optionBtn, styles.optionBtnDestructive]}
                         onPress={() => {
                             onDeleteOnlyFolder();
                             onClose();
                         }}
                     >
-                        <View
-                            style={[
-                                styles.iconBg,
-                                { backgroundColor: "rgba(255, 75, 75, 0.1)" },
-                            ]}
-                        >
-                            <Trash2 color="#FF4B4B" size={22} />
+                        <View style={styles.iconBgDestructiveLight}>
+                            <Trash2 color={theme.red} size={22} />
                         </View>
                         <View style={styles.optionTextContainer}>
-                            <Text style={styles.optionTitle}>
-                                Да, я уверен, удаляйте
-                            </Text>
-                            <Text style={styles.optionDesc}>
-                                Долой пустые папки
-                            </Text>
+                            <Text style={styles.destructiveTitle}>Да, я уверен, удаляйте</Text>
+                            <Text style={styles.optionDesc}>Долой пустые папки</Text>
                         </View>
                     </TouchableOpacity>
                 </View>
             ) : (
                 <View>
                     <Text style={styles.subHeader}>
-                        В папке есть элементы. Выберите способ удаления:
+                        В папке есть карточки. Выберите способ удаления:
                     </Text>
 
-                    {/* Вариант 1: Удалить только папку */}
                     <TouchableOpacity
                         style={styles.optionBtn}
                         onPress={() => {
@@ -66,25 +54,17 @@ export default function DeleteFolderModal({
                             onClose();
                         }}
                     >
-                        <View
-                            style={[
-                                styles.iconBg,
-                                { backgroundColor: "rgba(125, 138, 255, 0.1)" },
-                            ]}
-                        >
-                            <FolderX color="#7D8AFF" size={22} />
+                        <View style={styles.iconBg}>
+                            <FolderX color={theme.accent} size={22} />
                         </View>
                         <View style={styles.optionTextContainer}>
-                            <Text style={styles.optionTitle}>
-                                Удалить только папку
-                            </Text>
+                            <Text style={styles.optionTitle}>Удалить только папку</Text>
                             <Text style={styles.optionDesc}>
-                                Элементы переместятся в общую библиотеку
+                                Вы сможете найти карточки отсюда в разделе "Всё"
                             </Text>
                         </View>
                     </TouchableOpacity>
 
-                    {/* Вариант 2: Удалить всё */}
                     <TouchableOpacity
                         style={[styles.optionBtn, styles.optionBtnDestructive]}
                         onPress={() => {
@@ -92,25 +72,13 @@ export default function DeleteFolderModal({
                             onClose();
                         }}
                     >
-                        <View
-                            style={[
-                                styles.iconBg,
-                                { backgroundColor: "rgba(255, 75, 75, 0.1)" },
-                            ]}
-                        >
-                            <Trash2 color="#FF4B4B" size={22} />
+                        <View style={styles.iconBgDestructiveLight}>
+                            <Trash2 color={theme.red} size={22} />
                         </View>
                         <View style={styles.optionTextContainer}>
-                            <Text
-                                style={[
-                                    styles.optionTitle,
-                                    { color: "#FF4B4B" },
-                                ]}
-                            >
-                                Удалить всё
-                            </Text>
+                            <Text style={styles.destructiveTitle}>Удалить всё</Text>
                             <Text style={styles.optionDesc}>
-                                Папка и всё её содержимое будут стерты
+                                Папка и всё её содержимое будут стёрты
                             </Text>
                         </View>
                     </TouchableOpacity>
@@ -120,61 +88,75 @@ export default function DeleteFolderModal({
     );
 }
 
-const styles = StyleSheet.create({
-    sheetContainer: {
-        backgroundColor: "#0B1534",
-        paddingHorizontal: 25,
-    },
-    iconHeader: {
-        alignItems: "center",
-        marginBottom: 10,
-    },
-    header: {
-        color: "#fff",
-        fontSize: 22,
-        fontWeight: "800",
-        textAlign: "center",
-        marginBottom: 8,
-    },
-    subHeader: {
-        color: "#8E94A4",
-        fontSize: 15,
-        textAlign: "center",
-        marginBottom: 30,
-        paddingHorizontal: 20,
-    },
-    optionBtn: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "rgba(255, 255, 255, 0.03)",
-        padding: 16,
-        borderRadius: 20,
-        marginBottom: 12,
-        borderWidth: 1,
-        borderColor: "rgba(255, 255, 255, 0.05)",
-    },
-    optionBtnDestructive: {
-        borderColor: "rgba(255, 75, 75, 0.1)",
-    },
-    iconBg: {
-        width: 44,
-        height: 44,
-        borderRadius: 14,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    optionTextContainer: {
-        marginLeft: 15,
-        flex: 1,
-    },
-    optionTitle: {
-        color: "#fff",
-        fontSize: 16,
-        fontWeight: "700",
-    },
-    optionDesc: {
-        color: "#62697D",
-        fontSize: 12,
-        marginTop: 2,
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        sheetContainer: {
+            backgroundColor: theme.main,
+            paddingHorizontal: 25,
+        },
+        iconHeader: {
+            alignItems: "center",
+            marginBottom: 10,
+        },
+        header: {
+            color: theme.text,
+            fontSize: 22,
+            fontWeight: "800",
+            textAlign: "center",
+            marginBottom: 8,
+        },
+        subHeader: {
+            color: theme.textDark,
+            fontSize: 15,
+            textAlign: "center",
+            marginBottom: 30,
+            paddingHorizontal: 20,
+        },
+        optionBtn: {
+            flexDirection: "row",
+            alignItems: "center",
+            padding: 16,
+            borderRadius: 20,
+            marginBottom: 12,
+            borderWidth: 1,
+            borderColor: theme.accent,
+        },
+        optionBtnDestructive: {
+            borderColor: theme.red,
+        },
+        iconBg: {
+            width: 44,
+            height: 44,
+            borderRadius: 14,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: theme.accentMuted,
+        },
+        iconBgDestructiveLight: {
+            width: 44,
+            height: 44,
+            borderRadius: 14,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: theme.redMuted,
+        },
+        optionTextContainer: {
+            marginLeft: 15,
+            flex: 1,
+        },
+        optionTitle: {
+            color: theme.text,
+            fontSize: 16,
+            fontWeight: "700",
+        },
+        destructiveTitle: {
+            color: theme.red,
+            fontSize: 16,
+            fontWeight: "700",
+        },
+        optionDesc: {
+            color: theme.textDark,
+            fontSize: 12,
+            marginTop: 2,
+        },
+    });

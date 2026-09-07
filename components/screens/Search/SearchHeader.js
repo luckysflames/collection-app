@@ -1,14 +1,8 @@
 import React from "react";
-import {
-    View,
-    TextInput,
-    TouchableOpacity,
-    Text,
-    StyleSheet,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { View, TextInput, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { useMediaCategories } from "../../../hooks/useMediaCategories";
-import { ChevronLeft } from "lucide-react-native";
+import { ChevronLeft, Search, X } from "lucide-react-native";
+import { useTheme } from "../../../hooks/useTheme";
 
 export const SearchHeader = ({
     activeCategory,
@@ -18,20 +12,18 @@ export const SearchHeader = ({
     handleReset,
     topInset,
 }) => {
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const { sectionName } = useMediaCategories(activeCategory);
 
     return (
         <View style={[styles.wrapper, { paddingTop: topInset - 20 }]}>
             <View style={styles.headerContainer}>
-                {/* Кнопка назад */}
-                <TouchableOpacity
-                    onPress={handleReset}
-                    style={styles.backButton}
-                >
-                    <ChevronLeft size={24} color="#fff" />
+                <TouchableOpacity onPress={handleReset} style={styles.backButton}>
+                    <ChevronLeft size={24} color={theme.text} />
                 </TouchableOpacity>
 
-                {/* Заголовок теперь в обертке для контроля высоты */}
                 <View style={styles.titleWrapper}>
                     <Text style={styles.header} numberOfLines={1}>
                         Поиск {sectionName}
@@ -39,87 +31,83 @@ export const SearchHeader = ({
                 </View>
             </View>
 
-            {/* Поиск */}
             <View style={styles.searchBarContainer}>
+                <TouchableOpacity onPress={() => onSearch(query)}>
+                    <Search color={theme.accent} size={20} style={styles.searchIcon} />
+                </TouchableOpacity>
+
                 <TextInput
                     style={styles.searchInput}
-                    placeholder="Что ищем?"
-                    placeholderTextColor="#8E94A4"
+                    placeholder="Поиск по названию..."
+                    placeholderTextColor={theme.textDark}
                     value={query}
                     onChangeText={setQuery}
                     returnKeyType="search"
                     onSubmitEditing={() => onSearch(query)}
+                    selectionColor={theme.accent}
                 />
                 {query.length > 0 && (
-                    <TouchableOpacity
-                        onPress={() => setQuery("")}
-                        style={styles.clearIcon}
-                    >
-                        <Ionicons
-                            name="close-circle"
-                            size={20}
-                            color="#8E94A4"
-                        />
+                    <TouchableOpacity onPress={() => setQuery("")} style={styles.clearIcon}>
+                        <X size={20} color={theme.text} />
                     </TouchableOpacity>
                 )}
-                <TouchableOpacity onPress={() => onSearch(query)}>
-                    <Ionicons name="search" size={22} color="#7D8AFF" />
-                </TouchableOpacity>
             </View>
         </View>
     );
 };
 
-const styles = StyleSheet.create({
-    wrapper: {
-        backgroundColor: "#050B18",
-        paddingHorizontal: 20,
-        paddingBottom: 10,
-    },
-    headerContainer: {
-        flexDirection: "row",
-        alignItems: "center", // Выравнивает элементы по центральной оси
-        marginTop: 2.5,
-        marginBottom: 20,
-        height: 45, // Явно задаем высоту, равную высоте кнопки назад
-    },
-    backButton: {
-        backgroundColor: "rgba(11, 21, 52, 0.8)",
-        width: 45,
-        height: 45,
-        borderRadius: 15,
-        justifyContent: "center",
-        alignItems: "center",
-        borderWidth: 1,
-        borderColor: "rgba(255,255,255,0.05)",
-    },
-    titleWrapper: {
-        flex: 1,
-        justifyContent: "center", // Центрируем текст внутри той же высоты, что и кнопка
-        marginLeft: 15, // Заменяем gap на понятный отступ
-    },
-    header: {
-        color: "#fff",
-        fontSize: 24,
-        fontWeight: "bold",
-        // Убираем лишние отступы самого шрифта, если они есть
-        includeFontPadding: false,
-        textAlignVertical: "center",
-    },
-    searchBarContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "rgba(255,255,255,0.05)",
-        borderRadius: 15,
-        paddingHorizontal: 15,
-        height: 50,
-    },
-    searchInput: {
-        flex: 1,
-        color: "#fff",
-        fontSize: 16,
-    },
-    clearIcon: {
-        marginHorizontal: 10,
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        wrapper: {
+            backgroundColor: theme.dark,
+            paddingHorizontal: 20,
+            paddingBottom: 10,
+        },
+        headerContainer: {
+            flexDirection: "row",
+            alignItems: "center",
+            marginTop: 2.5,
+            marginBottom: 20,
+            height: 45,
+        },
+        backButton: {
+            backgroundColor: theme.main,
+            width: 45,
+            height: 45,
+            borderRadius: 15,
+            justifyContent: "center",
+            alignItems: "center",
+        },
+        titleWrapper: {
+            flex: 1,
+            justifyContent: "center",
+            marginLeft: 15,
+        },
+        header: {
+            color: theme.text,
+            fontSize: 24,
+            fontWeight: "bold",
+            includeFontPadding: false,
+            textAlignVertical: "center",
+        },
+        searchBarContainer: {
+            flexDirection: "row",
+            alignItems: "center",
+            borderWidth: 1,
+            borderColor: theme.accent,
+            borderRadius: 15,
+            paddingHorizontal: 15,
+            height: 50,
+        },
+        searchIcon: {
+            marginRight: 8,
+        },
+        searchInput: {
+            flex: 1,
+            color: theme.text,
+            fontSize: 16,
+        },
+        clearIcon: {
+            marginLeft: 8,
+        },
+    });

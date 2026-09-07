@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from "react";
-import {
-    Clipboard,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import { Clipboard, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useTheme } from "../../../hooks/useTheme";
 
 export const TitleItem = ({ label, value, onSelect }) => {
+    const { createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const [copied, setCopied] = useState(false);
 
     if (!value) return null;
@@ -44,12 +42,7 @@ export const TitleItem = ({ label, value, onSelect }) => {
                 disabled={copied}
                 activeOpacity={0.6}
             >
-                <Text
-                    style={[
-                        styles.copyButtonText,
-                        copied && styles.copyButtonTextSuccess,
-                    ]}
-                >
+                <Text style={[styles.copyButtonText, copied && styles.copyButtonTextSuccess]}>
                     {copied ? "✓" : "Копировать"}
                 </Text>
             </TouchableOpacity>
@@ -57,49 +50,49 @@ export const TitleItem = ({ label, value, onSelect }) => {
     );
 };
 
-const styles = StyleSheet.create({
-    modalCopyRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginBottom: 16,
-        paddingBottom: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: "rgba(255,255,255,0.05)",
-    },
-    modalLabel: {
-        color: "#8E94A4",
-        fontSize: 11,
-        marginBottom: 4,
-        fontWeight: "600",
-        textTransform: "uppercase",
-        letterSpacing: 1,
-    },
-    modalValue: {
-        color: "#fff",
-        fontSize: 16,
-        fontWeight: "500",
-        lineHeight: 20,
-    },
-    copyButton: {
-        backgroundColor: "rgba(125, 138, 255, 0.08)",
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 12,
-        minWidth: 85,
-        alignItems: "center",
-        borderWidth: 1,
-        borderColor: "rgba(125, 138, 255, 0.2)",
-    },
-    copyButtonSuccess: {
-        backgroundColor: "#7D8AFF",
-        borderColor: "#7D8AFF",
-    },
-    copyButtonText: {
-        color: "#7D8AFF", // В обычном состоянии текст в цвет бренда
-        fontSize: 12,
-        fontWeight: "700",
-    },
-    copyButtonTextSuccess: {
-        color: "#FFF",
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        modalCopyRow: {
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: 16,
+            paddingBottom: 12,
+            borderBottomWidth: 1,
+            borderBottomColor: theme.accentMuted,
+        },
+        modalLabel: {
+            color: theme.accent,
+            fontSize: 11,
+            marginBottom: 4,
+            fontWeight: "600",
+            textTransform: "uppercase",
+            letterSpacing: 1,
+        },
+        modalValue: {
+            color: theme.text,
+            fontSize: 16,
+            fontWeight: "500",
+            lineHeight: 20,
+        },
+        copyButton: {
+            backgroundColor: theme.accentMuted,
+            paddingVertical: 8,
+            borderRadius: 12,
+            width: 95,
+            alignItems: "center",
+            justifyContent: "center",
+            borderWidth: 1,
+            borderColor: theme.accent,
+        },
+        copyButtonSuccess: {
+            backgroundColor: theme.accent,
+        },
+        copyButtonText: {
+            color: theme.accent,
+            fontSize: 12,
+            fontWeight: "700",
+        },
+        copyButtonTextSuccess: {
+            color: theme.text,
+        },
+    });

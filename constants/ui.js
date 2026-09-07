@@ -56,9 +56,7 @@ export const DEFAULT_CATEGORY_ORDER = SUB_CATEGORIES.map((category) => category.
 
 export const getOrderedCategories = (categoryOrder = DEFAULT_CATEGORY_ORDER) =>
     categoryOrder
-        .map((categoryId) =>
-            SUB_CATEGORIES.find((category) => category.id === categoryId),
-        )
+        .map((categoryId) => SUB_CATEGORIES.find((category) => category.id === categoryId))
         .filter(Boolean);
 
 // Технический маппинг (id к названию коллекции)
@@ -83,24 +81,28 @@ export const SECTIONS = [
 export const API_SERVICES = [
     {
         name: "RAWG API",
+        category: "game",
         desc: "Крупнейшая база видеоигр. Скриншоты, даты выхода и платформы.",
         url: "https://rawg.io/apidocs",
         icon: "game-controller-outline",
     },
     {
         name: "TMDB API",
+        category: "movie",
         desc: "Информация о фильмах и сериалах: постеры, трейлеры и рейтинги.",
         url: "https://www.themoviedb.org",
         icon: "film-outline",
     },
     {
         name: "Shikimori",
+        category: "anime",
         desc: "Энциклопедия аниме и манги с огромным комьюнити.",
         url: "https://shikimori.one",
         icon: "leaf-outline",
     },
     {
         name: "Google Books",
+        category: "book",
         desc: "Поиск книг по названию, автору или ISBN по всему миру.",
         url: "https://books.google.com",
         icon: "book-outline",

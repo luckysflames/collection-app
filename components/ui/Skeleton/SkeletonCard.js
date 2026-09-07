@@ -1,14 +1,17 @@
 import React, { useEffect, useRef } from "react";
 import { View, StyleSheet, Animated, Dimensions } from "react-native";
+import { useTheme } from "../../../hooks/useTheme";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
 
 export const SkeletonCard = () => {
+    const { createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const opacity = useRef(new Animated.Value(0.3)).current;
 
     useEffect(() => {
-        // Запускаем бесконечный цикл пульсации
         Animated.loop(
             Animated.sequence([
                 Animated.timing(opacity, {
@@ -32,20 +35,16 @@ export const SkeletonCard = () => {
     );
 };
 
-const styles = StyleSheet.create({
-    cardContainer: {
-        width: cardWidth,
-        marginBottom: 16,
-    },
-    card: {
-        width: "100%",
-        height: 250,
-        borderRadius: 20,
-        backgroundColor: "rgba(255, 255, 255, 0.1)",
-        elevation: 5,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 5,
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        cardContainer: {
+            width: cardWidth,
+            marginBottom: 16,
+        },
+        card: {
+            width: "100%",
+            height: 250,
+            borderRadius: 20,
+            backgroundColor: theme.textDark,
+        },
+    });

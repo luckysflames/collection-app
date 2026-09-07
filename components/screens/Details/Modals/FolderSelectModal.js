@@ -7,10 +7,11 @@ import {
     FlatList,
     Dimensions,
     ScrollView,
-    ActivityIndicator, // Добавили стандартный лоадер
+    ActivityIndicator,
 } from "react-native";
 import { FolderPlus, Folder as FolderIcon, Check, FolderHeart, Heart } from "lucide-react-native";
 import { BottomSheet } from "../../../ui/BottomSheet";
+import { useTheme } from "../../../../hooks/useTheme";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 const ITEM_HEIGHT = 74;
@@ -23,10 +24,12 @@ export default function FolderSelectModal({
     onCreateNew,
     selectedFolderIds = [],
 }) {
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const flatListRef = useRef(null);
     const [activeLetter, setActiveLetter] = useState("PINNED");
 
-    // Стейт для анимации загрузки
     const [isProcessing, setIsProcessing] = useState(false);
 
     const compareStrings = useCallback((a, b) => {
@@ -66,7 +69,7 @@ export default function FolderSelectModal({
 
     const scrollToSection = useCallback(
         (target) => {
-            if (isProcessing) return; // Блокируем скролл при обработке
+            if (isProcessing) return;
             setActiveLetter(target);
             let targetIndex = -1;
             if (target === "PINNED") {
@@ -90,7 +93,6 @@ export default function FolderSelectModal({
         [unpinnedFolders, pinnedFolders.length, isProcessing],
     );
 
-    // Оптимизированный обработчик клика по папке
     const handleFolderPress = useCallback(
         (folderId) => {
             if (isProcessing) return;
@@ -116,7 +118,7 @@ export default function FolderSelectModal({
                     style={[styles.folderItem, isSelected && styles.folderItemActive]}
                     onPress={() => handleFolderPress(item.id)}
                     activeOpacity={0.7}
-                    disabled={isProcessing} // Отключаем клики во время загрузки
+                    disabled={isProcessing}
                 >
                     <View
                         style={[
@@ -125,9 +127,12 @@ export default function FolderSelectModal({
                         ]}
                     >
                         {item.isPinned ? (
-                            <FolderHeart color="#7D8AFF" size={20} />
+                            <FolderHeart color={theme.text} size={20} />
                         ) : (
-                            <FolderIcon color={isSelected ? "#7D8AFF" : "#8E94A4"} size={20} />
+                            <FolderIcon
+                                color={isSelected ? theme.text : theme.textDark}
+                                size={20}
+                            />
                         )}
                     </View>
 
@@ -143,7 +148,7 @@ export default function FolderSelectModal({
 
                     <View style={styles.checkWrapper}>
                         {isSelected ? (
-                            <Check color="#7D8AFF" size={20} strokeWidth={3} />
+                            <Check color={theme.accent} size={20} strokeWidth={3} />
                         ) : (
                             <Check color="transparent" size={20} strokeWidth={3} />
                         )}
@@ -180,7 +185,7 @@ export default function FolderSelectModal({
                 }}
             >
                 <View style={styles.createIconBg}>
-                    <FolderPlus color="#fff" size={20} />
+                    <FolderPlus color={theme.text} size={20} />
                 </View>
                 <Text style={styles.createBtnText}>Создать новую папку</Text>
             </TouchableOpacity>
@@ -203,13 +208,9 @@ export default function FolderSelectModal({
                                 activeOpacity={0.6}
                             >
                                 <Heart
-                                    color={activeLetter === "PINNED" ? "#fff" : "#7D8AFF"}
+                                    color={activeLetter === "PINNED" ? theme.text : theme.accent}
                                     size={16}
-                                    fill={
-                                        activeLetter === "PINNED"
-                                            ? "#fff"
-                                            : "rgba(125, 138, 255, 0.2)"
-                                    }
+                                    fill={activeLetter === "PINNED" ? theme.text : theme.main}
                                 />
                             </TouchableOpacity>
                         )}
@@ -227,14 +228,7 @@ export default function FolderSelectModal({
                                     disabled={isProcessing}
                                     activeOpacity={0.6}
                                 >
-                                    <Text
-                                        style={[
-                                            styles.letterText,
-                                            isActive && styles.letterTextActive,
-                                        ]}
-                                    >
-                                        {letter}
-                                    </Text>
+                                    <Text style={styles.letterText}>{letter}</Text>
                                 </TouchableOpacity>
                             );
                         })}
@@ -254,14 +248,13 @@ export default function FolderSelectModal({
                     initialNumToRender={15}
                     maxToRenderPerBatch={15}
                     windowSize={5}
-                    scrollEnabled={!isProcessing} // Выключаем скролл при загрузке
+                    scrollEnabled={!isProcessing}
                     ListEmptyComponent={<Text style={styles.emptyText}>У вас пока нет папок</Text>}
                 />
 
-                {/* --- АБСОЛЮТНЫЙ ЛОАДЕР ПОВЕРХ СПИСКА --- */}
                 {isProcessing && (
                     <View style={styles.loadingOverlay}>
-                        <ActivityIndicator size="large" color="#7D8AFF" />
+                        <ActivityIndicator size="large" color={theme.accent} />
                     </View>
                 )}
             </View>
@@ -277,150 +270,142 @@ export default function FolderSelectModal({
     );
 }
 
-// Добавлено в стили:
-const styles = StyleSheet.create({
-    // ... ваши старые стили остаются нетронутыми
-    sheetContainer: {
-        backgroundColor: "#0B1534",
-        paddingHorizontal: 20,
-    },
-    header: {
-        color: "#fff",
-        fontSize: 22,
-        fontWeight: "bold",
-        marginBottom: 20,
-        textAlign: "center",
-    },
-    createBtn: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "rgba(125, 138, 255, 0.08)",
-        padding: 14,
-        borderRadius: 20,
-        marginBottom: 12,
-        borderWidth: 1,
-        borderColor: "rgba(125, 138, 255, 0.15)",
-    },
-    createIconBg: {
-        width: 32,
-        height: 32,
-        borderRadius: 8,
-        backgroundColor: "#7D8AFF",
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    createBtnText: {
-        color: "#7D8AFF",
-        marginLeft: 12,
-        fontSize: 16,
-        fontWeight: "700",
-    },
-    alphabetContainer: {
-        marginBottom: 14,
-        height: 36,
-    },
-    alphabetScrollContent: {
-        paddingHorizontal: 2,
-        gap: 6,
-    },
-    letterBadge: {
-        minWidth: 34,
-        height: 34,
-        borderRadius: 10,
-        backgroundColor: "rgba(255, 255, 255, 0.03)",
-        justifyContent: "center",
-        alignItems: "center",
-        borderWidth: 1,
-        borderColor: "rgba(255, 255, 255, 0.05)",
-        paddingHorizontal: 8,
-    },
-    letterBadgeActive: {
-        backgroundColor: "rgba(125, 138, 255, 0.2)",
-        borderColor: "#7D8AFF",
-    },
-    letterText: {
-        color: "#8E94A4",
-        fontSize: 14,
-        fontWeight: "700",
-    },
-    letterTextActive: {
-        color: "#fff",
-    },
-    listContainer: {
-        maxHeight: SCREEN_HEIGHT * 0.42,
-        position: "relative", // Важно для позиционирования оверлея
-    },
-    listContent: {
-        paddingBottom: 10,
-    },
-    folderItem: {
-        flexDirection: "row",
-        alignItems: "center",
-        height: 66,
-        paddingHorizontal: 12,
-        borderRadius: 18,
-        marginBottom: 8,
-        backgroundColor: "rgba(255,255,255,0.02)",
-        borderWidth: 1,
-        borderColor: "rgba(255,255,255,0.02)",
-    },
-    folderItemActive: {
-        backgroundColor: "rgba(125, 138, 255, 0.06)",
-        borderWidth: 1,
-        borderColor: "rgba(125, 138, 255, 0.2)",
-    },
-    folderIconWrapper: {
-        width: 40,
-        height: 40,
-        borderRadius: 12,
-        backgroundColor: "rgba(255,255,255,0.03)",
-        justifyContent: "center",
-        alignItems: "center",
-        marginRight: 15,
-    },
-    folderIconWrapperActive: {
-        backgroundColor: "rgba(125, 138, 255, 0.1)",
-    },
-    folderInfo: {
-        flex: 1,
-        paddingRight: 10,
-        justifyContent: "center",
-    },
-    folderText: {
-        color: "#8E94A4",
-        fontSize: 16,
-        fontWeight: "600",
-    },
-    folderTextActive: {
-        color: "#fff",
-    },
-    checkWrapper: {
-        marginLeft: 10,
-    },
-    emptyText: {
-        color: "#8E94A4",
-        textAlign: "center",
-        marginVertical: 30,
-        fontSize: 15,
-    },
-    doneBtn: {
-        marginTop: 15,
-        alignItems: "center",
-        padding: 16,
-        backgroundColor: "#7D8AFF",
-        borderRadius: 20,
-    },
-    doneBtnText: {
-        color: "#fff",
-        fontSize: 16,
-        fontWeight: "bold",
-    },
-    // НОВЫЕ СТИЛИ ДЛЯ ОВЕРЛЕЯ ЗАГРУЗКИ:
-    loadingOverlay: {
-        ...StyleSheet.absoluteFillObject,
-        backgroundColor: "rgba(11, 21, 52, 0.7)",
-        justifyContent: "center",
-        alignItems: "center",
-        borderRadius: 18,
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        sheetContainer: {
+            backgroundColor: theme.main,
+            paddingHorizontal: 20,
+        },
+        header: {
+            color: theme.text,
+            fontSize: 22,
+            fontWeight: "bold",
+            marginBottom: 20,
+            textAlign: "center",
+        },
+        createBtn: {
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: theme.accentMuted,
+            padding: 14,
+            borderRadius: 20,
+            marginBottom: 12,
+            borderWidth: 1,
+            borderColor: theme.accent,
+        },
+        createIconBg: {
+            width: 32,
+            height: 32,
+            borderRadius: 8,
+            backgroundColor: theme.accent,
+            justifyContent: "center",
+            alignItems: "center",
+        },
+        createBtnText: {
+            color: theme.accent,
+            marginLeft: 12,
+            fontSize: 16,
+            fontWeight: "700",
+        },
+        alphabetContainer: {
+            marginHorizontal: -20,
+            marginBottom: 14,
+            height: 36,
+        },
+        alphabetScrollContent: {
+            paddingHorizontal: 20,
+            gap: 6,
+        },
+        letterBadge: {
+            minWidth: 34,
+            height: 34,
+            borderRadius: 10,
+            justifyContent: "center",
+            alignItems: "center",
+            borderWidth: 1,
+            borderColor: theme.accent,
+            paddingHorizontal: 8,
+        },
+        letterBadgeActive: {
+            backgroundColor: theme.accent,
+        },
+        letterText: {
+            color: theme.text,
+            fontSize: 14,
+            fontWeight: "700",
+        },
+        listContainer: {
+            maxHeight: SCREEN_HEIGHT * 0.42,
+            position: "relative",
+        },
+        listContent: {
+            paddingBottom: 10,
+        },
+        folderItem: {
+            flexDirection: "row",
+            alignItems: "center",
+            height: 66,
+            paddingHorizontal: 12,
+            borderRadius: 18,
+            marginBottom: 8,
+            borderWidth: 1,
+            borderColor: theme.accentMuted,
+        },
+        folderItemActive: {
+            backgroundColor: theme.accentMuted,
+            borderWidth: 1,
+            borderColor: theme.accent,
+        },
+        folderIconWrapper: {
+            width: 40,
+            height: 40,
+            borderRadius: 12,
+            backgroundColor: theme.accentMuted,
+            justifyContent: "center",
+            alignItems: "center",
+            marginRight: 15,
+        },
+        folderIconWrapperActive: {
+            backgroundColor: theme.accent,
+        },
+        folderInfo: {
+            flex: 1,
+            paddingRight: 10,
+            justifyContent: "center",
+        },
+        folderText: {
+            color: theme.textDark,
+            fontSize: 16,
+            fontWeight: "600",
+        },
+        folderTextActive: {
+            color: theme.text,
+        },
+        checkWrapper: {
+            marginLeft: 10,
+        },
+        emptyText: {
+            color: theme.textDark,
+            textAlign: "center",
+            marginVertical: 30,
+            fontSize: 15,
+        },
+        doneBtn: {
+            marginTop: 15,
+            alignItems: "center",
+            padding: 16,
+            backgroundColor: theme.accent,
+            borderRadius: 20,
+        },
+        doneBtnText: {
+            color: theme.text,
+            fontSize: 16,
+            fontWeight: "bold",
+        },
+        loadingOverlay: {
+            ...StyleSheet.absoluteFillObject,
+            justifyContent: "center",
+            alignItems: "center",
+            borderRadius: 18,
+        },
+    });

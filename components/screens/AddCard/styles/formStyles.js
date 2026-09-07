@@ -1,13 +1,20 @@
 import { StyleSheet } from "react-native";
+import { useTheme } from "../../../../hooks/useTheme";
 
-export const formStyles = StyleSheet.create({
-    input: {
-        backgroundColor: "#1E293B",
-        borderRadius: 10,
-        color: "#fff",
-        padding: 12,
-        fontSize: 15,
-        marginBottom: 12,
-    },
-    rowInputs: { flexDirection: "row", gap: 12 },
-});
+const createFormStyles = (theme) =>
+    StyleSheet.create({
+        input: {
+            backgroundColor: theme.dark,
+            borderRadius: 10,
+            color: theme.text,
+            padding: 12,
+            fontSize: 15,
+            marginBottom: 12,
+        },
+        rowInputs: { flexDirection: "row", gap: 12 },
+    });
+
+export const useFormStyles = () => {
+    const { createStyles } = useTheme();
+    return createStyles(createFormStyles);
+};

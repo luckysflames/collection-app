@@ -4,6 +4,7 @@ import { LockIcon, Trash2, Star, GripVertical } from "lucide-react-native";
 import { GestureDetector } from "react-native-gesture-handler";
 import Animated from "react-native-reanimated";
 import { useDraggableItem } from "../../../../hooks/useDraggableItem";
+import { useTheme } from "../../../../hooks/useTheme";
 
 const ITEM_HEIGHT = 58;
 const ITEM_GAP = 10;
@@ -24,7 +25,9 @@ export const StatusItem = memo(
         isSelectedDefault,
         onSetDefault,
     }) => {
-        // Подключаем наш вынесенный DnD хук
+        const { theme, createStyles } = useTheme();
+        const styles = createStyles(createLocalStyles);
+
         const { panGesture, animatedStyle } = useDraggableItem({
             id,
             index,
@@ -44,10 +47,9 @@ export const StatusItem = memo(
                     animatedStyle,
                 ]}
             >
-                {/* Передаем жест на ручку для перетаскивания */}
                 <GestureDetector gesture={panGesture}>
                     <Animated.View style={styles.dragHandle}>
-                        <GripVertical size={20} color="#7D8AFF" />
+                        <GripVertical size={20} color={theme.accent} />
                     </Animated.View>
                 </GestureDetector>
 
@@ -60,7 +62,7 @@ export const StatusItem = memo(
                     </Text>
                     {isSystem && (
                         <View style={styles.systemBadge}>
-                            <LockIcon size={10} color="#4E5564" />
+                            <LockIcon size={10} color={theme.textDark} />
                             <Text style={styles.systemText}>Системный</Text>
                         </View>
                     )}
@@ -73,7 +75,7 @@ export const StatusItem = memo(
                             style={[styles.actionIconButton, styles.deleteBg]}
                             activeOpacity={0.7}
                         >
-                            <Trash2 size={16} color="#FF4B4B" />
+                            <Trash2 size={16} color={theme.red} />
                         </TouchableOpacity>
                     )}
                     <TouchableOpacity
@@ -83,8 +85,8 @@ export const StatusItem = memo(
                     >
                         <Star
                             size={16}
-                            color={isSelectedDefault ? "#FFD700" : "#4E5564"}
-                            fill={isSelectedDefault ? "#FFD700" : "transparent"}
+                            color={isSelectedDefault ? theme.yellow : theme.textDark}
+                            fill={isSelectedDefault ? theme.yellow : "tracnsparent"}
                         />
                     </TouchableOpacity>
                 </View>
@@ -93,72 +95,71 @@ export const StatusItem = memo(
     },
 );
 
-const styles = StyleSheet.create({
-    statusItem: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "#0B1534",
-        borderRadius: 16,
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderWidth: 1,
-        borderColor: "rgba(125, 138, 255, 0.08)",
-        height: ITEM_HEIGHT,
-    },
-    activeStatusItem: {
-        borderColor: "rgba(125, 138, 255, 0.3)",
-        backgroundColor: "rgba(125, 138, 255, 0.04)",
-    },
-    dragHandle: {
-        paddingVertical: 10,
-        paddingRight: 12,
-        paddingLeft: 4,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    contentColumn: {
-        flex: 1,
-        justifyContent: "center",
-    },
-    statusText: {
-        color: "#fff",
-        fontSize: 14,
-        fontWeight: "600",
-    },
-    activeStatusText: {
-        color: "#7D8AFF",
-    },
-    systemBadge: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 4,
-        marginTop: 2,
-    },
-    systemText: {
-        color: "#4E5564",
-        fontSize: 9,
-        fontWeight: "700",
-        textTransform: "uppercase",
-        letterSpacing: 0.5,
-    },
-    actionsColumn: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 6,
-        marginLeft: 8,
-    },
-    actionIconButton: {
-        width: 32,
-        height: 32,
-        borderRadius: 10,
-        backgroundColor: "rgba(255, 255, 255, 0.03)",
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    starActiveBg: {
-        backgroundColor: "rgba(255, 215, 0, 0.08)",
-    },
-    deleteBg: {
-        backgroundColor: "rgba(255, 75, 75, 0.06)",
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        statusItem: {
+            flexDirection: "row",
+            alignItems: "center",
+            borderRadius: 16,
+            paddingVertical: 8,
+            paddingHorizontal: 12,
+            borderWidth: 1,
+            borderColor: theme.accent,
+            height: ITEM_HEIGHT,
+        },
+        activeStatusItem: {
+            backgroundColor: theme.accentMuted,
+        },
+        dragHandle: {
+            paddingVertical: 10,
+            paddingRight: 12,
+            paddingLeft: 4,
+            justifyContent: "center",
+            alignItems: "center",
+        },
+        contentColumn: {
+            flex: 1,
+            justifyContent: "center",
+        },
+        statusText: {
+            color: theme.text,
+            fontSize: 14,
+            fontWeight: "600",
+        },
+        activeStatusText: {
+            color: theme.accent,
+        },
+        systemBadge: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 4,
+            marginTop: 2,
+        },
+        systemText: {
+            color: theme.textDark,
+            fontSize: 9,
+            fontWeight: "700",
+            textTransform: "uppercase",
+            letterSpacing: 0.5,
+        },
+        actionsColumn: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 6,
+            marginLeft: 8,
+        },
+        actionIconButton: {
+            width: 32,
+            height: 32,
+            borderRadius: 10,
+            backgroundColor: theme.accentMuted,
+            justifyContent: "center",
+            alignItems: "center",
+        },
+        starActiveBg: {
+            backgroundColor: theme.yellowMuted,
+        },
+        deleteBg: {
+            backgroundColor: theme.redMuted,
+        },
+    });

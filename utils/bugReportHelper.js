@@ -1,6 +1,6 @@
 import * as Device from "expo-device";
 import * as Localization from "expo-localization";
-import { Dimensions, PixelRatio, Platform } from "react-native";
+import { Dimensions, PixelRatio } from "react-native";
 import Constants from "expo-constants";
 
 export const getBugReportTemplate = () => {

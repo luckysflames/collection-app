@@ -1,12 +1,14 @@
 import React from "react";
 import { View } from "react-native";
 
-import { formStyles } from "../styles/formStyles";
 import CommonField from "./CommonField";
 import SelectField from "./SelectField";
 import { MOVIE_STATUSES } from "../../../../constants/index";
+import { useFormStyles } from "../styles/formStyles";
 
 export default function MovieFields({ form, updateField }) {
+    const formStyles = useFormStyles();
+
     return (
         <View>
             <CommonField

@@ -1,15 +1,10 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { formatDate } from "./utils";
-import {
-    ANIME_STATUSES,
-    MOVIE_STATUSES,
-    ANIME_RATINGS,
-    ESRB_RATINGS,
-    BOOK_MATURITY_RATINGS,
-} from "../../../../constants/index";
+import { ANIME_STATUSES, MOVIE_STATUSES, BOOK_MATURITY_RATINGS } from "../../../../constants/index";
+import { useTheme } from "../../../../hooks/useTheme";
 
-const StatSubItem = ({ label, value }) => (
+const StatSubItem = ({ label, value, styles }) => (
     <View style={styles.subItem}>
         <Text style={styles.statLabel}>{label}</Text>
         <Text style={styles.statValue}>{value || "—"}</Text>
@@ -19,18 +14,18 @@ const StatSubItem = ({ label, value }) => (
 export const InfoStats = ({ displayData }) => {
     if (!displayData) return null;
 
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const isAnimeMovie =
         displayData.type === "anime" &&
         (displayData.animeKind === "movie" || displayData.episodes === 1);
 
-    // Универсальный помощник для поиска человеческого названия по ID
     const getLabelById = (id, options) => {
         if (!id) return "—";
         const found = options.find((opt) => opt.id === id);
-        return found ? found.label : id; // Если не нашли в списке, вернем сам ID
+        return found ? found.label : id;
     };
-
-    // --- ФОРМАТИРОВАНИЕ ЗНАЧЕНИЙ ---
 
     const formatDuration = (val, type) => {
         if (!val || val === "?" || val === "—") return "—";
@@ -39,11 +34,7 @@ export const InfoStats = ({ displayData }) => {
             case "tv":
                 return `${val} мин.`;
             case "anime":
-                if (isAnimeMovie) {
-                    return `${val} мин.`;
-                } else {
-                    return `по ~${val} мин.`;
-                }
+                return isAnimeMovie ? `${val} мин.` : `по ~${val} мин.`;
             case "game":
                 return `${val} ч.`;
             default:
@@ -53,16 +44,9 @@ export const InfoStats = ({ displayData }) => {
 
     const formatBudget = (val) => {
         if (!val || val === "?" || val === "—") return "—";
-
-        // 1. Очищаем строку от старых разделителей и знака $, оставляя только цифры
         const onlyNumbers = val.toString().replace(/[^0-9]/g, "");
-
         if (!onlyNumbers) return "—";
-
-        // 2. Форматируем число с разделением точек (через немецкую локаль 'de-DE')
         const formattedNumber = new Intl.NumberFormat("de-DE").format(Number(onlyNumbers));
-
-        // 3. Возвращаем с красивым префиксом доллара
         return `$${formattedNumber}`;
     };
 
@@ -73,11 +57,7 @@ export const InfoStats = ({ displayData }) => {
 
     const getPeriod = () => {
         if (displayData.type === "anime") {
-            if (isAnimeMovie) {
-                // Для аниме-фильма берем только дату начала (премьеру)
-                return formatDate(displayData.airedOn) || "—";
-            }
-            // Для сериала — классический период
+            if (isAnimeMovie) return formatDate(displayData.airedOn) || "—";
             const start = formatDate(displayData.airedOn);
             const end = formatDate(displayData.releasedOn);
             if (!start && !end) return "—";
@@ -91,7 +71,6 @@ export const InfoStats = ({ displayData }) => {
             return `${start || "..."} — ${end || "..."}`;
         }
 
-        // Для обычных фильмов, игр и книг
         return formatDate(displayData.year) || "—";
     };
 
@@ -112,13 +91,9 @@ export const InfoStats = ({ displayData }) => {
 
     return (
         <View style={styles.statsGrid}>
-            <View
-                style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                }}
-            >
+            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                 <StatSubItem
+                    styles={styles}
                     label={
                         (displayData.type === "anime" || displayData.type === "tv") && !isAnimeMovie
                             ? "Период выхода"
@@ -128,17 +103,30 @@ export const InfoStats = ({ displayData }) => {
                 />
 
                 {displayData.type === "movie" && (
-                    <StatSubItem label="Бюджет" value={formatBudget(displayData.budget)} />
+                    <StatSubItem
+                        styles={styles}
+                        label="Бюджет"
+                        value={formatBudget(displayData.budget)}
+                    />
                 )}
                 {displayData.type === "game" && (
-                    <StatSubItem label="Метакритик" value={displayData.metacritic} />
+                    <StatSubItem
+                        styles={styles}
+                        label="Метакритик"
+                        value={displayData.metacritic}
+                    />
                 )}
                 {displayData.type === "book" && (
-                    <StatSubItem label="Объем" value={formatPages(displayData.pageCount)} />
+                    <StatSubItem
+                        styles={styles}
+                        label="Объем"
+                        value={formatPages(displayData.pageCount)}
+                    />
                 )}
                 {displayData.type === "tv" && (
                     <View style={{ flex: 0.5 }}>
                         <StatSubItem
+                            styles={styles}
                             label="Сезонов"
                             value={displayData.seasonsCount || "?"}
                         />
@@ -151,27 +139,31 @@ export const InfoStats = ({ displayData }) => {
             <View style={styles.statSubGrid}>
                 {displayData.type === "anime" && (
                     <StatSubItem
+                        styles={styles}
                         label="Эпизоды"
                         value={`${displayData.episodesAired || "?"} / ${displayData.episodes || "?"}`}
                     />
                 )}
                 {displayData.type === "tv" && (
                     <StatSubItem
+                        styles={styles}
                         label="Эпизодов"
                         value={displayData.episodesCount || "?"}
                     />
                 )}
                 {displayData.type !== "book" && (
                     <StatSubItem
+                        styles={styles}
                         label={displayData.type === "game" ? "Время" : "Длительность"}
                         value={formatDuration(displayData.duration, displayData.type)}
                     />
                 )}
 
                 {displayData.type === "game" ? (
-                    <StatSubItem label="ESRB" value={displayData.esrb} />
+                    <StatSubItem styles={styles} label="ESRB" value={displayData.esrb} />
                 ) : displayData.type === "book" ? (
                     <StatSubItem
+                        styles={styles}
                         label="Возраст"
                         value={
                             BOOK_MATURITY_RATINGS.find((r) => r.id === displayData.maturityRating)
@@ -179,38 +171,37 @@ export const InfoStats = ({ displayData }) => {
                         }
                     />
                 ) : (
-                    <StatSubItem label="Статус" value={getAirStatus()} />
+                    <StatSubItem styles={styles} label="Статус" value={getAirStatus()} />
                 )}
             </View>
         </View>
     );
 };
 
-const styles = StyleSheet.create({
-    subItem: { flex: 1 },
-    statLabel: {
-        color: "#8E94A4",
-        fontSize: 11,
-        marginBottom: 4,
-        textTransform: "uppercase",
-    },
-    statValue: { color: "#fff", fontSize: 14, fontWeight: "600" },
-    statsGrid: {
-        backgroundColor: "rgba(255,255,255,0.03)",
-        borderRadius: 15,
-        padding: 15,
-        marginBottom: 15,
-        borderWidth: 1,
-        borderColor: "rgba(255,255,255,0.05)",
-    },
-    statSubGrid: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginTop: 12,
-    },
-    statRowSeparator: {
-        height: 1,
-        backgroundColor: "rgba(255,255,255,0.05)",
-        marginVertical: 4,
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        subItem: { flex: 1 },
+        statLabel: {
+            color: theme.accent,
+            fontSize: 11,
+            fontWeight: "bold",
+            marginBottom: 4,
+            textTransform: "uppercase",
+        },
+        statValue: { color: theme.text, fontSize: 14, fontWeight: "600" },
+        statsGrid: {
+            backgroundColor: theme.main,
+            borderRadius: 15,
+            padding: 15,
+            marginBottom: 15,
+        },
+        statSubGrid: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            marginTop: 12,
+        },
+        statRowSeparator: {
+            height: 1,
+            marginVertical: 4,
+        },
+    });

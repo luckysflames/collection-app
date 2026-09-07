@@ -19,7 +19,6 @@ export const StatusList = ({
 }) => {
     const activeId = useSharedValue(null);
 
-    // Сразу генерируем начальные позиции, чтобы при первом рендере не было пустых позиций (избегаем слипания)
     const initialPositions = useMemo(() => {
         const pos = {};
         statuses.forEach((status, index) => {
@@ -30,7 +29,6 @@ export const StatusList = ({
 
     const positions = useSharedValue(initialPositions);
 
-    // Синхронизируем, если массив поменялся извне (например, статус удалили)
     React.useEffect(() => {
         positions.value = initialPositions;
     }, [initialPositions]);
@@ -44,14 +42,13 @@ export const StatusList = ({
     };
 
     return (
-        // Используем TOTAL_OFFSET для точного расчета высоты контейнера
         <View style={[styles.listContainer, { height: statuses.length * TOTAL_OFFSET }]}>
             {statuses.map((status, index) => (
                 <StatusItem
                     key={`${section}-${status}`}
                     id={status}
                     status={status}
-                    index={index} // Исходный индекс в массиве
+                    index={index}
                     statusesCount={statuses.length}
                     activeId={activeId}
                     positions={positions}

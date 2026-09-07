@@ -1,15 +1,12 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet, Switch } from "react-native";
 
-import {
-    CATEGORY_CONFIG,
-    getOrderedCategories,
-    SUB_CATEGORIES,
-} from "../../../..//constants/index";
+import { getOrderedCategories } from "../../../..//constants/index";
 import { useCollectionStore } from "../../../../store/useCollectionStore";
 import { calculateStats } from "../../../../utils/analyticsHelpers";
 import AnalyticsSection from "./AnalyticsSection";
 import { useShallow } from "zustand/react/shallow";
+import { useTheme } from "../../../../hooks/useTheme";
 
 export default function AnalyticsPanel({ collection }) {
     const [onlyRated, setOnlyRated] = useState(false);
@@ -17,26 +14,24 @@ export default function AnalyticsPanel({ collection }) {
         useShallow((state) => getOrderedCategories(state.categoryOrder)),
     );
 
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const analyticsData = useMemo(() => {
         const filteredCollection = onlyRated
             ? collection.filter((item) => item.userScore > 0 || item.isBrilliant)
             : collection;
 
-        // Защита от пустых элементов
         const validCategories = orderedCategories.filter(Boolean);
 
         return validCategories.reduce((acc, catObj) => {
-            // ДОСТАЕМ ID (строку) из объекта категории
             const catId = catObj.id;
-
-            // Передаем в хелпер именно строковый ID ('movie', 'game' и т.д.)
             const stats = calculateStats(filteredCollection, catId, onlyRated);
 
             if (stats) {
                 acc.push({
-                    id: catId, // сохраняем строковый id
+                    id: catId,
                     stats,
-                    // Считаем количество карточек для этой категории
                     count: filteredCollection.filter(
                         (i) =>
                             i.appSection &&
@@ -66,18 +61,16 @@ export default function AnalyticsPanel({ collection }) {
             <View style={styles.mainHeader}>
                 <View>
                     <Text style={styles.mainTitle}>Аналитика</Text>
-                    {onlyRated && <Text style={styles.subTitleBadge}>Только оценённые</Text>}
                 </View>
 
                 {/* Блок переключателя */}
                 <View style={styles.switchWrapper}>
-                    <Text style={styles.switchLabel}>С оценкой</Text>
+                    <Text style={styles.switchLabel}>Только оценённые</Text>
                     <Switch
                         value={onlyRated}
                         onValueChange={setOnlyRated}
-                        trackColor={{ false: "#1A213E", true: "#7D8AFF" }}
-                        thumbColor={onlyRated ? "#FFF" : "#8E94A4"}
-                        ios_backgroundColor="#1A213E"
+                        trackColor={{ false: theme.textDark, true: theme.accent }}
+                        thumbColor={theme.text}
                     />
                 </View>
             </View>
@@ -102,55 +95,54 @@ export default function AnalyticsPanel({ collection }) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        paddingVertical: 24,
-        gap: 10,
-    },
-    mainHeader: {
-        flexDirection: "row", // В ряд
-        justifyContent: "space-between", // Раскидываем по краям
-        alignItems: "center",
-        marginBottom: 10,
-        paddingHorizontal: 4,
-    },
-    mainTitle: {
-        color: "#FFF",
-        fontSize: 16,
-        fontWeight: "700",
-        letterSpacing: 0.5,
-    },
-    subTitleBadge: {
-        color: "#7D8AFF",
-        fontSize: 10,
-        fontWeight: "600",
-        textTransform: "uppercase",
-        marginTop: 2,
-    },
-    switchWrapper: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 8,
-    },
-    switchLabel: {
-        color: "#8E94A4",
-        fontSize: 12,
-        fontWeight: "600",
-    },
-    emptyFiltered: {
-        padding: 40,
-        alignItems: "center",
-    },
-    emptyFilteredText: {
-        color: "#8E94A4",
-        textAlign: "center",
-        fontSize: 14,
-    },
-    section: {
-        backgroundColor: "#0B1534",
-        borderRadius: 24,
-        padding: 20,
-        borderWidth: 1,
-        borderColor: "rgba(125, 138, 255, 0.15)",
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        container: {
+            paddingVertical: 24,
+            gap: 10,
+        },
+        mainHeader: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 10,
+            paddingHorizontal: 4,
+        },
+        mainTitle: {
+            color: theme.text,
+            fontSize: 16,
+            fontWeight: "700",
+            letterSpacing: 0.5,
+        },
+        subTitleBadge: {
+            color: theme.accent,
+            fontSize: 10,
+            fontWeight: "600",
+            textTransform: "uppercase",
+            marginTop: 2,
+        },
+        switchWrapper: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+        },
+        switchLabel: {
+            color: theme.textDark,
+            fontSize: 12,
+            fontWeight: "600",
+        },
+        emptyFiltered: {
+            padding: 40,
+            alignItems: "center",
+        },
+        emptyFilteredText: {
+            color: theme.textDark,
+            textAlign: "center",
+            fontSize: 14,
+        },
+        section: {
+            backgroundColor: theme.main,
+            borderRadius: 24,
+            padding: 20,
+        },
+    });

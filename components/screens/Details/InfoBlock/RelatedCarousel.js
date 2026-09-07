@@ -1,21 +1,12 @@
-import React, { useRef, useState, useEffect, useCallback, memo } from "react";
-import {
-    View,
-    Text,
-    TouchableOpacity,
-    StyleSheet,
-    Dimensions,
-    FlatList,
-} from "react-native";
-import { ChevronLeft, ChevronRight } from "lucide-react-native";
+import React, { useCallback, memo } from "react";
+import { View, Text, StyleSheet, FlatList } from "react-native";
 import { MediaCard } from "../../../ui/MediaCard";
+import { useTheme } from "../../../../hooks/useTheme";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_WIDTH = 140;
 const GAP = 12;
 const BASE_PADDING = 20;
 
-// Мемоизируем элемент карточки чтобы он не ре-рендерился
 const isNavigableItem = (id) =>
     typeof id === "string" &&
     (id.startsWith("movie-") ||
@@ -24,7 +15,7 @@ const isNavigableItem = (id) =>
         id.startsWith("book-") ||
         id.startsWith("game-"));
 
-const RelatedCarouselItem = memo(({ item, onNavigateToDetails }) => {
+const RelatedCarouselItem = memo(({ item, onNavigateToDetails, styles }) => {
     const handlePress = () => {
         if (isNavigableItem(item?.id)) {
             onNavigateToDetails?.(item);
@@ -58,14 +49,18 @@ RelatedCarouselItem.displayName = "RelatedCarouselItem";
 const RelatedCarouselComponent = ({ related = [], onNavigateToDetails }) => {
     if (!related || related.length === 0) return null;
 
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const renderItem = useCallback(
-        ({ item, index }) => (
+        ({ item }) => (
             <RelatedCarouselItem
                 item={item}
                 onNavigateToDetails={onNavigateToDetails}
+                styles={styles}
             />
         ),
-        [onNavigateToDetails],
+        [onNavigateToDetails, styles],
     );
 
     return (
@@ -81,12 +76,10 @@ const RelatedCarouselComponent = ({ related = [], onNavigateToDetails }) => {
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.flatListContent}
                     removeClippedSubviews={true}
-                    // === ОПТИМИЗАЦИЯ ПРОИЗВОДИТЕЛЬНОСТИ ===
                     initialNumToRender={3}
                     maxToRenderPerBatch={5}
                     updateCellsBatchingPeriod={50}
                     scrollEventThrottle={16}
-                    // Предотвращаем синхронное прерывание во время скролла
                     windowSize={5}
                 />
             </View>
@@ -94,49 +87,49 @@ const RelatedCarouselComponent = ({ related = [], onNavigateToDetails }) => {
     );
 };
 
-// Мемоизируем сам компонент для предотвращения ненужных ре-рендеров
 export const RelatedCarousel = memo(RelatedCarouselComponent);
 
-const styles = StyleSheet.create({
-    container: {
-        marginTop: 20,
-        marginHorizontal: -BASE_PADDING,
-        backgroundColor: "rgba(255,255,255,0.05)",
-        paddingVertical: 20,
-    },
-    sectionTitle: {
-        color: "#fff",
-        fontSize: 18,
-        fontWeight: "bold",
-        marginBottom: 12,
-        marginLeft: BASE_PADDING,
-    },
-    carouselWrapper: {
-        position: "relative",
-        height: 240,
-    },
-    flatListContent: {
-        paddingHorizontal: BASE_PADDING,
-    },
-    cardWrapper: {
-        width: CARD_WIDTH,
-        marginRight: GAP,
-    },
-    relationLabel: {
-        position: "absolute",
-        bottom: 5,
-        left: 5,
-        right: 5,
-        backgroundColor: "rgba(5, 11, 24, 0.9)",
-        paddingVertical: 4,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: "rgba(125, 138, 255, 0.3)",
-    },
-    relationText: {
-        color: "#7D8AFF",
-        fontSize: 10,
-        fontWeight: "bold",
-        textAlign: "center",
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        container: {
+            marginTop: 20,
+            marginHorizontal: -BASE_PADDING,
+            backgroundColor: theme.main,
+            paddingVertical: 20,
+        },
+        sectionTitle: {
+            color: theme.text,
+            fontSize: 18,
+            fontWeight: "bold",
+            marginBottom: 12,
+            marginLeft: BASE_PADDING,
+        },
+        carouselWrapper: {
+            position: "relative",
+            height: 240,
+        },
+        flatListContent: {
+            paddingHorizontal: BASE_PADDING,
+        },
+        cardWrapper: {
+            width: CARD_WIDTH,
+            marginRight: GAP,
+        },
+        relationLabel: {
+            position: "absolute",
+            bottom: 5,
+            left: 5,
+            right: 5,
+            backgroundColor: theme.accentMuted,
+            paddingVertical: 4,
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: theme.accent,
+        },
+        relationText: {
+            color: theme.accent,
+            fontSize: 10,
+            fontWeight: "bold",
+            textAlign: "center",
+        },
+    });

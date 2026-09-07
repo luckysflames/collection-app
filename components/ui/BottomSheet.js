@@ -9,10 +9,14 @@ import {
     Pressable,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTheme } from "../../hooks/useTheme";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 export const BottomSheet = ({ visible, onClose, children, containerStyle }) => {
+    const { createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const insets = useSafeAreaInsets();
     const [shouldRender, setShouldRender] = useState(visible);
     const panY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
@@ -31,7 +35,6 @@ export const BottomSheet = ({ visible, onClose, children, containerStyle }) => {
 
     useEffect(() => {
         if (!visible && shouldRender) {
-            // Если пропс visible стал false, но мы еще отрисованы — запускаем анимацию закрытия
             handleClose();
         }
     }, [visible]);
@@ -50,7 +53,7 @@ export const BottomSheet = ({ visible, onClose, children, containerStyle }) => {
     const panResponder = useRef(
         PanResponder.create({
             onStartShouldSetPanResponder: () => true,
-            onMoveShouldSetPanResponder: (_, { dy }) => dy > 5, // Чтобы не перехватывать мелкие тапы
+            onMoveShouldSetPanResponder: (_, { dy }) => dy > 5,
             onPanResponderMove: (_, { dy }) => {
                 if (dy > 0) panY.setValue(dy);
             },
@@ -79,7 +82,6 @@ export const BottomSheet = ({ visible, onClose, children, containerStyle }) => {
             navigationBarTranslucent
         >
             <View style={styles.overlayContainer}>
-                {/* Overlay Background */}
                 <Animated.View
                     style={[
                         styles.darkOverlay,
@@ -95,7 +97,6 @@ export const BottomSheet = ({ visible, onClose, children, containerStyle }) => {
                     <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
                 </Animated.View>
 
-                {/* Content Container */}
                 <Animated.View
                     style={[
                         styles.modalContent,
@@ -115,25 +116,26 @@ export const BottomSheet = ({ visible, onClose, children, containerStyle }) => {
     );
 };
 
-const styles = StyleSheet.create({
-    overlayContainer: { flex: 1, justifyContent: "flex-end" },
-    darkOverlay: {
-        ...StyleSheet.absoluteFillObject,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-    },
-    modalContent: {
-        backgroundColor: "#1E2127",
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
-        width: "100%",
-    },
-    pullIndicator: {
-        width: 40,
-        height: 5,
-        backgroundColor: "rgba(255, 255, 255, 0.2)",
-        borderRadius: 3,
-        alignSelf: "center",
-        marginTop: 10,
-        marginBottom: 20,
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        overlayContainer: { flex: 1, justifyContent: "flex-end" },
+        darkOverlay: {
+            ...StyleSheet.absoluteFillObject,
+            backgroundColor: theme.overlay,
+        },
+        modalContent: {
+            backgroundColor: theme.main,
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
+            width: "100%",
+        },
+        pullIndicator: {
+            width: 40,
+            height: 5,
+            backgroundColor: theme.textDark,
+            borderRadius: 3,
+            alignSelf: "center",
+            marginTop: 15,
+            marginBottom: 20,
+        },
+    });

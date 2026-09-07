@@ -3,7 +3,6 @@ import { View, FlatList, StyleSheet } from "react-native";
 import { SkeletonCard } from "./SkeletonCard";
 
 export const SearchSkeleton = () => {
-    // Генерируем массив из 6 пустых элементов
     const data = Array.from({ length: 6 });
 
     return (
@@ -14,7 +13,7 @@ export const SearchSkeleton = () => {
                 columnWrapperStyle={styles.row}
                 keyExtractor={(_, index) => index.toString()}
                 renderItem={() => <SkeletonCard />}
-                scrollEnabled={false} // Скелетон не должен скроллиться отдельно
+                scrollEnabled={false}
             />
         </View>
     );

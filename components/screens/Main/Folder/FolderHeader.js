@@ -7,6 +7,7 @@ import { BaseHeroLayout } from "../../../layout/BaseHeroLayout";
 import { FolderEditForm } from "./FolderEditForm";
 import { FolderInfo } from "./FolderInfo";
 import { HeroPoster } from "../../../ui/HeroPoster";
+import { useTheme } from "../../../../hooks/useTheme";
 
 export const FolderHeader = memo((props) => {
     const {
@@ -38,9 +39,11 @@ export const FolderHeader = memo((props) => {
         sortType,
     } = props;
 
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const headerLottieRef = useRef(null);
 
-    // Контроль воспроизведения Lottie-анимации шедевра
     useEffect(() => {
         if (isBrilliant && isFocused) {
             headerLottieRef.current?.play();
@@ -56,12 +59,11 @@ export const FolderHeader = memo((props) => {
             leftButton={{
                 onPress: isEditing ? onCancel : onBack,
                 icon: isEditing ? (
-                    <X size={24} color="#FF6B6B" />
+                    <X size={24} color={theme.red} />
                 ) : (
-                    <ChevronLeft size={24} color="#fff" />
+                    <ChevronLeft size={24} color={theme.text} />
                 ),
             }}
-            // Заменяем статическую иконку Lucide на кастомный интерактивный Lottie-алмаз из примера
             centerButton={
                 showBrilliantBtn
                     ? {
@@ -84,13 +86,12 @@ export const FolderHeader = memo((props) => {
             rightButton={{
                 onPress: () => (isEditing ? onSave() : setIsEditing(true)),
                 icon: isEditing ? (
-                    <Check size={24} color="#7D8AFF" />
+                    <Check size={24} color={theme.accent} />
                 ) : (
-                    <Pen size={22} color="#fff" />
+                    <Pen size={22} color={theme.text} />
                 ),
             }}
         >
-            {/* Обертка для всего внутреннего контента */}
             <View style={styles.container}>
                 <HeroPoster image={displayImage} isEditing={isEditing} onPickImage={pickImage} />
 
@@ -126,30 +127,26 @@ export const FolderHeader = memo((props) => {
     );
 });
 
-const styles = StyleSheet.create({
-    container: {
-        width: "100%",
-        alignItems: "center",
-    },
-    contentWrapper: {
-        width: "100%",
-        marginTop: 10, // Отступ между постером и текстом
-    },
-    lottieContainer: {
-        width: 100,
-        height: 100,
-        marginLeft: -50,
-        marginTop: -15,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    headerLottie: {
-        width: "100%",
-        height: "100%",
-    },
-    saveButton: { backgroundColor: "#7D8AFF", borderRadius: 15 },
-    cancelButton: {
-        backgroundColor: "rgba(255, 79, 79, 0.8)",
-        borderRadius: 15,
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        container: {
+            width: "100%",
+            alignItems: "center",
+        },
+        contentWrapper: {
+            width: "100%",
+            marginTop: 10,
+        },
+        lottieContainer: {
+            width: 100,
+            height: 100,
+            marginLeft: -50,
+            marginTop: -15,
+            justifyContent: "center",
+            alignItems: "center",
+        },
+        headerLottie: {
+            width: "100%",
+            height: "100%",
+        },
+    });

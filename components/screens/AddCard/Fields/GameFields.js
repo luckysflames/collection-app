@@ -1,12 +1,14 @@
 import React from "react";
 import { View } from "react-native";
 
-import { formStyles } from "../styles/formStyles";
 import CommonField from "./CommonField";
 import SelectField from "./SelectField";
-import { ESRB_RATINGS, GAME_PLATFORMS } from "../../../..//constants/index";
+import { ESRB_RATINGS, GAME_PLATFORMS } from "../../../../constants/index";
+import { useFormStyles } from "../styles/formStyles";
 
 export default function GameFields({ form, updateField }) {
+    const formStyles = useFormStyles();
+
     return (
         <View>
             <View style={formStyles.rowInputs}>

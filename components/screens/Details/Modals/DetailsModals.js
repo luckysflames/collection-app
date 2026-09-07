@@ -11,7 +11,7 @@ export const DetailsModals = ({ state, actions, data, handlers }) => {
             <WarnModal
                 visible={state.isInfoVisible}
                 title="О личной оценке"
-                message="Эта оценка видна только Вам. Она помогает структурировать Вашу личную коллекцию..."
+                message="Эта оценка видна только Вам. Она помогает структурировать Вашу личную коллекцию"
                 type="info"
                 onClose={actions.closeInfo}
             />

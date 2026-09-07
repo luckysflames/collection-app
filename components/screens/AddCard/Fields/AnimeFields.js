@@ -1,13 +1,15 @@
 import React from "react";
 import { View } from "react-native";
 
-import { formStyles } from "../styles/formStyles";
+import { useFormStyles } from "../styles/formStyles";
 import CommonField from "./CommonField";
 import MaskedDateInput from "./MaskedDateInput";
 import SelectField from "./SelectField";
-import { ANIME_RATINGS, ANIME_KINDS, ANIME_STATUSES } from "../../../..//constants/index";
+import { ANIME_RATINGS, ANIME_KINDS, ANIME_STATUSES } from "../../../../constants/index";
 
 export default function AnimeFields({ form, updateField }) {
+    const formStyles = useFormStyles();
+
     return (
         <View>
             <CommonField

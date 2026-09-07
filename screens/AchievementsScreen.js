@@ -10,8 +10,12 @@ import { ScreenHeader } from "../components/screens/Achievements/ScreenHeader";
 import { AchievementTabs } from "../components/screens/Achievements/AchievementTabs";
 import { AchievementItem } from "../components/screens/Achievements/AchievementItem";
 import { AchievementDetailModal } from "../components/screens/Achievements/AchievementDetailModal";
+import { useTheme } from "../hooks/useTheme";
 
 export default function AchievementsScreen({ navigation, route }) {
+    const { createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const highlightId = route.params?.highlightId;
     const insets = useSafeAreaInsets();
 
@@ -158,27 +162,46 @@ export default function AchievementsScreen({ navigation, route }) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "#050B18" },
-    header: { paddingHorizontal: 20, paddingBottom: 15, backgroundColor: "#050B18" },
-    tabsWrapper: {
-        backgroundColor: "#050B18",
-        borderBottomWidth: 1,
-        borderColor: "rgba(255, 255, 255, 0.04)",
-    },
-    scrollContent: { paddingHorizontal: 20, paddingTop: 20 },
-    sectionBlock: { marginBottom: 20 },
-    sectionMeta: { marginBottom: 16, paddingHorizontal: 4 },
-    sectionStatsText: { color: "rgba(255, 255, 255, 0.4)", fontSize: 13, fontWeight: "600" },
-    groupContainer: { marginBottom: 20 },
-    groupTitle: {
-        color: "#7D8AFF",
-        fontSize: 11,
-        fontWeight: "800",
-        textTransform: "uppercase",
-        letterSpacing: 1.6,
-        marginBottom: 12,
-        marginLeft: 4,
-        opacity: 0.9,
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: theme.dark,
+        },
+        header: {
+            paddingHorizontal: 20,
+            paddingBottom: 15,
+            backgroundColor: theme.dark,
+        },
+        tabsWrapper: {
+            backgroundColor: theme.dark,
+        },
+        scrollContent: {
+            paddingHorizontal: 20,
+            paddingTop: 20,
+        },
+        sectionBlock: {
+            marginBottom: 20,
+        },
+        sectionMeta: {
+            marginBottom: 16,
+            paddingHorizontal: 4,
+        },
+        sectionStatsText: {
+            color: theme.textDark,
+            fontSize: 13,
+            fontWeight: "600",
+        },
+        groupContainer: {
+            marginBottom: 20,
+        },
+        groupTitle: {
+            color: theme.accent,
+            fontSize: 11,
+            fontWeight: "800",
+            textTransform: "uppercase",
+            letterSpacing: 1.6,
+            marginBottom: 12,
+            marginLeft: 4,
+        },
+    });

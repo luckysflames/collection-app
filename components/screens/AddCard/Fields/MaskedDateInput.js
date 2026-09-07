@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, StyleSheet } from "react-native";
+import { useTheme } from "../../../../hooks/useTheme";
 
 export default function MaskedDateInput({
     label,
@@ -7,20 +8,20 @@ export default function MaskedDateInput({
     form,
     updateField,
     fieldName,
-    format = "dd.mm.yyyy", // дд.мм.гггг по умолчанию
+    format = "dd.mm.yyyy",
     ...props
 }) {
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const [isFocused, setIsFocused] = useState(false);
     const value = form[fieldName] || "";
 
-    // Преобразует дд.мм.гггг в гггг-мм-дд
     const formatDisplayToISO = (displayDate) => {
         if (!displayDate) return "";
-        // Если это уже ISO формат (гггг-мм-дд), возвращаем как есть
         if (displayDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
             return displayDate;
         }
-        // Преобразуем дд.мм.гггг в гггг-мм-дд
         const parts = displayDate.split(".");
         if (parts.length === 3) {
             const [day, month, year] = parts;
@@ -29,14 +30,11 @@ export default function MaskedDateInput({
         return displayDate;
     };
 
-    // Преобразует гггг-мм-дд в дд.мм.гггг для отображения
     const formatISOToDisplay = (isoDate) => {
         if (!isoDate) return "";
-        // Если это формат дд.мм.гггг, возвращаем как есть
         if (isoDate.match(/^\d{2}\.\d{2}\.\d{4}$/)) {
             return isoDate;
         }
-        // Преобразуем гггг-мм-дд в дд.мм.гггг
         const parts = isoDate.split("-");
         if (parts.length === 3) {
             const [year, month, day] = parts;
@@ -45,13 +43,10 @@ export default function MaskedDateInput({
         return isoDate;
     };
 
-    // Маскирует ввод: форматирует в реальном времени
     const maskInput = (text) => {
-        // Убираем все, что не цифры
         const digits = text.replace(/\D/g, "");
 
         if (format === "dd.mm.yyyy") {
-            // дд.мм.гггг
             if (digits.length <= 2) {
                 return digits;
             } else if (digits.length <= 4) {
@@ -67,12 +62,10 @@ export default function MaskedDateInput({
 
     const handleChangeText = (text) => {
         const masked = maskInput(text);
-        // Сохраняем в ISO формате (гггг-мм-дд)
         const iso = formatDisplayToISO(masked);
         updateField(fieldName, iso);
     };
 
-    // Отображаем значение в формате дд.мм.гггг
     const displayValue = formatISOToDisplay(value);
 
     return (
@@ -80,68 +73,61 @@ export default function MaskedDateInput({
             <Text
                 style={[
                     styles.label,
-                    isFocused || displayValue
-                        ? styles.labelActive
-                        : styles.labelInactive,
+                    isFocused || displayValue ? styles.labelActive : styles.labelInactive,
                 ]}
             >
                 {label || placeholder}
             </Text>
 
             <TextInput
-                style={[
-                    styles.input,
-                    isFocused && styles.inputFocused,
-                    props.style,
-                ]}
+                style={[styles.input, isFocused && styles.inputFocused, props.style]}
                 placeholder={isFocused ? "" : placeholder}
-                placeholderTextColor="#4E5566"
+                placeholderTextColor={theme.textDark}
                 value={displayValue}
                 onChangeText={handleChangeText}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
-                selectionColor="#7D8AFF"
+                selectionColor={theme.accent}
                 keyboardType="numeric"
-                maxLength={10} // дд.мм.гггг = 10 символов
+                maxLength={10}
                 {...props}
             />
         </View>
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        marginBottom: 16,
-        width: "100%",
-    },
-    label: {
-        fontSize: 12,
-        fontWeight: "700",
-        marginBottom: 6,
-        marginLeft: 4,
-        textTransform: "uppercase",
-        letterSpacing: 0.5,
-    },
-    labelInactive: {
-        color: "#4E5566",
-        opacity: 0.5,
-    },
-    labelActive: {
-        color: "#7D8AFF",
-        opacity: 1,
-    },
-    input: {
-        backgroundColor: "rgba(255, 255, 255, 0.05)",
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-        color: "#fff",
-        fontSize: 16,
-        borderWidth: 1,
-        borderColor: "rgba(255, 255, 255, 0.1)",
-    },
-    inputFocused: {
-        borderColor: "#7D8AFF",
-        backgroundColor: "rgba(125, 138, 255, 0.05)",
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        container: {
+            marginBottom: 16,
+            width: "100%",
+        },
+        label: {
+            fontSize: 12,
+            fontWeight: "700",
+            marginBottom: 6,
+            marginLeft: 4,
+            textTransform: "uppercase",
+            letterSpacing: 0.5,
+        },
+        labelInactive: {
+            color: theme.text,
+        },
+        labelActive: {
+            color: theme.accent,
+            opacity: 1,
+        },
+        input: {
+            backgroundColor: theme.dark,
+            borderRadius: 12,
+            paddingHorizontal: 16,
+            paddingVertical: 14,
+            color: theme.text,
+            fontSize: 16,
+            borderWidth: 1,
+            borderColor: theme.textDark,
+        },
+        inputFocused: {
+            borderColor: theme.accent,
+        },
+    });

@@ -1,29 +1,30 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
 import { TouchableOpacity, View, Text, StyleSheet, Animated } from "react-native";
 import { ChevronRight, CheckCircle2 } from "lucide-react-native";
 import { DynamicIcon } from "./DynamicIcon";
+import { useTheme } from "../../../hooks/useTheme";
 
 export const AchievementItem = ({ achievement, onPress, isHighlighted }) => {
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     const isCompleted = achievement.isCompleted;
 
-    // Прогрессбар выкручиваем на 100%, если ачивка зафиксирована
     const progress = isCompleted ? 1 : Math.min(achievement.current / achievement.target, 1);
 
     const isLockedSecret = achievement.hidden && !isCompleted;
     const isUnlockedSecret = achievement.hidden && isCompleted;
 
-    // Реф для анимации пульсации
     const pulseAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
         if (isHighlighted) {
-            // Создаем цикл пульсации: 0 -> 1 -> 0
             Animated.loop(
                 Animated.sequence([
                     Animated.timing(pulseAnim, {
                         toValue: 1,
                         duration: 800,
-                        useNativeDriver: false, // т.к. анимируем стили контейнера
+                        useNativeDriver: false,
                     }),
                     Animated.timing(pulseAnim, {
                         toValue: 0,
@@ -31,22 +32,24 @@ export const AchievementItem = ({ achievement, onPress, isHighlighted }) => {
                         useNativeDriver: false,
                     }),
                 ]),
-                { iterations: 3 }, // Пульсируем 3 раза и затихаем
+                { iterations: 3 },
             ).start();
         }
-    }, [isHighlighted]);
+    }, [isHighlighted, pulseAnim]);
 
-    // Интерполяция для цвета бордера и тени
-    const highlightStyles = {
-        borderColor: pulseAnim.interpolate({
-            inputRange: [0, 1],
-            outputRange: ["rgba(125, 138, 255, 0.08)", "rgba(125, 138, 255, 0.8)"],
+    const highlightStyles = useMemo(
+        () => ({
+            borderColor: pulseAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [theme.accentMuted, theme.accent],
+            }),
+            backgroundColor: pulseAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [theme.main, theme.accentMuted],
+            }),
         }),
-        backgroundColor: pulseAnim.interpolate({
-            inputRange: [0, 1],
-            outputRange: ["rgba(11, 21, 52, 0.6)", "rgba(125, 138, 255, 0.15)"],
-        }),
-    };
+        [pulseAnim, theme],
+    );
 
     return (
         <Animated.View
@@ -67,13 +70,13 @@ export const AchievementItem = ({ achievement, onPress, isHighlighted }) => {
                         <DynamicIcon
                             name={achievement.displayIconName}
                             size={22}
-                            color={isCompleted ? "#7D8AFF" : "#444E72"}
+                            color={isCompleted ? theme.accent : theme.textDark}
                         />
                     </View>
 
                     <View style={styles.textInfo}>
                         <Text
-                            style={[styles.label, !isLockedSecret && { marginBottom: 6 }]}
+                            style={[styles.label, !isLockedSecret && styles.labelWithMargin]}
                             numberOfLines={1}
                         >
                             {achievement.displayTitle}
@@ -94,7 +97,7 @@ export const AchievementItem = ({ achievement, onPress, isHighlighted }) => {
 
                 <View style={styles.rightContainer}>
                     {isCompleted ? (
-                        <CheckCircle2 size={18} color="#7D8AFF" />
+                        <CheckCircle2 size={18} color={theme.accent} />
                     ) : (
                         <Text style={styles.progressText}>
                             {isLockedSecret
@@ -102,87 +105,93 @@ export const AchievementItem = ({ achievement, onPress, isHighlighted }) => {
                                 : `${achievement.current}/${achievement.target}`}
                         </Text>
                     )}
-                    <ChevronRight size={18} color="#444E72" style={{ marginLeft: 8 }} />
+                    <ChevronRight size={18} color={theme.textDark} style={styles.chevron} />
                 </View>
             </TouchableOpacity>
         </Animated.View>
     );
 };
 
-const styles = StyleSheet.create({
-    item: {
-        borderRadius: 20,
-        marginBottom: 10,
-        borderWidth: 1,
-        borderColor: "rgba(125, 138, 255, 0.08)",
-        backgroundColor: "rgba(11, 21, 52, 0.6)",
-        overflow: "hidden",
-    },
-    touchableArea: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        paddingVertical: 14,
-        paddingHorizontal: 16,
-    },
-    secretUnlocked: {
-        backgroundColor: "rgba(125, 138, 255, 0.2)",
-        borderColor: "rgba(125, 138, 255, 0.7)",
-    },
-    lockedItem: {
-        opacity: 0.3,
-    },
-    leftContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        flex: 1,
-    },
-    iconWrapper: {
-        width: 44,
-        height: 44,
-        borderRadius: 12,
-        backgroundColor: "rgba(125, 138, 255, 0.05)",
-        justifyContent: "center",
-        alignItems: "center",
-        marginRight: 15,
-        borderWidth: 1,
-        borderColor: "rgba(125, 138, 255, 0.1)",
-    },
-    completedIcon: {
-        backgroundColor: "rgba(125, 138, 255, 0.15)",
-        borderColor: "rgba(125, 138, 255, 0.5)",
-    },
-    textInfo: {
-        flex: 1,
-        justifyContent: "center",
-        marginRight: 10,
-    },
-    label: {
-        color: "#fff",
-        fontSize: 15,
-        fontWeight: "600",
-    },
-    progressTrack: {
-        height: 4,
-        backgroundColor: "rgba(255, 255, 255, 0.05)",
-        borderRadius: 2,
-        width: "90%", // Оставляем немного места справа
-    },
-    progressFill: {
-        height: "100%",
-        backgroundColor: "#7D8AFF",
-        borderRadius: 2,
-    },
-    completedFill: {
-        backgroundColor: "#7D8AFF",
-    },
-    rightContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
-    progressText: {
-        color: "#8E94A4",
-        fontSize: 11,
-        fontWeight: "700",
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        item: {
+            borderRadius: 20,
+            marginBottom: 10,
+            borderWidth: 1,
+            borderColor: theme.accent,
+            overflow: "hidden",
+        },
+        touchableArea: {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingVertical: 14,
+            paddingHorizontal: 16,
+        },
+        secretUnlocked: {
+            backgroundColor: theme.accentMuted,
+            borderColor: theme.accent,
+        },
+        lockedItem: {
+            opacity: 0.3,
+        },
+        leftContainer: {
+            flexDirection: "row",
+            alignItems: "center",
+            flex: 1,
+        },
+        iconWrapper: {
+            width: 44,
+            height: 44,
+            borderRadius: 12,
+            backgroundColor: theme.dark,
+            justifyContent: "center",
+            alignItems: "center",
+            marginRight: 15,
+            borderWidth: 1,
+            borderColor: theme.accentMuted,
+        },
+        completedIcon: {
+            backgroundColor: theme.accentMuted,
+            borderColor: theme.accent,
+        },
+        textInfo: {
+            flex: 1,
+            justifyContent: "center",
+            marginRight: 10,
+        },
+        label: {
+            color: theme.text,
+            fontSize: 15,
+            fontWeight: "600",
+        },
+        labelWithMargin: {
+            marginBottom: 6,
+        },
+        progressTrack: {
+            height: 4,
+            backgroundColor: theme.dark,
+            borderRadius: 2,
+            width: "90%",
+        },
+        progressFill: {
+            height: "100%",
+            backgroundColor: theme.accent,
+            borderRadius: 2,
+        },
+        completedFill: {
+            backgroundColor: theme.accent,
+        },
+        rightContainer: {
+            flexDirection: "row",
+            alignItems: "center",
+        },
+        progressText: {
+            color: theme.textDark,
+            fontSize: 11,
+            fontWeight: "700",
+        },
+        chevron: {
+            marginLeft: 8,
+        },
+    });

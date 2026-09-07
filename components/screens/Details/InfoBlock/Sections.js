@@ -1,10 +1,17 @@
+import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { LabelValue } from "./LabelValue";
 import { formatKind, formatMovieCountries, formatRating, formatTVCountries } from "./utils";
-import { ANIME_ORIGIN_MAP } from "../../../..//constants/index";
+import { ANIME_ORIGIN_MAP } from "../../../../constants/index";
+import { useTheme } from "../../../../hooks/useTheme";
+
+// --- QUICK DATA COMPONENTS ---
 
 export const AnimeQuickData = ({ data }) => {
+    const { createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     return (
         <View style={styles.quickMeta}>
             {!data.isCustom && data.score && (
@@ -21,6 +28,9 @@ export const AnimeQuickData = ({ data }) => {
 };
 
 export const MovieQuickData = ({ data }) => {
+    const { createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     if (data.isCustom) return null;
 
     return (
@@ -31,6 +41,9 @@ export const MovieQuickData = ({ data }) => {
 };
 
 export const TVQuickData = ({ data }) => {
+    const { createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     if (data.isCustom) return null;
 
     return (
@@ -41,6 +54,9 @@ export const TVQuickData = ({ data }) => {
 };
 
 export const GameQuickData = ({ data }) => {
+    const { createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     if (data.isCustom) return null;
 
     return (
@@ -51,6 +67,9 @@ export const GameQuickData = ({ data }) => {
 };
 
 export const BookQuickData = ({ data }) => {
+    const { createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
     if (data.isCustom) return null;
 
     return (
@@ -59,6 +78,8 @@ export const BookQuickData = ({ data }) => {
         </View>
     );
 };
+
+// --- EXTRA COMPONENTS ---
 
 export const AnimeExtra = ({ data }) => (
     <>
@@ -102,19 +123,28 @@ export const BookExtra = ({ data }) => (
     </>
 );
 
-const styles = StyleSheet.create({
-    quickMeta: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginBottom: 15,
-    },
-    scoreText: { color: "#FFD700", fontSize: 14, fontWeight: "bold" },
-    dot: {
-        width: 3,
-        height: 3,
-        borderRadius: 2,
-        backgroundColor: "#444",
-        marginHorizontal: 8,
-    },
-    metaText: { color: "#8E94A4", fontSize: 14, fontWeight: "500" },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        quickMeta: {
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: 15,
+        },
+        scoreText: {
+            color: theme.yellow,
+            fontSize: 14,
+            fontWeight: "bold",
+        },
+        dot: {
+            width: 3,
+            height: 3,
+            borderRadius: 2,
+            backgroundColor: theme.textDark,
+            marginHorizontal: 8,
+        },
+        metaText: {
+            color: theme.accent,
+            fontSize: 14,
+            fontWeight: "500",
+        },
+    });

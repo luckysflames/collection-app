@@ -1,9 +1,12 @@
 import React from "react";
 import { Text, StyleSheet } from "react-native";
+import { useTheme } from "../../../../hooks/useTheme";
 
 export const LabelValue = ({ label, value }) => {
-    // Если значения нет, ничего не рендерим, чтобы не плодить пустые строки
     if (!value || value === "" || value === "$?") return null;
+
+    const { theme, createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
 
     return (
         <Text style={styles.textLine}>
@@ -13,21 +16,22 @@ export const LabelValue = ({ label, value }) => {
     );
 };
 
-const styles = StyleSheet.create({
-    textLine: {
-        fontSize: 14,
-        marginBottom: 6, // Небольшой отступ между строками
-        paddingHorizontal: 5,
-        lineHeight: 20, // Чтобы многострочные списки (страны/компании) не слипались
-    },
-    label: {
-        color: "#8E94A4",
-        textTransform: "uppercase",
-        fontSize: 11,
-        fontWeight: "600",
-    },
-    value: {
-        color: "#7D8AFF",
-        fontWeight: "500",
-    },
-});
+const createLocalStyles = (theme) =>
+    StyleSheet.create({
+        textLine: {
+            fontSize: 14,
+            marginBottom: 6,
+            paddingHorizontal: 5,
+            lineHeight: 20,
+        },
+        label: {
+            color: theme.text,
+            textTransform: "uppercase",
+            fontSize: 11,
+            fontWeight: "600",
+        },
+        value: {
+            color: theme.accent,
+            fontWeight: "500",
+        },
+    });
