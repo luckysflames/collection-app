@@ -57,7 +57,8 @@ export const useFilteredCollection = ({
 
             // Фильтр для обычных вкладок статусов (например, "Смотрю", "В планах")
             // Если группировщик ВЫКЛЮЧЕН — папки на этих вкладках вообще не показываем
-            if (!showFoldersOnly && isFolder) return false;
+            // В режиме папок папки добавляются позже только через подходящие дочерние карточки.
+            if (isFolder) return false;
 
             return item.status === category;
         });
@@ -88,18 +89,13 @@ export const useFilteredCollection = ({
             const parentIdsToFetch = new Set();
 
             filtered.forEach((item) => {
-                if (item.isFolder) {
-                    // Если папка каким-то образом сама подошла под статус, сохраняем
+                const parents = item.parentFolderIds || [];
+                if (parents.length === 0) {
+                    // Карточку без папки оставляем в корне списка
                     finalItemsMap.set(String(item.id), item);
                 } else {
-                    const parents = item.parentFolderIds || [];
-                    if (parents.length === 0) {
-                        // Карточку без папки оставляем в корне списка
-                        finalItemsMap.set(String(item.id), item);
-                    } else {
-                        // Для карточек с папками — собираем ID их родителей, а сами карточки убираем
-                        parents.forEach((parentId) => parentIdsToFetch.add(String(parentId)));
-                    }
+                    // Для подходящих карточек собираем ID родителей, независимо от статуса папки
+                    parents.forEach((parentId) => parentIdsToFetch.add(String(parentId)));
                 }
             });
 

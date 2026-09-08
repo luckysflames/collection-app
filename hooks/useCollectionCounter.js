@@ -14,6 +14,41 @@ export const useCollectionCounter = (
         // 1. Создаем карту родителей заранее, чтобы не пересоздавать её для каждого элемента
         const parentMap = new Map(myCollection.map((item) => [String(item.id), item]));
 
+        if (
+            showFoldersOnly &&
+            activeCategory !== "Всё" &&
+            activeCategory !== "Папки" &&
+            activeCategory !== FAVORITE_STATUS
+        ) {
+            const visibleIds = new Set();
+
+            myCollection.forEach((item) => {
+                if (item.isFolder || item.appSection !== currentSection) return;
+                if (item.status !== activeCategory) return;
+
+                if (searchQuery && searchQuery.trim().length > 0) {
+                    const query = searchQuery.toLowerCase();
+                    const matchesText =
+                        item.title?.toLowerCase().includes(query) ||
+                        item.originalTitle?.toLowerCase().includes(query);
+                    if (!matchesText) return;
+                }
+
+                for (const [filterKey, filterValue] of Object.entries(activeFilters)) {
+                    if (!matchesFilterValue(item, filterKey, filterValue)) return;
+                }
+
+                const parents = item.parentFolderIds || [];
+                if (parents.length === 0) {
+                    visibleIds.add(String(item.id));
+                } else {
+                    parents.forEach((parentId) => visibleIds.add(String(parentId)));
+                }
+            });
+
+            return visibleIds.size;
+        }
+
         const filterFn = (item) => {
             // --- Базовая проверка раздела ---
             if (item.appSection !== currentSection) return false;

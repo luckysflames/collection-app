@@ -79,6 +79,18 @@ export const matchesFilterValue = (item, filterKey, filterValue) => {
             return filterValue.every((value) => values.includes(String(value)));
         }
 
+        if (filterValue.length === 2) {
+            const numericItemValue = normalizeNumericValue(itemValue);
+            const min = normalizeNumericValue(filterValue[0]);
+            const max = normalizeNumericValue(filterValue[1]);
+
+            if (numericItemValue === null || min === null || max === null) {
+                return false;
+            }
+
+            return numericItemValue >= min && numericItemValue <= max;
+        }
+
         return filterValue.some(
             (value) => String(itemValue) === String(value),
         );
