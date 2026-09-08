@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from "react-native";
-import { BottomSheet } from "../../ui/BottomSheet";
-import { WarnModal } from "../../ui/WarnModal";
-import { useTheme } from "../../../hooks/useTheme";
+import { BottomSheet } from "../../../ui/BottomSheet";
+import { WarnModal } from "../../../ui/WarnModal";
+import { useTheme } from "../../../../hooks/useTheme";
 
 export const DevelopersModal = ({ visible, onClose, onSecretReset }) => {
     const { createStyles } = useTheme();
@@ -95,7 +95,7 @@ export const DevelopersModal = ({ visible, onClose, onSecretReset }) => {
             >
                 <View style={styles.easterEggContainer}>
                     <Image
-                        source={require("../../../assets/alya.png")}
+                        source={require("../../../../assets/alya.png")}
                         style={styles.easterEggImage}
                         resizeMode="cover"
                     />
@@ -111,7 +111,7 @@ export const DevelopersModal = ({ visible, onClose, onSecretReset }) => {
             >
                 <View style={styles.easterEggContainer}>
                     <Image
-                        source={require("../../../assets/yuki.png")}
+                        source={require("../../../../assets/yuki.png")}
                         style={styles.easterEggImage}
                         resizeMode="cover"
                     />

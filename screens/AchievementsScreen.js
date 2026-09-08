@@ -9,7 +9,7 @@ import { useAchievements } from "../hooks/useAchievements";
 import { ScreenHeader } from "../components/screens/Achievements/ScreenHeader";
 import { AchievementTabs } from "../components/screens/Achievements/AchievementTabs";
 import { AchievementItem } from "../components/screens/Achievements/AchievementItem";
-import { AchievementDetailModal } from "../components/screens/Achievements/AchievementDetailModal";
+import { AchievementDetailModal } from "../components/screens/Achievements/Modals/AchievementDetailModal";
 import { useTheme } from "../hooks/useTheme";
 
 export default function AchievementsScreen({ navigation, route }) {

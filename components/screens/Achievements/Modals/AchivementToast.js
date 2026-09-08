@@ -4,11 +4,11 @@ import { useNavigation } from "@react-navigation/native";
 import { useAudioPlayer } from "expo-audio";
 import { X } from "lucide-react-native";
 
-import { useCollectionStore } from "../../../store/useCollectionStore";
-import { DynamicIcon } from "./DynamicIcon";
-import { useTheme } from "../../../hooks/useTheme";
+import { useCollectionStore } from "../../../../store/useCollectionStore";
+import { DynamicIcon } from "../DynamicIcon";
+import { useTheme } from "../../../../hooks/useTheme";
 
-const audioSource = require("../../../assets/sounds/achivement.wav");
+const audioSource = require("../../../../assets/sounds/achivement.wav");
 
 export const AchievementToast = ({ achievement, onDismiss }) => {
     const { theme, createStyles } = useTheme();

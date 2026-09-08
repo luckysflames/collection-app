@@ -1,8 +1,8 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { BottomSheet } from "../../ui/BottomSheet";
-import { DynamicIcon } from "./DynamicIcon";
-import { useTheme } from "../../../hooks/useTheme";
+import { BottomSheet } from "../../../ui/BottomSheet";
+import { DynamicIcon } from "../DynamicIcon";
+import { useTheme } from "../../../../hooks/useTheme";
 
 export const AchievementDetailModal = ({ visible, onClose, achievement }) => {
     if (!achievement) return null;

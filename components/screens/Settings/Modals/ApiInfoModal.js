@@ -1,8 +1,8 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Linking, ScrollView, Image } from "react-native";
-import { BottomSheet } from "../../ui/BottomSheet";
-import { API_SERVICES, SUB_CATEGORIES } from "../../../constants/index";
-import { useTheme } from "../../../hooks/useTheme";
+import { BottomSheet } from "../../../ui/BottomSheet";
+import { API_SERVICES, SUB_CATEGORIES } from "../../../../constants/index";
+import { useTheme } from "../../../../hooks/useTheme";
 import { CodeXml, SquareArrowOutUpRight } from "lucide-react-native";
 
 export const ApiInfoModal = ({ visible, onClose }) => {

@@ -2,7 +2,7 @@ import React from "react";
 import { useCollectionStore } from "../../../store/useCollectionStore";
 import { useNotificationStore } from "../../../store/useNotificationStore";
 import { calculateAchievements } from "../../../utils/achievements/index";
-import { AchievementToast } from "./AchivementToast";
+import { AchievementToast } from "./Modals/AchivementToast";
 
 export const AchivementNotifier = () => {
     const myCollection = useCollectionStore((state) => state.myCollection);
