@@ -21,6 +21,7 @@ import { DetailsSkeleton } from "../components/screens/Details/DetailsSkeleton";
 import { fetchDetailsById } from "../services/index";
 import { WarnModal } from "../components/ui/WarnModal";
 import { ImageModal } from "../components/shared/Modals/ImageModal";
+import { StudioModal } from "../components/screens/Details/Modals/StudioModal";
 
 const DATA_LOAD_DELAY = 300;
 const SKELETON_FADE_DELAY = 600;
@@ -37,6 +38,7 @@ export default function DetailsScreen({ route, navigation }) {
     const [isAnimationFinished, setIsAnimationFinished] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isImageModalVisible, setIsImageModalVisible] = useState(false);
+    const [isStudioModalVisible, setIsStudioModalVisible] = useState(false);
     const [errorModal, setErrorModal] = useState({
         visible: false,
         message: "",
@@ -146,6 +148,13 @@ export default function DetailsScreen({ route, navigation }) {
         [item.id, isVibration, setUserScore, isBrilliant, updateCard],
     );
 
+    const handleSelectStudio = useCallback(
+        (studio) => {
+            updateCard(item.id, { selectedStudio: studio });
+        },
+        [updateCard, item.id],
+    );
+
     const parentFolders = useMemo(() => {
         const ids = savedItem?.parentFolderIds || [];
         return myCollection.filter((f) => ids.includes(f.id));
@@ -206,6 +215,7 @@ export default function DetailsScreen({ route, navigation }) {
                                 onToggleBrilliant={handleToggleBrilliant}
                                 isFocused={isFocused}
                                 onStatusPress={() => openModal("status")}
+                                onStudioPress={() => setIsStudioModalVisible(true)}
                                 onFolderPress={() => openModal("folder")}
                                 onInfoPress={() => openModal("info")}
                                 onToggleFavorite={handleToggleFavorite}
@@ -261,6 +271,14 @@ export default function DetailsScreen({ route, navigation }) {
                 images={posterImage ? [posterImage] : []}
                 initialIndex={0}
                 onClose={() => setIsImageModalVisible(false)}
+            />
+
+            <StudioModal
+                visible={isStudioModalVisible}
+                onClose={() => setIsStudioModalVisible(false)}
+                studios={displayData.studiosDubSub || []}
+                selectedStudio={savedItem?.selectedStudio}
+                onSelectStudio={handleSelectStudio}
             />
 
             <WarnModal

@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { Mic } from "lucide-react-native";
 import { formatDate } from "./utils";
 import { ANIME_STATUSES, MOVIE_STATUSES, BOOK_MATURITY_RATINGS } from "../../../../constants/index";
 import { useTheme } from "../../../../hooks/useTheme";
@@ -35,15 +36,21 @@ const formatDayOfWeekWithTime = (date) => {
     return `${dayName} в ${timeStr}`;
 };
 
-export const InfoStats = ({ displayData }) => {
+export const InfoStats = ({
+    displayData,
+    status,
+    selectedStudio,
+    onStudioPress,
+    getStudioButtonText,
+}) => {
     if (!displayData) return null;
 
-    const { createStyles } = useTheme();
+    const { theme, createStyles } = useTheme();
     const styles = createStyles(createLocalStyles);
 
+    const isAnime = displayData.type === "anime";
     const isAnimeMovie =
-        displayData.type === "anime" &&
-        (displayData.animeKind === "movie" || displayData.episodes === 1);
+        isAnime && (displayData.animeKind === "movie" || displayData.episodes === 1);
 
     const getNextEpisodeInfo = (isoString) => {
         if (!isoString || typeof isoString !== "string") return null;
@@ -129,6 +136,26 @@ export const InfoStats = ({ displayData }) => {
 
     return (
         <View style={styles.container}>
+            {/* ВЕРХНЯЯ ПЛАШКА: Кнопка выбора озвучки */}
+            {isAnime && (
+                <TouchableOpacity
+                    onPress={onStudioPress}
+                    activeOpacity={0.8}
+                    style={styles.topBanner}
+                >
+                    <View style={styles.studioContent}>
+                        <Mic size={16} color={selectedStudio ? theme.accent : theme.textDark} />
+                        <Text
+                            style={[styles.studioText, selectedStudio && styles.studioTextActive]}
+                            numberOfLines={1}
+                        >
+                            {getStudioButtonText(status, selectedStudio)}
+                        </Text>
+                    </View>
+                </TouchableOpacity>
+            )}
+
+            {/* ОСНОВНОЙ БЛОК СТАТИСТИКИ */}
             <View style={styles.statsGrid}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                     <StatSubItem
@@ -217,8 +244,9 @@ export const InfoStats = ({ displayData }) => {
                 </View>
             </View>
 
-            {displayData.type === "anime" && Boolean(nextEpisodeText) && (
-                <View style={styles.nextEpisodeBanner}>
+            {/* НИЖНЯЯ ПЛАШКА: Исходный вид анонса эпизода */}
+            {nextEpisodeText && (
+                <View style={styles.bottomBanner}>
                     <Text style={styles.nextEpisodeValue} numberOfLines={1}>
                         {nextEpisodeText}
                     </Text>
@@ -242,6 +270,31 @@ const createLocalStyles = (theme) =>
             textTransform: "uppercase",
         },
         statValue: { color: theme.text, fontSize: 14, fontWeight: "600" },
+        topBanner: {
+            backgroundColor: theme.accentMuted,
+            borderTopLeftRadius: 15,
+            borderTopRightRadius: 15,
+            marginBottom: -12,
+            paddingTop: 10,
+            paddingBottom: 18,
+            paddingHorizontal: 15,
+            zIndex: 1,
+            elevation: 1,
+        },
+        studioContent: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+        },
+        studioText: {
+            color: theme.textDark,
+            fontSize: 12,
+            fontWeight: "600",
+            flexShrink: 1,
+        },
+        studioTextActive: {
+            color: theme.text,
+        },
         statsGrid: {
             backgroundColor: theme.main,
             borderRadius: 15,
@@ -257,24 +310,19 @@ const createLocalStyles = (theme) =>
             height: 1,
             marginVertical: 4,
         },
-        nextEpisodeBanner: {
+        bottomBanner: {
             backgroundColor: theme.accent,
             borderBottomLeftRadius: 15,
             borderBottomRightRadius: 15,
-            marginTop: -12,
-            paddingTop: 18,
+            marginTop: -15,
+            paddingTop: 20,
             paddingBottom: 10,
-            paddingHorizontal: 16,
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
             zIndex: 1,
             elevation: 1,
         },
         nextEpisodeValue: {
-            flex: 1,
             fontSize: 11,
-            fontWeight: "500",
+            fontWeight: "600",
             color: theme.text,
             textAlign: "center",
         },

@@ -108,7 +108,6 @@ export default function SearchScreen({ navigation, route }) {
                 setQuery={setQuery}
                 onSearch={() => handleSearch(query, activeCategory, true)}
                 handleReset={handleReset}
-                topInset={insets.top}
             />
 
             {loading ? (

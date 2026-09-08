@@ -26,6 +26,8 @@ export const WarnModal = ({
     type = "warning",
     isProcessing = false,
     children,
+    style,
+    overlayStyle,
 }) => {
     const { theme, createStyles } = useTheme();
     const styles = createStyles(createLocalStyles);
@@ -75,12 +77,12 @@ export const WarnModal = ({
             onRequestClose={isProcessing ? undefined : onClose}
             statusBarTranslucent
         >
-            <View style={styles.overlay}>
+            <View style={[styles.overlay, overlayStyle]}>
                 <Pressable style={StyleSheet.absoluteFill} onPress={isProcessing ? null : onClose}>
                     <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
                 </Pressable>
 
-                <Pressable style={styles.modalContent}>
+                <Pressable style={[styles.modalContent, style]}>
                     <View style={[styles.iconCircle, { backgroundColor: icon.bgColor }]}>
                         <IconComponent size={40} color={icon.color} />
                     </View>
@@ -133,6 +135,7 @@ export const WarnModal = ({
         </Modal>
     );
 };
+
 const createLocalStyles = (theme) =>
     StyleSheet.create({
         overlay: {

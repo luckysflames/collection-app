@@ -60,6 +60,7 @@ export const DataManagementScreen = ({ navigation }) => {
 
             <WarnModal
                 {...state.modalConfig}
+                style={{ marginBottom: 150 }}
                 onClose={actions.closeModal}
                 confirmDisabled={state.modalConfig.needsPassword && state.confirmInput.length < 4}
                 onConfirm={

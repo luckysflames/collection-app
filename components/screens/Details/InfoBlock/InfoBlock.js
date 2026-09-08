@@ -18,6 +18,34 @@ import { InfoStats } from "./InfoStats";
 import { Bookmark, Folder, Info } from "lucide-react-native";
 import { useTheme } from "../../../../hooks/useTheme";
 
+// Хелпер для динамического текста
+const getStudioButtonText = (status, studioName) => {
+    if (!studioName) return "Выбрать озвучку";
+
+    switch (status) {
+        case "Смотрю":
+            return `Смотрю в ${studioName}`;
+        case "В планах":
+            return `В планах в ${studioName}`;
+        case "Скоро":
+        case "Забыл посмотреть":
+            return `Буду смотреть в ${studioName}`;
+        case "Жду окончания":
+        case "Жду продолжения":
+        case "Жду новинку":
+            return `Жду, буду смотреть в ${studioName}`;
+        case "Надо пересмотреть":
+            return `Надо пересмотреть в ${studioName}`;
+        case "Просмотрено":
+            return `Просмотрено в ${studioName}`;
+        case "Отложено":
+        case "Брошено":
+            return `Смотрел в ${studioName}`;
+        default:
+            return `Озвучка: ${studioName}`;
+    }
+};
+
 export const InfoBlock = ({
     displayData,
     status,
@@ -25,7 +53,9 @@ export const InfoBlock = ({
     isFavorite,
     folderLabel,
     isAnyFolderSelected,
+    selectedStudio,
     onStatusPress,
+    onStudioPress,
     onFolderPress,
     onToggleFavorite,
 }) => {
@@ -34,7 +64,6 @@ export const InfoBlock = ({
 
     const [modalVisible, setModalVisible] = useState(false);
 
-    // Выбираем, что рисовать под блоком основной информации
     const renderExtraInfo = () => {
         switch (displayData.type) {
             case "anime":
@@ -52,7 +81,6 @@ export const InfoBlock = ({
         }
     };
 
-    // Выбираем, что рисовать в быстрой информации под названием
     const renderQuickInfo = () => {
         switch (displayData.type) {
             case "anime":
@@ -81,11 +109,12 @@ export const InfoBlock = ({
 
             {renderQuickInfo()}
 
+            {/* Блок статуса */}
             <TouchableOpacity
                 onPress={onStatusPress}
                 style={status || isInCollection ? styles.statusBadge : styles.statusBadgeCollect}
             >
-                <Text style={styles.statusText}>
+                <Text style={styles.statusText} numberOfLines={1}>
                     {status ?? (isInCollection ? "Без статуса" : "Добавить в коллекцию")}
                 </Text>
             </TouchableOpacity>
@@ -117,7 +146,13 @@ export const InfoBlock = ({
                 </TouchableOpacity>
             </View>
 
-            <InfoStats displayData={displayData} />
+            <InfoStats
+                displayData={displayData}
+                status={status}
+                selectedStudio={selectedStudio}
+                onStudioPress={onStudioPress}
+                getStudioButtonText={getStudioButtonText}
+            />
 
             {renderExtraInfo()}
 
@@ -161,12 +196,16 @@ const createLocalStyles = (theme) =>
             padding: 12,
             borderRadius: 12,
             marginBottom: 20,
+            alignItems: "center",
+            justifyContent: "center",
         },
         statusBadgeCollect: {
             backgroundColor: theme.accent,
             padding: 12,
             borderRadius: 12,
             marginBottom: 20,
+            alignItems: "center",
+            justifyContent: "center",
         },
         statusText: {
             color: theme.text,

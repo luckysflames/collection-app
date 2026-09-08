@@ -16,6 +16,7 @@ const ContentSectionComponent = ({
     isBrilliant,
     onToggleBrilliant,
     onStatusPress,
+    onStudioPress,
     onFolderPress,
     onToggleFavorite,
     onUpdateNotes,
@@ -35,6 +36,10 @@ const ContentSectionComponent = ({
     const handleStatusPressLocal = useCallback(() => {
         onStatusPress?.();
     }, [onStatusPress]);
+
+    const handleStudioPressLocal = useCallback(() => {
+        onStudioPress?.();
+    }, [onStudioPress]);
 
     const handleFolderPressLocal = useCallback(() => {
         onFolderPress?.();
@@ -81,6 +86,8 @@ const ContentSectionComponent = ({
                 isFavorite={isFavorite}
                 folderLabel={folderLabel}
                 isAnyFolderSelected={isAnyFolderSelected}
+                selectedStudio={savedItem?.selectedStudio}
+                onStudioPress={handleStudioPressLocal}
                 onStatusPress={handleStatusPressLocal}
                 onFolderPress={handleFolderPressLocal}
                 onToggleFavorite={handleToggleFavoriteLocal}

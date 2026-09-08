@@ -29,7 +29,7 @@ export const BaseHeroLayout = ({
                 <TouchableOpacity
                     style={[
                         !leftButton?.unstyled && styles.roundButton,
-                        { top: insets.top, left: 15 },
+                        { top: insets.top - 20, left: 15 },
                         leftButton?.style,
                     ]}
                     onPress={leftButton?.onPress}
@@ -57,7 +57,7 @@ export const BaseHeroLayout = ({
                 <TouchableOpacity
                     style={[
                         !rightButton.unstyled && styles.roundButton,
-                        { top: insets.top, right: 15 },
+                        { top: insets.top - 20, right: 15 },
                         rightButton.style,
                     ]}
                     onPress={rightButton.onPress}

@@ -56,6 +56,8 @@ export const shikimoriService = {
             status
             episodes
             episodesAired
+            fansubbers
+            fandubbers
             nextEpisodeAt
             airedOn { date }
             releasedOn { date }
@@ -93,6 +95,12 @@ export const shikimoriService = {
 
         if (!data) throw new Error("Anime not found");
 
+        const dubAndSub = [...(data.fandubbers || []), ...(data.fansubbers || [])];
+
+        const uniqueDubSub = Array.from(new Set(dubAndSub))
+            .filter(Boolean)
+            .sort((a, b) => a.localeCompare(b, "ru"));
+
         return {
             type: "anime",
             animeKind: data.kind,
@@ -100,6 +108,7 @@ export const shikimoriService = {
             animeStatus: data.status,
             episodes: data.episodes,
             episodesAired: data.episodesAired,
+            studiosDubSub: uniqueDubSub,
             nextEpisodeAt: data.nextEpisodeAt || null,
             airedOn: data.airedOn?.date,
             releasedOn: data.releasedOn?.date,

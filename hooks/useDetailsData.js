@@ -39,6 +39,11 @@ export const useDetailsData = (item, fullDetails, savedItem) => {
                         item?.episodesAired ||
                         fullDetails?.episodesAired ||
                         "?",
+                    studiosDubSub:
+                        savedItem?.studiosDubSub ||
+                        item?.studiosDubSub ||
+                        fullDetails?.studiosDubSub ||
+                        [],
                     nextEpisodeAt:
                         savedItem?.nextEpisodeAt ||
                         item?.nextEpisodeAt ||
