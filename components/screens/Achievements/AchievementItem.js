@@ -1,67 +1,79 @@
-import React, { useEffect, useRef, useMemo } from "react";
+import React, { useEffect, useRef, memo } from "react";
 import { TouchableOpacity, View, Text, StyleSheet, Animated } from "react-native";
 import { ChevronRight, CheckCircle2 } from "lucide-react-native";
 import { DynamicIcon } from "./DynamicIcon";
 import { useTheme } from "../../../hooks/useTheme";
 
-export const AchievementItem = ({ achievement, onPress, isHighlighted }) => {
+export const AchievementItem = memo(function AchievementItem({
+    achievement,
+    onPress,
+    isHighlighted,
+}) {
     const { theme, createStyles } = useTheme();
     const styles = createStyles(createLocalStyles);
 
     const isCompleted = achievement.isCompleted;
-
     const progress = isCompleted ? 1 : Math.min(achievement.current / achievement.target, 1);
 
     const isLockedSecret = achievement.hidden && !isCompleted;
     const isUnlockedSecret = achievement.hidden && isCompleted;
 
+    // Использование opacity позволяет включить useNativeDriver: true
     const pulseAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
-        if (isHighlighted) {
-            Animated.loop(
-                Animated.sequence([
-                    Animated.timing(pulseAnim, {
-                        toValue: 1,
-                        duration: 800,
-                        useNativeDriver: false,
-                    }),
-                    Animated.timing(pulseAnim, {
-                        toValue: 0,
-                        duration: 800,
-                        useNativeDriver: false,
-                    }),
-                ]),
-                { iterations: 3 },
-            ).start();
+        if (!isHighlighted) {
+            pulseAnim.setValue(0);
+            return;
         }
+
+        const animation = Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim, {
+                    toValue: 1,
+                    duration: 800,
+                    useNativeDriver: true, // Включаем нативный драйвер!
+                }),
+                Animated.timing(pulseAnim, {
+                    toValue: 0,
+                    duration: 800,
+                    useNativeDriver: true,
+                }),
+            ]),
+            { iterations: 3 },
+        );
+
+        animation.start();
+
+        return () => animation.stop();
     }, [isHighlighted, pulseAnim]);
 
-    const highlightStyles = useMemo(
-        () => ({
-            borderColor: pulseAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [theme.accentMuted, theme.accent],
-            }),
-            backgroundColor: pulseAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [theme.main, theme.accentMuted],
-            }),
-        }),
-        [pulseAnim, theme],
-    );
+    const handlePress = () => {
+        onPress(achievement);
+    };
 
     return (
-        <Animated.View
+        <View
             style={[
                 styles.item,
                 !isCompleted && styles.lockedItem,
                 isUnlockedSecret && styles.secretUnlocked,
-                isHighlighted && highlightStyles,
             ]}
         >
+            {/* Нативный оверлей для пульсации подсветки без нагружения JS-потока */}
+            {isHighlighted && (
+                <Animated.View
+                    style={[
+                        StyleSheet.absoluteFillObject,
+                        styles.highlightOverlay,
+                        { opacity: pulseAnim },
+                    ]}
+                    pointerEvents="none"
+                />
+            )}
+
             <TouchableOpacity
-                onPress={() => onPress(achievement)}
+                onPress={handlePress}
                 activeOpacity={0.7}
                 style={styles.touchableArea}
             >
@@ -108,9 +120,9 @@ export const AchievementItem = ({ achievement, onPress, isHighlighted }) => {
                     <ChevronRight size={18} color={theme.textDark} style={styles.chevron} />
                 </View>
             </TouchableOpacity>
-        </Animated.View>
+        </View>
     );
-};
+});
 
 const createLocalStyles = (theme) =>
     StyleSheet.create({
@@ -120,6 +132,14 @@ const createLocalStyles = (theme) =>
             borderWidth: 1,
             borderColor: theme.accent,
             overflow: "hidden",
+            backgroundColor: theme.main,
+            position: "relative",
+        },
+        highlightOverlay: {
+            backgroundColor: theme.accentMuted,
+            borderColor: theme.accent,
+            borderWidth: 1,
+            borderRadius: 20,
         },
         touchableArea: {
             flexDirection: "row",
@@ -127,13 +147,14 @@ const createLocalStyles = (theme) =>
             justifyContent: "space-between",
             paddingVertical: 14,
             paddingHorizontal: 16,
+            zIndex: 1,
         },
         secretUnlocked: {
             backgroundColor: theme.accentMuted,
             borderColor: theme.accent,
         },
         lockedItem: {
-            opacity: 0.3,
+            opacity: 0.4,
         },
         leftContainer: {
             flexDirection: "row",
@@ -173,6 +194,7 @@ const createLocalStyles = (theme) =>
             backgroundColor: theme.dark,
             borderRadius: 2,
             width: "90%",
+            overflow: "hidden",
         },
         progressFill: {
             height: "100%",
