@@ -12,6 +12,8 @@ const StatSubItem = ({ label, value, styles }) => (
 );
 
 const formatDayOfWeekWithTime = (date) => {
+    if (!date || !(date instanceof Date) || isNaN(date.getTime())) return "";
+
     const dayIndex = date.getDay();
 
     const daysMap = {
@@ -44,17 +46,18 @@ export const InfoStats = ({ displayData }) => {
         (displayData.animeKind === "movie" || displayData.episodes === 1);
 
     const getNextEpisodeInfo = (isoString) => {
-        if (!isoString) return null;
-        const date = new Date(isoString);
+        if (!isoString || typeof isoString !== "string") return null;
 
+        const date = new Date(isoString);
         if (isNaN(date.getTime())) return null;
 
         const scheduleWithTime = formatDayOfWeekWithTime(date);
+        if (!scheduleWithTime) return null;
 
         return `Выходит ${scheduleWithTime}`;
     };
 
-    const nextEpisodeText = getNextEpisodeInfo(displayData.nextEpisodeAt);
+    const nextEpisodeText = getNextEpisodeInfo(displayData?.nextEpisodeAt);
 
     const getLabelById = (id, options) => {
         if (!id) return "—";
@@ -214,7 +217,7 @@ export const InfoStats = ({ displayData }) => {
                 </View>
             </View>
 
-            {displayData.type === "anime" && nextEpisodeText && (
+            {displayData.type === "anime" && Boolean(nextEpisodeText) && (
                 <View style={styles.nextEpisodeBanner}>
                     <Text style={styles.nextEpisodeValue} numberOfLines={1}>
                         {nextEpisodeText}

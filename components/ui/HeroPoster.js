@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Image, TouchableOpacity, Text, StyleSheet } from "react-native";
+import { Image, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { Camera } from "lucide-react-native";
 import { useTheme } from "../../hooks/useTheme";
 
@@ -7,6 +7,7 @@ export const HeroPoster = ({
     image,
     isEditing,
     onPickImage,
+    onPressPoster,
     posterWidth = 240,
     posterHeight = 340,
 }) => {
@@ -14,7 +15,12 @@ export const HeroPoster = ({
     const styles = createStyles(createLocalStyles);
 
     return (
-        <View style={[styles.posterFrame, { width: posterWidth, height: posterHeight }]}>
+        <TouchableOpacity
+            style={[styles.posterFrame, { width: posterWidth, height: posterHeight }]}
+            activeOpacity={isEditing ? 1 : 0.9}
+            onPress={isEditing ? undefined : onPressPoster}
+            disabled={isEditing && !onPickImage}
+        >
             <Image key={image} source={{ uri: image }} style={styles.image} resizeMode="cover" />
 
             {isEditing && (
@@ -27,7 +33,7 @@ export const HeroPoster = ({
                     <Text style={styles.cameraText}>Изменить</Text>
                 </TouchableOpacity>
             )}
-        </View>
+        </TouchableOpacity>
     );
 };
 

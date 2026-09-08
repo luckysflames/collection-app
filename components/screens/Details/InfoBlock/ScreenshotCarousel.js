@@ -9,7 +9,7 @@ import {
     FlatList,
 } from "react-native";
 import { ScrollView as GestureScrollView } from "react-native-gesture-handler";
-import { ImageModal } from "../Modals/ImageModal";
+import { ImageModal } from "../../../shared/Modals/ImageModal";
 import { useTheme } from "../../../../hooks/useTheme";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");

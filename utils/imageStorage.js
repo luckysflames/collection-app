@@ -3,8 +3,8 @@ import * as ImageManipulator from "expo-image-manipulator";
 
 export const IMAGES_DIR = `${FileSystem.documentDirectory}images/`;
 export const LOCAL_IMAGE_TAG = "LOCAL_IMAGE:";
-const IMAGE_WIDTH = 720;
-const IMAGE_QUALITY = 0.7;
+const IMAGE_WIDTH = 1920;
+const IMAGE_QUALITY = 0.9;
 
 export const ensureImagesDirectoryAsync = async () => {
     const dirInfo = await FileSystem.getInfoAsync(IMAGES_DIR);

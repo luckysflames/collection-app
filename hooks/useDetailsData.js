@@ -40,9 +40,9 @@ export const useDetailsData = (item, fullDetails, savedItem) => {
                         fullDetails?.episodesAired ||
                         "?",
                     nextEpisodeAt:
-                        savedItem.nextEpisodeAt ||
-                        item.nextEpisodeAt ||
-                        fullDetails.nextEpisodeAt ||
+                        savedItem?.nextEpisodeAt ||
+                        item?.nextEpisodeAt ||
+                        fullDetails?.nextEpisodeAt ||
                         null,
                     airedOn: savedItem?.airedOn || item?.airedOn || fullDetails?.airedOn,
                     releasedOn:

@@ -17,9 +17,10 @@ import { HeaderSection } from "../components/screens/Details/HeaderSection";
 import { DetailsModals } from "../components/screens/Details/Modals/DetailsModals";
 import { DetailsSkeleton } from "../components/screens/Details/DetailsSkeleton";
 
-// Utils & Services
+// Utils, Services & UI
 import { fetchDetailsById } from "../services/index";
 import { WarnModal } from "../components/ui/WarnModal";
+import { ImageModal } from "../components/shared/Modals/ImageModal";
 
 const DATA_LOAD_DELAY = 300;
 const SKELETON_FADE_DELAY = 600;
@@ -35,6 +36,7 @@ export default function DetailsScreen({ route, navigation }) {
     const [isLogicReady, setIsLogicReady] = useState(false);
     const [isAnimationFinished, setIsAnimationFinished] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isImageModalVisible, setIsImageModalVisible] = useState(false);
     const [errorModal, setErrorModal] = useState({
         visible: false,
         message: "",
@@ -156,6 +158,7 @@ export default function DetailsScreen({ route, navigation }) {
     }, [parentFolders]);
 
     const showSkeleton = !isAnimationFinished || (loading && !fullDetails && !savedItem);
+    const posterImage = displayData.image || item.image;
 
     return (
         <View style={styles.container}>
@@ -170,7 +173,7 @@ export default function DetailsScreen({ route, navigation }) {
                 >
                     <HeaderSection
                         isEditing={false}
-                        image={displayData.image || item.image}
+                        image={posterImage}
                         insets={insets}
                         onLeftPress={() => navigation.goBack()}
                         onRightPress={
@@ -185,6 +188,7 @@ export default function DetailsScreen({ route, navigation }) {
                         isRefreshing={isRefreshing}
                         isBrilliant={isBrilliant}
                         isFocused={isFocused}
+                        onPressPoster={() => setIsImageModalVisible(true)}
                     />
 
                     <View style={styles.infoContainer}>
@@ -250,6 +254,13 @@ export default function DetailsScreen({ route, navigation }) {
                         }, 400);
                     },
                 }}
+            />
+
+            <ImageModal
+                visible={isImageModalVisible}
+                images={posterImage ? [posterImage] : []}
+                initialIndex={0}
+                onClose={() => setIsImageModalVisible(false)}
             />
 
             <WarnModal

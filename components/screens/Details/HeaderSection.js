@@ -12,6 +12,7 @@ export const HeaderSection = ({
     onLeftPress,
     onRightPress,
     onPickImage,
+    onPressPoster,
     insets,
     showEditButton,
     showRefreshButton,
@@ -108,7 +109,12 @@ export const HeaderSection = ({
                       : null
             }
         >
-            <HeroPoster image={image} isEditing={isEditing} onPickImage={onPickImage} />
+            <HeroPoster
+                image={image}
+                isEditing={isEditing}
+                onPickImage={onPickImage}
+                onPressPoster={onPressPoster}
+            />
         </BaseHeroLayout>
     );
 };
