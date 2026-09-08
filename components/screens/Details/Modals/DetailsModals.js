@@ -37,6 +37,7 @@ export const DetailsModals = ({ state, actions, data, handlers }) => {
                 category={data.category || "Фильмы"}
                 onClose={actions.closeStatus}
                 onSelect={handlers.handleStatusUpdate}
+                onOptimisticSelect={handlers.handleOptimisticStatus}
                 currentStatus={data.currentStatus}
                 removeCard={handlers.handleDelete}
             />

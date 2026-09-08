@@ -112,6 +112,11 @@ export const useFilteredCollection = ({
         }
 
         // --- 2. СОРТИРОВКА ---
+        const orderMap =
+            isInsideFolder && (sortType === "manual" || sortType === "manual_desc")
+                ? new Map((folderOrder || []).map((id, index) => [String(id), index]))
+                : null;
+
         const sorted = [...filtered].sort((a, b) => {
             if (!isInsideFolder) {
                 if (a.isPinned && !b.isPinned) return -1;
@@ -121,10 +126,9 @@ export const useFilteredCollection = ({
             const isManualSort = sortType === "manual" || sortType === "manual_desc";
 
             if (isInsideFolder && isManualSort) {
-                if (Array.isArray(folderOrder) && folderOrder.length > 0) {
-                    const orderStrings = folderOrder.map(String);
-                    const indexA = orderStrings.indexOf(String(a.id));
-                    const indexB = orderStrings.indexOf(String(b.id));
+                if (orderMap?.size > 0) {
+                    const indexA = orderMap.get(String(a.id)) ?? -1;
+                    const indexB = orderMap.get(String(b.id)) ?? -1;
 
                     if (indexA !== -1 || indexB !== -1) {
                         if (indexA === -1) return 1;

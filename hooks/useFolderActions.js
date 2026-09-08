@@ -15,7 +15,8 @@ export const useFolderActions = (
     setIsReordering,
     setReorderBuffer,
 ) => {
-    const { updateCard, deleteCard } = useCollectionStore();
+    const updateCard = useCollectionStore((state) => state.updateCard);
+    const deleteCard = useCollectionStore((state) => state.deleteCard);
     const { pickImage: openPicker } = useImagePicker();
     const [isEditing, setIsEditing] = useState(false);
 

@@ -89,7 +89,8 @@ export default function App() {
     const navigationRef = useRef(null);
     const [showSecurityModal, setShowSecurityModal] = useState(false);
 
-    const { _hasHydrated, deletionPassword } = useCollectionStore();
+    const _hasHydrated = useCollectionStore((state) => state._hasHydrated);
+    const deletionPassword = useCollectionStore((state) => state.deletionPassword);
 
     // 2. Получаем текущие динамические цвета темы
     const { theme } = useTheme();

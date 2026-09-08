@@ -7,24 +7,41 @@ export const UserRating = ({ score, onSetScore, onInfoPress, isBrilliant, onTogg
     const { theme, createStyles } = useTheme();
     const styles = createStyles(createLocalStyles);
 
-    const prevScore = useRef(score);
-    const isBlocking = useRef(false);
+    const [visualScore, setVisualScore] = useState(score);
+    const prevScore = useRef(visualScore);
+    const pendingScore = useRef(null);
     const [visualLock, setVisualLock] = useState(false);
 
     const starAnims = useRef(
-        [...Array(10)].map((_, i) => new Animated.Value(i < score ? 1 : 0)),
+        [...Array(10)].map((_, i) => new Animated.Value(i < visualScore ? 1 : 0)),
     ).current;
 
     const handleSetScore = (newScore) => {
-        if (isBlocking.current || newScore === score) return;
+        if (newScore === visualScore) return;
+
+        starAnims.forEach((anim, index) => {
+            anim.stopAnimation();
+            anim.setValue(index < newScore ? 1 : 0);
+        });
+        prevScore.current = newScore;
+        pendingScore.current = newScore;
+        setVisualScore(newScore);
         onSetScore(newScore);
     };
 
     useEffect(() => {
-        if (score === prevScore.current) return;
+        if (pendingScore.current !== null) {
+            if (score !== pendingScore.current) return;
+            pendingScore.current = null;
+        }
 
-        const isReducing = score < prevScore.current;
-        isBlocking.current = true;
+        if (score !== visualScore) setVisualScore(score);
+    }, [score, visualScore]);
+
+    useEffect(() => {
+        if (visualScore === prevScore.current) return;
+
+        const isReducing = visualScore < prevScore.current;
         setVisualLock(true);
 
         starAnims.forEach((anim) => anim.stopAnimation());
@@ -32,7 +49,7 @@ export const UserRating = ({ score, onSetScore, onInfoPress, isBrilliant, onTogg
         let animationObjects = starAnims.map((anim, i) => ({
             index: i,
             animation: Animated.timing(anim, {
-                toValue: i < score ? 1 : 0,
+                toValue: i < visualScore ? 1 : 0,
                 duration: 30,
                 easing: Easing.out(Easing.quad),
                 useNativeDriver: false,
@@ -41,9 +58,9 @@ export const UserRating = ({ score, onSetScore, onInfoPress, isBrilliant, onTogg
 
         let activeAnimations = animationObjects.filter(({ index }) => {
             if (isReducing) {
-                return index >= score && index < prevScore.current;
+                return index >= visualScore && index < prevScore.current;
             } else {
-                return index >= prevScore.current && index < score;
+                return index >= prevScore.current && index < visualScore;
             }
         });
 
@@ -54,17 +71,15 @@ export const UserRating = ({ score, onSetScore, onInfoPress, isBrilliant, onTogg
         const finalAnims = activeAnimations.map((obj) => obj.animation);
 
         if (finalAnims.length > 0) {
-            Animated.stagger(100, finalAnims).start(() => {
-                isBlocking.current = false;
+            Animated.parallel(finalAnims).start(() => {
                 setVisualLock(false);
-                prevScore.current = score;
+                prevScore.current = visualScore;
             });
         } else {
-            isBlocking.current = false;
             setVisualLock(false);
-            prevScore.current = score;
+            prevScore.current = visualScore;
         }
-    }, [score]);
+    }, [visualScore]);
 
     return (
         <View style={styles.container}>
@@ -75,7 +90,7 @@ export const UserRating = ({ score, onSetScore, onInfoPress, isBrilliant, onTogg
                         <Info size={18} color={theme.accent} />
                     </TouchableOpacity>
                 </View>
-                {score > 0 && (
+                {visualScore > 0 && (
                     <TouchableOpacity
                         onPress={() => handleSetScore(0)}
                         style={styles.resetBtn}
@@ -131,17 +146,17 @@ export const UserRating = ({ score, onSetScore, onInfoPress, isBrilliant, onTogg
                     <Text
                         style={[
                             styles.scoreValue,
-                            score > 0 && styles.scoreActive,
+                            visualScore > 0 && styles.scoreActive,
                             isBrilliant && styles.scoreBrilliantText,
                         ]}
                     >
-                        {isBrilliant ? "∞" : score > 0 ? score : "--"}
+                        {isBrilliant ? "∞" : visualScore > 0 ? visualScore : "--"}
                     </Text>
                     <Text style={styles.scoreTotal}>/ 10</Text>
                 </View>
             </View>
 
-            {score === 10 && (
+            {visualScore === 10 && (
                 <View style={styles.brilliantPrompt}>
                     <Text style={styles.brilliantPromptText}>
                         {isBrilliant ? "Это абсолютный пик!" : "Это абсолютный пик?"}

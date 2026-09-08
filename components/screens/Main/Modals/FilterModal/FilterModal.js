@@ -25,7 +25,7 @@ export const FilterModal = ({
     const { theme, createStyles } = useTheme();
     const styles = createStyles(createLocalStyles);
 
-    const { myCollection } = useCollectionStore();
+    const myCollection = useCollectionStore((state) => state.myCollection);
 
     const [localFilters, setLocalFilters] = useState({});
     const [viewLevel, setViewLevel] = useState("main"); // 'main' | 'detail'

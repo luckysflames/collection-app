@@ -10,8 +10,10 @@ import { useMemo, useState } from "react";
 const getSectionKey = (section) => SECTION_MAPPING[section] || section;
 
 export const useDetailsActions = (item, displayData, category) => {
-    const { myCollection, addToCollection, updateCard, deleteCard } =
-        useCollectionStore();
+    const myCollection = useCollectionStore((state) => state.myCollection);
+    const addToCollection = useCollectionStore((state) => state.addToCollection);
+    const updateCard = useCollectionStore((state) => state.updateCard);
+    const deleteCard = useCollectionStore((state) => state.deleteCard);
 
     const savedItem = myCollection.find(
         (fav) => String(fav.id) === String(item.id),

@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { StyleSheet, View, TouchableOpacity } from "react-native";
+import { useIsFocused } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FolderPlus } from "lucide-react-native";
 
@@ -30,12 +31,21 @@ import {
 
 export default function MainScreen({ route, navigation }) {
     const insets = useSafeAreaInsets();
+    const isFocused = useIsFocused();
+    const collectionSnapshot = useRef([]);
 
     const { theme, createStyles } = useTheme();
     const styles = createStyles(createLocalStyles);
 
     // --- Store Data ---
-    const myCollection = useCollectionStore((state) => state.myCollection);
+    const myCollection = useCollectionStore((state) => {
+        if (isFocused) {
+            collectionSnapshot.current = state.myCollection;
+            return state.myCollection;
+        }
+
+        return collectionSnapshot.current;
+    });
     const createFolder = useCollectionStore((state) => state.createFolder);
     const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
     const defaultSorts = useCollectionStore((state) => state.defaultSorts);

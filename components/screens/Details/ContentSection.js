@@ -9,6 +9,7 @@ import { useTheme } from "../../../hooks/useTheme";
 const ContentSectionComponent = ({
     displayData,
     savedItem,
+    status,
     isInCollection,
     isFavorite,
     folderLabel,
@@ -81,7 +82,7 @@ const ContentSectionComponent = ({
     return (
         <View>
             <InfoBlock
-                status={savedItem?.status}
+                status={status}
                 isInCollection={isInCollection}
                 isFavorite={isFavorite}
                 folderLabel={folderLabel}

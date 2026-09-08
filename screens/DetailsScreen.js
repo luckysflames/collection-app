@@ -1,5 +1,11 @@
 import React, { useMemo, useState, useCallback, useEffect } from "react";
-import { View, StyleSheet, Vibration, ScrollView, KeyboardAvoidingView } from "react-native";
+import {
+    View,
+    StyleSheet,
+    ScrollView,
+    KeyboardAvoidingView,
+    InteractionManager,
+} from "react-native";
 import { useIsFocused } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -23,9 +29,6 @@ import { WarnModal } from "../components/ui/WarnModal";
 import { ImageModal } from "../components/shared/Modals/ImageModal";
 import { StudioModal } from "../components/screens/Details/Modals/StudioModal";
 
-const DATA_LOAD_DELAY = 300;
-const SKELETON_FADE_DELAY = 600;
-
 export default function DetailsScreen({ route, navigation }) {
     const { createStyles } = useTheme();
     const styles = createStyles(createLocalStyles);
@@ -34,8 +37,11 @@ export default function DetailsScreen({ route, navigation }) {
     const isFocused = useIsFocused();
     const { item, category } = route.params;
 
-    const [isLogicReady, setIsLogicReady] = useState(false);
-    const [isAnimationFinished, setIsAnimationFinished] = useState(false);
+    const [isContentReady, setIsContentReady] = useState(false);
+    const [optimisticStatus, setOptimisticStatus] = useState({
+        active: false,
+        value: null,
+    });
     const [isDeleting, setIsDeleting] = useState(false);
     const [isImageModalVisible, setIsImageModalVisible] = useState(false);
     const [isStudioModalVisible, setIsStudioModalVisible] = useState(false);
@@ -44,37 +50,21 @@ export default function DetailsScreen({ route, navigation }) {
         message: "",
     });
 
-    useEffect(() => {
-        let idleHandle = null;
-        let logicTimer = null;
-        let animationTimer = null;
-
-        const startTimers = () => {
-            logicTimer = setTimeout(() => setIsLogicReady(true), DATA_LOAD_DELAY);
-            animationTimer = setTimeout(() => setIsAnimationFinished(true), SKELETON_FADE_DELAY);
-        };
-
-        if (typeof requestIdleCallback !== "undefined") {
-            idleHandle = requestIdleCallback(startTimers);
-        } else {
-            startTimers();
-        }
-
-        return () => {
-            if (idleHandle && typeof cancelIdleCallback !== "undefined") {
-                cancelIdleCallback(idleHandle);
-            }
-            if (logicTimer) clearTimeout(logicTimer);
-            if (animationTimer) clearTimeout(animationTimer);
-        };
-    }, []);
-
     // Store
     const myCollection = useCollectionStore((state) => state.myCollection);
     const createFolder = useCollectionStore((state) => state.createFolder);
-    const setUserScore = useCollectionStore((state) => state.setUserScore);
     const isCompactMenu = useCollectionStore((state) => state.isCompactMenu);
     const isVibration = useCollectionStore((state) => state.isVibration);
+
+    useEffect(() => {
+        setIsContentReady(false);
+
+        const task = InteractionManager.runAfterInteractions(() => {
+            setIsContentReady(true);
+        });
+
+        return () => task.cancel();
+    }, [item.id]);
 
     // Data Fetching
     const initialSavedItem = useMemo(
@@ -83,7 +73,7 @@ export default function DetailsScreen({ route, navigation }) {
     );
 
     const { data: fullDetails, loading } = useFetchDetails(
-        isDeleting || !isLogicReady || initialSavedItem ? null : item.id,
+        isDeleting || initialSavedItem ? null : item.id,
     );
 
     const displayData = useDetailsData(item, fullDetails, initialSavedItem);
@@ -105,6 +95,19 @@ export default function DetailsScreen({ route, navigation }) {
     const { modals, openModal, modalActions } = useDetailsModals(category, createFolder);
 
     const isBrilliant = savedItem?.isBrilliant || false;
+
+    useEffect(() => {
+        if (
+            optimisticStatus.active &&
+            savedItem?.status === optimisticStatus.value
+        ) {
+            setOptimisticStatus({ active: false, value: null });
+        }
+    }, [optimisticStatus, savedItem?.status]);
+
+    const handleOptimisticStatus = useCallback((status) => {
+        setOptimisticStatus({ active: true, value: status });
+    }, []);
 
     // Handlers
     const handleEditPress = useCallback(() => {
@@ -133,19 +136,16 @@ export default function DetailsScreen({ route, navigation }) {
 
     const handleScoreWithHaptics = useCallback(
         (score) => {
-            setUserScore(item.id, score);
+            const updates = { userScore: score };
+            if (score !== 10 && isBrilliant) updates.isBrilliant = false;
 
-            if (score !== 10 && isBrilliant) {
-                updateCard(item.id, { isBrilliant: false });
-            }
-
-            if (isVibration && score !== 0) {
-                const pattern = [0, 0];
-                for (let i = 0; i < score; i++) pattern.push(30, 100);
-                Vibration.vibrate(pattern);
-            }
+            setTimeout(() => {
+                InteractionManager.runAfterInteractions(() => {
+                    updateCard(item.id, updates);
+                });
+            }, 0);
         },
-        [item.id, isVibration, setUserScore, isBrilliant, updateCard],
+        [item.id, isVibration, isBrilliant, updateCard],
     );
 
     const handleSelectStudio = useCallback(
@@ -166,7 +166,7 @@ export default function DetailsScreen({ route, navigation }) {
         return `В папках: ${parentFolders.length}`;
     }, [parentFolders]);
 
-    const showSkeleton = !isAnimationFinished || (loading && !fullDetails && !savedItem);
+    const showSkeleton = !isContentReady || (loading && !fullDetails && !savedItem);
     const posterImage = displayData.image || item.image;
 
     return (
@@ -207,6 +207,11 @@ export default function DetailsScreen({ route, navigation }) {
                             <ContentSection
                                 displayData={displayData}
                                 savedItem={savedItem}
+                                status={
+                                    optimisticStatus.active
+                                        ? optimisticStatus.value
+                                        : savedItem?.status
+                                }
                                 isInCollection={isInCollection}
                                 isFavorite={!!savedItem?.isFavorite}
                                 folderLabel={folderLabel}
@@ -250,11 +255,14 @@ export default function DetailsScreen({ route, navigation }) {
                     category,
                     existingFolders,
                     parentFolderIds: savedItem?.parentFolderIds || [],
-                    currentStatus: savedItem?.status,
+                    currentStatus: optimisticStatus.active
+                        ? optimisticStatus.value
+                        : savedItem?.status,
                 }}
                 handlers={{
                     handleAddToFolder,
                     handleStatusUpdate,
+                    handleOptimisticStatus,
                     handleCreateFolder: modalActions.handleCreateFolder,
                     handleDelete: () => {
                         setIsDeleting(true);

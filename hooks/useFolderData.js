@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useCollectionStore } from "../store/useCollectionStore";
 
 export const useFolderData = (folderId) => {
-    const { myCollection } = useCollectionStore();
+    const myCollection = useCollectionStore((state) => state.myCollection);
 
     const folder = useMemo(
         () => myCollection.find((item) => item.id === folderId),

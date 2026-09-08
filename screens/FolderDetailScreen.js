@@ -1,5 +1,12 @@
 import React, { useCallback, useState } from "react";
-import { View, StyleSheet, Vibration, KeyboardAvoidingView, BackHandler } from "react-native";
+import {
+    View,
+    StyleSheet,
+    Vibration,
+    KeyboardAvoidingView,
+    BackHandler,
+    InteractionManager,
+} from "react-native";
 import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCollectionStore } from "../store/useCollectionStore";
@@ -29,7 +36,6 @@ export default function FolderDetailScreen({ route, navigation }) {
 
     const addItemsToFolder = useCollectionStore((state) => state.addItemsToFolder);
     const updateCard = useCollectionStore((state) => state.updateCard);
-    const setUserScore = useCollectionStore((state) => state.setUserScore);
     const setFavorite = useCollectionStore((state) => state.setFavorite);
     const isVibration = useCollectionStore((state) => state.isVibration);
 
@@ -70,28 +76,33 @@ export default function FolderDetailScreen({ route, navigation }) {
     );
 
     // --- HANDLERS ---
-    const handleCardPress = (item) => {
-        if (isReordering) {
-            setReorderBuffer((prev) =>
-                prev.includes(item.id) ? prev.filter((id) => id !== item.id) : [...prev, item.id],
-            );
-            return;
-        }
+    const handleCardPress = useCallback(
+        (item) => {
+            if (isReordering) {
+                setReorderBuffer((prev) =>
+                    prev.includes(item.id)
+                        ? prev.filter((id) => id !== item.id)
+                        : [...prev, item.id],
+                );
+                return;
+            }
 
-        if (isEditing) return;
+            if (isEditing) return;
 
-        if (item.isFolder) {
-            navigation.push("FolderDetail", {
-                folderId: item.id,
-                title: item.title,
-            });
-        } else {
-            navigation.navigate("Details", {
-                item,
-                category: folder.appSection,
-            });
-        }
-    };
+            if (item.isFolder) {
+                navigation.push("FolderDetail", {
+                    folderId: item.id,
+                    title: item.title,
+                });
+            } else {
+                navigation.navigate("Details", {
+                    item,
+                    category: folder.appSection,
+                });
+            }
+        },
+        [isReordering, isEditing, navigation, folder?.appSection],
+    );
 
     const handleToggleReorder = () => {
         if (isReordering) {
@@ -110,11 +121,12 @@ export default function FolderDetailScreen({ route, navigation }) {
     };
 
     const handleRatingUpdate = (newScore) => {
-        setUserScore(folder.id, newScore);
+        const updates = { userScore: newScore };
+        if (newScore !== 10 && isBrilliant) updates.isBrilliant = false;
 
-        if (newScore !== 10 && isBrilliant) {
-            updateCard(folder.id, { isBrilliant: false });
-        }
+        InteractionManager.runAfterInteractions(() => {
+            updateCard(folder.id, updates);
+        });
 
         if (isVibration && newScore !== 0) {
             const pattern = [0, 1];
@@ -122,7 +134,7 @@ export default function FolderDetailScreen({ route, navigation }) {
                 pattern.push(30);
                 pattern.push(100);
             }
-            Vibration.vibrate(pattern);
+            setTimeout(() => Vibration.vibrate(pattern), 0);
         }
     };
 

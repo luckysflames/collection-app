@@ -1,5 +1,13 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ScrollView } from "react-native";
+import {
+    View,
+    Text,
+    TouchableOpacity,
+    StyleSheet,
+    Dimensions,
+    ScrollView,
+    InteractionManager,
+} from "react-native";
 import { Check, Trash2, Tag, Bookmark } from "lucide-react-native";
 import { BottomSheet } from "../ui/BottomSheet";
 import { useCollectionStore } from "../../store/useCollectionStore";
@@ -13,6 +21,7 @@ export default function StatusModal({
     category,
     onClose,
     onSelect,
+    onOptimisticSelect,
     currentStatus,
     removeCard,
 }) {
@@ -31,8 +40,12 @@ export default function StatusModal({
     ];
 
     const handleSelect = (value) => {
-        onSelect(value);
+        onOptimisticSelect?.(value);
         onClose();
+
+        InteractionManager.runAfterInteractions(() => {
+            onSelect(value);
+        });
     };
 
     const handleRemove = () => {
