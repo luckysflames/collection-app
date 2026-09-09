@@ -70,7 +70,6 @@ export const useFileManagement = (store) => {
                 collectionGoal,
                 categoryOrder,
                 themeName,
-                deletionPassword,
                 isCompactMenu,
                 isVibration,
                 isSound,
@@ -93,7 +92,6 @@ export const useFileManagement = (store) => {
                     collectionGoal,
                     categoryOrder,
                     themeName,
-                    deletionPassword,
                     settings: {
                         isCompactMenu,
                         isVibration,
@@ -203,8 +201,6 @@ export const useFileManagement = (store) => {
                 if (data.collectionGoal !== undefined) store.setCollectionGoal(data.collectionGoal);
                 if (data.categoryOrder) store.setCategoryOrder(data.categoryOrder);
                 if (data.themeName) store.setThemeName(data.themeName);
-                if (data.deletionPassword !== undefined)
-                    store.setDeletionPassword(data.deletionPassword);
 
                 if (data.defaultTabs) {
                     Object.keys(data.defaultTabs).forEach((key) =>

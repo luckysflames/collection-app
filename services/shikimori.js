@@ -52,6 +52,7 @@ export const shikimoriService = {
             english
             japanese
             name
+            poster { originalUrl }
             score
             status
             episodes
@@ -114,6 +115,7 @@ export const shikimoriService = {
             releasedOn: data.releasedOn?.date,
             rating: data.rating,
             name: data.name || null,
+            image: data.poster?.originalUrl,
             russian: data.russian || null,
             licenseNameRu: data.licenseNameRu || null,
             englishTitle: data.english || null,

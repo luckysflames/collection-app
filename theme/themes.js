@@ -66,7 +66,7 @@ export const THEMES = {
         overlay: "rgba(0, 0, 0, 0.85)",
         text: "#FFFFFF",
         textDark: "#40629d",
-        chartColors: ["#F2E0D0", "#CBB2A1", "#9CA3C7", "#738AB4", "#4C5F8A"],
+        chartColors: ["#F2E0D0", "#CBB2A1", "#9CA3C7", "#5f7bb0", "#4C5F8A"],
     },
     berry: {
         accent: "#f0cdd2",
@@ -86,7 +86,7 @@ export const THEMES = {
         overlay: "rgba(0, 0, 0, 0.85)",
         text: "#FFFFFF",
         textDark: "#855a63",
-        chartColors: ["#ECCDB1", "#C49A7A", "#91624B", "#66383A", "#44252B"],
+        chartColors: ["#ECCDB1", "#C49A7A", "#91624B", "#66383A", "#3a1d23"],
     },
     pumpkin: {
         accent: "#ffb07c",
@@ -116,7 +116,7 @@ export const THEMES = {
         overlay: "rgba(10, 6, 20, 0.85)",
         text: "#FFFFFF",
         textDark: "#7f7f7f",
-        chartColors: ["#B388FF", "#805AD5", "#553C9A", "#322659", "#1C132B"],
+        chartColors: ["#B388FF", "#805AD5", "#553C9A", "#322659", "#26173e"],
     },
 };
 

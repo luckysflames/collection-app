@@ -372,6 +372,12 @@ export const useCollectionStore = create(
                     ),
                 })),
 
+            setMyCollection: (newCollection) =>
+                set({
+                    myCollection: newCollection,
+                    version: get().version + 1,
+                }),
+
             // --- RESET ACTIONS ---
             clearCollection: async () => {
                 const state = get();
@@ -386,12 +392,6 @@ export const useCollectionStore = create(
                 await Promise.all(imageUris.map((uri) => deletePersistentImageAsync(uri)));
             },
 
-            setMyCollection: (newCollection) =>
-                set({
-                    myCollection: newCollection,
-                    version: get().version + 1,
-                }),
-
             resetAllStatuses: () =>
                 set((state) => ({
                     availableStatuses: {},
@@ -400,15 +400,20 @@ export const useCollectionStore = create(
                         Books: "Всё",
                         Games: "Всё",
                         Anime: "Всё",
+                        TV: "Всё",
                     },
                     defaultSorts: {
                         Movies: "date_desc",
                         Books: "date_desc",
                         Games: "date_desc",
                         Anime: "date_desc",
+                        TV: "date_desc",
                     },
                     categoryOrder: DEFAULT_CATEGORY_ORDER,
-                    categoryOrder: DEFAULT_CATEGORY_ORDER,
+                    myCollection: state.myCollection.map((item) => ({
+                        ...item,
+                        status: null,
+                    })),
                     version: state.version + 1,
                 })),
 
@@ -420,9 +425,12 @@ export const useCollectionStore = create(
                     ),
                 );
 
-                (set({
+                set({
                     myCollection: [],
                     isCompactMenu: true,
+                    isVibration: true,
+                    isSound: true,
+                    isNotify: true,
                     collectionGoal: 500,
                     availableStatuses: {},
                     defaultTabs: {
@@ -430,16 +438,21 @@ export const useCollectionStore = create(
                         Books: "Всё",
                         Games: "Всё",
                         Anime: "Всё",
+                        TV: "Всё",
                     },
                     defaultSorts: {
                         Movies: "date_desc",
                         Books: "date_desc",
                         Games: "date_desc",
                         Anime: "date_desc",
+                        TV: "date_desc",
                     },
+                    categoryOrder: DEFAULT_CATEGORY_ORDER,
+                    themeName: DEFAULT_THEME_NAME,
                     version: 0,
-                }),
-                    await Promise.all(imageUris.map((uri) => deletePersistentImageAsync(uri))));
+                });
+
+                await Promise.all(imageUris.map((uri) => deletePersistentImageAsync(uri)));
             },
         }),
         {

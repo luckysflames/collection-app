@@ -1,13 +1,6 @@
 import { useCollectionStore } from "../store/useCollectionStore";
-import {
-    DEFAULT_FALLBACK_STATUS,
-    DEFAULT_STATUS_BY_SECTION,
-    SECTION_MAPPING,
-    FAVORITE_STATUS,
-} from "../constants/index";
+import { FAVORITE_STATUS } from "../constants/index";
 import { useMemo, useState } from "react";
-
-const getSectionKey = (section) => SECTION_MAPPING[section] || section;
 
 export const useDetailsActions = (item, displayData, category) => {
     const myCollection = useCollectionStore((state) => state.myCollection);
@@ -15,9 +8,7 @@ export const useDetailsActions = (item, displayData, category) => {
     const updateCard = useCollectionStore((state) => state.updateCard);
     const deleteCard = useCollectionStore((state) => state.deleteCard);
 
-    const savedItem = myCollection.find(
-        (fav) => String(fav.id) === String(item.id),
-    );
+    const savedItem = myCollection.find((fav) => String(fav.id) === String(item.id));
     const isInCollection = !!savedItem;
 
     // Поиск подходящих папок для текущей секции (Фильмы/Аниме и т.д.)
@@ -126,7 +117,7 @@ export const useDetailsActions = (item, displayData, category) => {
             const freshDetails = await fetchDetailsById(idToFetch);
             updateCard(item.id, {
                 ...freshDetails,
-                image: savedItem.image || item.image,
+                // image: savedItem.image || item.image, // ВОТ ЭТО Я УДАЛИЛ
                 userNotes: savedItem.userNotes,
                 userScore: savedItem.userScore,
                 status: savedItem.status,
