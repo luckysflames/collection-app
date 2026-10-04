@@ -65,6 +65,7 @@ export const InfoStats = ({
     };
 
     const nextEpisodeText = getNextEpisodeInfo(displayData?.nextEpisodeAt);
+    const showNextEpisodeBanner = isAnime && displayData.animeStatus === "ongoing";
 
     const getLabelById = (id, options) => {
         if (!id) return "—";
@@ -245,7 +246,7 @@ export const InfoStats = ({
             </View>
 
             {/* НИЖНЯЯ ПЛАШКА: Исходный вид анонса эпизода */}
-            {nextEpisodeText && (
+            {showNextEpisodeBanner && nextEpisodeText && (
                 <View style={styles.bottomBanner}>
                     <Text style={styles.nextEpisodeValue} numberOfLines={1}>
                         {nextEpisodeText}

@@ -85,7 +85,7 @@ export const useDetailsActions = (item, displayData, category) => {
                 ...displayData,
                 status: newStatus,
                 appSection: currentSection,
-                parentFolderIds: [], // Инициализируем пустым массивом
+                parentFolderIds: [],
             });
         }
     };
@@ -117,7 +117,6 @@ export const useDetailsActions = (item, displayData, category) => {
             const freshDetails = await fetchDetailsById(idToFetch);
             updateCard(item.id, {
                 ...freshDetails,
-                // image: savedItem.image || item.image, // ВОТ ЭТО Я УДАЛИЛ
                 userNotes: savedItem.userNotes,
                 userScore: savedItem.userScore,
                 status: savedItem.status,
@@ -129,7 +128,7 @@ export const useDetailsActions = (item, displayData, category) => {
             });
         } catch (error) {
             console.warn("Refresh details failed:", error);
-            throw error; // Пробрасываем ошибку для Alert в компоненте
+            throw error;
         } finally {
             setIsRefreshing(false);
         }

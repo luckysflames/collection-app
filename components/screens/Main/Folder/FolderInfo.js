@@ -1,5 +1,5 @@
-import React from "react";
-import { Bookmark, ChevronDown, ListFilter } from "lucide-react-native";
+import React, { useCallback, useState } from "react";
+import { Bookmark, ChevronDown, ChevronUp, ListFilter } from "lucide-react-native";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { UserRating } from "../../../shared/UserRating";
 import { AverageRatingBlock } from "./AverageRatingBlock";
@@ -23,6 +23,18 @@ export const FolderInfo = ({
     const { theme, createStyles } = useTheme();
     const styles = createStyles(createLocalStyles);
 
+    const [isExpanded, setIsExpanded] = useState(false);
+    // Единое состояние для сворачивания/разворачивания доп. секций рейтинга
+    const [isRatingDetailsExpanded, setIsRatingDetailsExpanded] = useState(false);
+
+    const handleDescriptionPress = useCallback(() => {
+        setIsExpanded((prev) => !prev);
+    }, []);
+
+    const toggleRatingDetails = useCallback(() => {
+        setIsRatingDetailsExpanded((prev) => !prev);
+    }, []);
+
     const getPlural = (number, titles) => {
         const cases = [2, 0, 1, 1, 1, 2];
         return titles[
@@ -33,11 +45,22 @@ export const FolderInfo = ({
     const cardsLabel = getPlural(count, ["карточка", "карточки", "карточек"]);
     const currentSortLabel = FOLDER_SORT_LABELS[sortType] || "Неизвестно";
 
+    // Условие для показа блока бриллианта (оценка 10 и включенный флаг разворачивания)
+    const canShowBrilliant = folder.userScore === 10;
+
     return (
         <View style={styles.container}>
             <Text style={styles.folderTitle}>{folder.title}</Text>
+
             {folder.description ? (
-                <Text style={styles.folderDescription}>{folder.description}</Text>
+                <TouchableOpacity activeOpacity={0.7} onPress={handleDescriptionPress}>
+                    <Text style={styles.folderDescription} numberOfLines={isExpanded ? 0 : 3}>
+                        {folder.description}
+                    </Text>
+                    {!isExpanded && folder.description?.length > 100 && (
+                        <Text style={styles.moreText}>Показать полностью...</Text>
+                    )}
+                </TouchableOpacity>
             ) : null}
 
             <View style={styles.controlsRow}>
@@ -70,10 +93,28 @@ export const FolderInfo = ({
                     onInfoPress={onInfoPress}
                     isBrilliant={isBrilliant}
                     onToggleBrilliant={onBrilliantPress}
+                    showBrilliantPrompt={isRatingDetailsExpanded && canShowBrilliant}
                 />
             </View>
 
-            <AverageRatingBlock items={folderItems} onApply={onRatingUpdate} />
+            {isRatingDetailsExpanded && (
+                <AverageRatingBlock items={folderItems} onApply={onRatingUpdate} />
+            )}
+
+            <TouchableOpacity
+                onPress={toggleRatingDetails}
+                style={styles.toggleRatingDetailsBtn}
+                activeOpacity={0.7}
+            >
+                <Text style={styles.toggleRatingDetailsText}>
+                    {isRatingDetailsExpanded ? "Скрыть подробности" : "Показать подробности"}
+                </Text>
+                {isRatingDetailsExpanded ? (
+                    <ChevronUp size={16} color={theme.accent} />
+                ) : (
+                    <ChevronDown size={16} color={theme.accent} />
+                )}
+            </TouchableOpacity>
 
             <View style={styles.underRaitingRow}>
                 <TouchableOpacity onPress={onSortPress} style={styles.sortBtn}>
@@ -112,8 +153,31 @@ const createLocalStyles = (theme) =>
             marginTop: 8,
             lineHeight: 20,
         },
+        moreText: {
+            color: theme.accent,
+            fontSize: 14,
+            marginTop: 5,
+            textAlign: "center",
+            fontWeight: "500",
+        },
         ratingSection: {
             width: "100%",
+        },
+        toggleRatingDetailsBtn: {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+            marginTop: 12,
+            paddingVertical: 8,
+            paddingHorizontal: 16,
+            borderRadius: 20,
+            backgroundColor: theme.accentMuted,
+        },
+        toggleRatingDetailsText: {
+            color: theme.accent,
+            fontSize: 13,
+            fontWeight: "600",
         },
         controlsRow: {
             width: "100%",
@@ -168,7 +232,7 @@ const createLocalStyles = (theme) =>
         underRaitingRow: {
             flexDirection: "row",
             width: "100%",
-            marginTop: 20,
+            marginTop: 16,
         },
         sortBtn: {
             flex: 1,

@@ -4,12 +4,7 @@ import { Vibration } from "react-native";
 import { FAVORITE_STATUS } from "../constants/index";
 import { matchesFilterValue } from "../utils/filterUtils";
 
-export const useMainActions = (
-    currentSection,
-    activeCategory,
-    navigation,
-    activeFilters = {},
-) => {
+export const useMainActions = (currentSection, activeCategory, navigation, activeFilters = {}) => {
     const myCollection = useCollectionStore((state) => state.myCollection);
     const updateCard = useCollectionStore((state) => state.updateCard);
     const lastRandomId = useRef(null);
@@ -33,7 +28,7 @@ export const useMainActions = (
 
     const handleCardLongPress = useCallback(
         async (item) => {
-            Vibration.vibrate([0, 30, 1, 30]);
+            Vibration.vibrate([0, 60, 1, 60]);
             updateCard(item.id, { isPinned: !item.isPinned });
         },
         [updateCard],

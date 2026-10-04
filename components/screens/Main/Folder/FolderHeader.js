@@ -37,6 +37,7 @@ export const FolderHeader = memo((props) => {
         onBrilliantPress,
         isFocused,
         sortType,
+        onPressPoster,
     } = props;
 
     const { theme, createStyles } = useTheme();
@@ -93,7 +94,12 @@ export const FolderHeader = memo((props) => {
             }}
         >
             <View style={styles.container}>
-                <HeroPoster image={displayImage} isEditing={isEditing} onPickImage={pickImage} />
+                <HeroPoster
+                    image={displayImage}
+                    isEditing={isEditing}
+                    onPickImage={pickImage}
+                    onPressPoster={onPressPoster}
+                />
 
                 <View style={styles.contentWrapper}>
                     {isEditing ? (

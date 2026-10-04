@@ -45,10 +45,11 @@ export const useDetailsData = (item, fullDetails, savedItem) => {
                         fullDetails?.studiosDubSub ||
                         [],
                     nextEpisodeAt:
-                        savedItem?.nextEpisodeAt ||
-                        item?.nextEpisodeAt ||
-                        fullDetails?.nextEpisodeAt ||
-                        null,
+                        savedItem?.nextEpisodeAt !== undefined
+                            ? savedItem.nextEpisodeAt
+                            : item?.nextEpisodeAt !== undefined
+                              ? item.nextEpisodeAt
+                              : fullDetails?.nextEpisodeAt || null,
                     airedOn: savedItem?.airedOn || item?.airedOn || fullDetails?.airedOn,
                     releasedOn:
                         savedItem?.releasedOn || item?.releasedOn || fullDetails?.releasedOn,

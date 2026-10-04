@@ -21,6 +21,7 @@ import { SortModal } from "../components/screens/Main/Modals/SortModal";
 import { AddItemsToFolderModal } from "../components/screens/Main/Folder/AddItemsToFolderModal";
 import DeleteFolderModal from "../components/screens/Main/Folder/DeleteFolderModal";
 import { WarnModal } from "../components/ui/WarnModal";
+import { ImageModal } from "../components/shared/Modals/ImageModal";
 import { useTheme } from "../hooks/useTheme";
 
 export default function FolderDetailScreen({ route, navigation }) {
@@ -33,6 +34,7 @@ export default function FolderDetailScreen({ route, navigation }) {
 
     // --- UI & ANIMATION FLAGS ---
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isImageModalVisible, setIsImageModalVisible] = useState(false);
 
     const addItemsToFolder = useCollectionStore((state) => state.addItemsToFolder);
     const updateCard = useCollectionStore((state) => state.updateCard);
@@ -129,12 +131,7 @@ export default function FolderDetailScreen({ route, navigation }) {
         });
 
         if (isVibration && newScore !== 0) {
-            const pattern = [0, 1];
-            for (let i = 0; i < newScore; i++) {
-                pattern.push(30);
-                pattern.push(100);
-            }
-            setTimeout(() => Vibration.vibrate(pattern), 0);
+            Vibration.vibrate([0, 60, 1, 60]);
         }
     };
 
@@ -178,6 +175,8 @@ export default function FolderDetailScreen({ route, navigation }) {
 
     if (!folder || isDeleting) return null;
 
+    const folderImage = isEditing ? editForm.image : folder.image;
+
     return (
         <View style={styles.container}>
             <KeyboardAvoidingView
@@ -202,7 +201,7 @@ export default function FolderDetailScreen({ route, navigation }) {
                             folder={folder}
                             folderItems={folderItems}
                             editForm={editForm}
-                            displayImage={isEditing ? editForm.image : folder.image}
+                            displayImage={folderImage}
                             insets={insets}
                             toggleFavorite={() => setFavorite(folder.id, !folder.isFavorite)}
                             isEditing={isEditing}
@@ -225,6 +224,7 @@ export default function FolderDetailScreen({ route, navigation }) {
                             onBrilliantPress={handleToggleBrilliant}
                             showBrilliantBtn={isBrilliant}
                             sortType={sortType}
+                            onPressPoster={() => setIsImageModalVisible(true)}
                         />
                     }
                 />
@@ -267,6 +267,14 @@ export default function FolderDetailScreen({ route, navigation }) {
                 currentSort={sortType}
                 onSelectSort={setSortType}
                 isInsideFolder
+            />
+
+            {/* 4. Рендерим модальное окно просмотра обложки */}
+            <ImageModal
+                visible={isImageModalVisible}
+                images={folderImage ? [folderImage] : []}
+                initialIndex={0}
+                onClose={() => setIsImageModalVisible(false)}
             />
         </View>
     );

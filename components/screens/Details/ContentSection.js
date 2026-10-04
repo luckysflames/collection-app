@@ -79,6 +79,8 @@ const ContentSectionComponent = ({
         onToggleBrilliant?.();
     }, [onToggleBrilliant]);
 
+    const canShowBrilliant = savedItem?.userScore === 10;
+
     return (
         <View>
             <InfoBlock
@@ -119,6 +121,7 @@ const ContentSectionComponent = ({
                         onInfoPress={handleInfoPressLocal}
                         isBrilliant={isBrilliant}
                         onToggleBrilliant={handleToggleBrilliantLocal}
+                        showBrilliantPrompt={canShowBrilliant}
                     />
                 </View>
             )}

@@ -5,6 +5,7 @@ import {
     ScrollView,
     KeyboardAvoidingView,
     InteractionManager,
+    Vibration,
 } from "react-native";
 import { useIsFocused } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -97,10 +98,7 @@ export default function DetailsScreen({ route, navigation }) {
     const isBrilliant = savedItem?.isBrilliant || false;
 
     useEffect(() => {
-        if (
-            optimisticStatus.active &&
-            savedItem?.status === optimisticStatus.value
-        ) {
+        if (optimisticStatus.active && savedItem?.status === optimisticStatus.value) {
             setOptimisticStatus({ active: false, value: null });
         }
     }, [optimisticStatus, savedItem?.status]);
@@ -138,6 +136,10 @@ export default function DetailsScreen({ route, navigation }) {
         (score) => {
             const updates = { userScore: score };
             if (score !== 10 && isBrilliant) updates.isBrilliant = false;
+
+            if (isVibration && score !== 0) {
+                Vibration.vibrate([0, 60, 1, 60]);
+            }
 
             setTimeout(() => {
                 InteractionManager.runAfterInteractions(() => {

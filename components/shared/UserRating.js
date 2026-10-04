@@ -1,9 +1,16 @@
 import React, { useRef, useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing } from "react-native";
-import { Star, RotateCcw, Info, Gem } from "lucide-react-native"; // Добавил иконку Gem для красоты
+import { Star, RotateCcw, Info, Gem } from "lucide-react-native";
 import { useTheme } from "../../hooks/useTheme";
 
-export const UserRating = ({ score, onSetScore, onInfoPress, isBrilliant, onToggleBrilliant }) => {
+export const UserRating = ({
+    score,
+    onSetScore,
+    onInfoPress,
+    isBrilliant,
+    onToggleBrilliant,
+    showBrilliantPrompt = false,
+}) => {
     const { theme, createStyles } = useTheme();
     const styles = createStyles(createLocalStyles);
 
@@ -156,7 +163,7 @@ export const UserRating = ({ score, onSetScore, onInfoPress, isBrilliant, onTogg
                 </View>
             </View>
 
-            {visualScore === 10 && (
+            {showBrilliantPrompt && (
                 <View style={styles.brilliantPrompt}>
                     <Text style={styles.brilliantPromptText}>
                         {isBrilliant ? "Это абсолютный пик!" : "Это абсолютный пик?"}
