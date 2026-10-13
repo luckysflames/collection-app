@@ -1,4 +1,4 @@
-import { ANIME_KINDS } from "../constants/index";
+import { ANIME_KINDS, MANGA_KINDS } from "../constants/index";
 import { parseList } from "./listParser";
 
 /**
@@ -31,6 +31,49 @@ export const formatHoursToDaysAndHours = (totalHours) => {
     return parts.join(" ");
 };
 
+const formatMangaReadingTime = (totalMinutes) => {
+    if (totalMinutes < 60) return `${Math.round(totalMinutes)} мин.`;
+    return formatHoursToDaysAndHours(Math.round(totalMinutes / 60));
+};
+
+const MANGA_GENRE_READING_ADJUSTMENTS = {
+    "экшен": -0.75,
+    "боевые искусства": -0.75,
+    "приключения": -0.5,
+    "спорт": -0.5,
+    "сенен": -0.5,
+    "комедия": -0.25,
+    "детектив": 1.5,
+    "тайна": 1.5,
+    "психологическое": 1.5,
+    "драма": 1,
+    "исторический": 1,
+    "повседневность": 0.75,
+    "дзосей": 0.75,
+    "сэйнэн": 0.5,
+    "трагедия": 0.5,
+    "триллер": 0.5,
+};
+
+const estimateMangaMinutesPerChapter = (item) => {
+    const mangaKind = String(item.mangaKind || "").toLowerCase();
+    const baseMinutes =
+        mangaKind === "novel" || mangaKind === "light_novel"
+            ? 15
+            : mangaKind === "one_shot"
+              ? 20
+              : 5;
+    const genres = parseCommaSeparated(item.genres).map((genre) =>
+        genre.toLocaleLowerCase("ru").replace(/ё/g, "е").trim(),
+    );
+    const genreAdjustment = genres.reduce(
+        (total, genre) => total + (MANGA_GENRE_READING_ADJUSTMENTS[genre] || 0),
+        0,
+    );
+
+    return Math.min(20, Math.max(3, baseMinutes + genreAdjustment));
+};
+
 /**
  * Вычисляет количество минут для одной карточки на основе её категории.
  */
@@ -57,6 +100,11 @@ export const calculateItemMinutes = (item) => {
         case "book":
             const pages = extractNumeric(item.pageCount) || 0;
             return Math.round(pages * 1.5);
+
+        case "manga": {
+            const chapters = extractNumeric(item.chapters) || 0;
+            return Math.round(chapters * estimateMangaMinutesPerChapter(item));
+        }
 
         case "game":
             const hours = extractNumeric(item.duration) || 0;
@@ -175,8 +223,14 @@ export const calculateStats = (items, category, onlyRated = false) => {
         timeStats: {
             totalHours,
             completedHours,
-            totalDisplay: formatHoursToDaysAndHours(totalHours),
-            completedDisplay: formatHoursToDaysAndHours(completedHours),
+            totalDisplay:
+                targetCategory === "manga"
+                    ? formatMangaReadingTime(totalMinutesAll)
+                    : formatHoursToDaysAndHours(totalHours),
+            completedDisplay:
+                targetCategory === "manga"
+                    ? formatMangaReadingTime(totalMinutesCompleted)
+                    : formatHoursToDaysAndHours(completedHours),
         },
     };
 
@@ -201,6 +255,16 @@ export const calculateStats = (items, category, onlyRated = false) => {
                 return kind ? [kind.label] : item.animeKind ? [item.animeKind] : [];
             });
             stats.topStudios = getTop((item) => parseCommaSeparated(item.studios));
+            break;
+
+        case "manga":
+            stats.topGenres = getTop((item) => item.genres || []);
+            stats.topKinds = getTop((item) => {
+                const kind = MANGA_KINDS.find((option) => option.id === item.mangaKind);
+                return kind ? [kind.label] : item.mangaKind ? [item.mangaKind] : [];
+            });
+            stats.topAuthors = getTop((item) => parseCommaSeparated(item.authors));
+            stats.topPublishers = getTop((item) => parseCommaSeparated(item.publishers));
             break;
 
         case "game":

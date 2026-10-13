@@ -10,6 +10,7 @@ import { getOrderedCategories, SECTIONS, STATUS_SELECTION_EXCLUDE } from "../con
 import MovieFields from "../components/screens/AddCard/Fields/MovieFields";
 import TVFields from "../components/screens/AddCard/Fields/TVFields";
 import AnimeFields from "../components/screens/AddCard/Fields/AnimeFields";
+import MangaFields from "../components/screens/AddCard/Fields/MangaFields";
 import BookFields from "../components/screens/AddCard/Fields/BookFields";
 import GameFields from "../components/screens/AddCard/Fields/GameFields";
 import CommonField from "../components/screens/AddCard/Fields/CommonField";
@@ -131,15 +132,17 @@ export default function AddCardScreen({ navigation }) {
 
                 {isOptionalVisible && (
                     <View style={styles.collapsibleContent}>
-                        {form.type !== "anime" && form.type !== "tv" && (
-                            <MaskedDateInput
-                                label="Дата выхода (дд.мм.гггг)"
-                                placeholder="25.01.2026"
-                                form={form}
-                                updateField={updateField}
-                                fieldName="year"
-                            />
-                        )}
+                        {form.type !== "anime" &&
+                            form.type !== "manga" &&
+                            form.type !== "tv" && (
+                                <MaskedDateInput
+                                    label="Дата выхода (дд.мм.гггг)"
+                                    placeholder="25.01.2026"
+                                    form={form}
+                                    updateField={updateField}
+                                    fieldName="year"
+                                />
+                            )}
 
                         {form.type === "movie" && (
                             <MovieFields form={form} updateField={updateField} />
@@ -147,6 +150,9 @@ export default function AddCardScreen({ navigation }) {
                         {form.type === "tv" && <TVFields form={form} updateField={updateField} />}
                         {form.type === "anime" && (
                             <AnimeFields form={form} updateField={updateField} />
+                        )}
+                        {form.type === "manga" && (
+                            <MangaFields form={form} updateField={updateField} />
                         )}
                         {form.type === "book" && (
                             <BookFields form={form} updateField={updateField} />

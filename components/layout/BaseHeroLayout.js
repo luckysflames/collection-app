@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../../hooks/useTheme";
+import { getDisplayableImageUri } from "../ui/PosterImage";
 
 export const BaseHeroLayout = ({
     image,
@@ -13,11 +14,20 @@ export const BaseHeroLayout = ({
 }) => {
     const { theme, createStyles } = useTheme();
     const styles = createStyles(createLocalStyles);
+    const backgroundImage = getDisplayableImageUri(image);
+    const [failedBackgroundImage, setFailedBackgroundImage] = useState(null);
 
     return (
         <View style={styles.heroSection}>
             {/* ФОНОВЫЙ СЛОЙ */}
-            <Image source={{ uri: image }} style={styles.blurBackground} blurRadius={1} />
+            {backgroundImage && failedBackgroundImage !== backgroundImage && (
+                <Image
+                    source={{ uri: backgroundImage }}
+                    style={styles.blurBackground}
+                    blurRadius={1}
+                    onError={() => setFailedBackgroundImage(backgroundImage)}
+                />
+            )}
 
             <LinearGradient
                 colors={[theme.dark, "transparent", theme.dark, theme.dark]}

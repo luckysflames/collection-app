@@ -16,6 +16,7 @@ export const useMediaSearch = (initialCategory = "game") => {
 
     const getCategoryById = (id) => {
         if (id.startsWith("anime-")) return "anime";
+        if (id.startsWith("manga-")) return "manga";
         if (id.startsWith("game-")) return "game";
         if (id.startsWith("book-")) return "book";
         if (id.startsWith("tv-")) return "tv";

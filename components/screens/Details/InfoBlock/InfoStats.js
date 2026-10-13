@@ -2,7 +2,12 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Mic } from "lucide-react-native";
 import { formatDate } from "./utils";
-import { ANIME_STATUSES, MOVIE_STATUSES, BOOK_MATURITY_RATINGS } from "../../../../constants/index";
+import {
+    ANIME_STATUSES,
+    MOVIE_STATUSES,
+    BOOK_MATURITY_RATINGS,
+    MANGA_STATUSES,
+} from "../../../../constants/index";
 import { useTheme } from "../../../../hooks/useTheme";
 
 const StatSubItem = ({ label, value, styles }) => (
@@ -49,6 +54,7 @@ export const InfoStats = ({
     const styles = createStyles(createLocalStyles);
 
     const isAnime = displayData.type === "anime";
+    const isManga = displayData.type === "manga";
     const isAnimeMovie =
         isAnime && (displayData.animeKind === "movie" || displayData.episodes === 1);
 
@@ -102,6 +108,13 @@ export const InfoStats = ({
     };
 
     const getPeriod = () => {
+        if (isManga) {
+            const start = formatDate(displayData.airedOn);
+            const end = formatDate(displayData.releasedOn);
+            if (!start && !end) return "—";
+            return `${start || "..."} — ${end || "..."}`;
+        }
+
         if (displayData.type === "anime") {
             if (isAnimeMovie) return formatDate(displayData.airedOn) || "—";
             const start = formatDate(displayData.airedOn);
@@ -123,6 +136,9 @@ export const InfoStats = ({
     const getAirStatus = () => {
         if (displayData.type === "anime") {
             return getLabelById(displayData.animeStatus || displayData.status, ANIME_STATUSES);
+        }
+        if (isManga) {
+            return getLabelById(displayData.mangaStatus, MANGA_STATUSES);
         }
         if (displayData.type === "movie" || displayData.type === "tv") {
             return (
@@ -162,10 +178,12 @@ export const InfoStats = ({
                     <StatSubItem
                         styles={styles}
                         label={
-                            (displayData.type === "anime" || displayData.type === "tv") &&
-                            !isAnimeMovie
-                                ? "Период выхода"
-                                : "Дата выхода"
+                            isManga
+                                ? "Период публикации"
+                                : (displayData.type === "anime" || displayData.type === "tv") &&
+                                    !isAnimeMovie
+                                  ? "Период выхода"
+                                  : "Дата выхода"
                         }
                         value={getPeriod()}
                     />
@@ -191,6 +209,7 @@ export const InfoStats = ({
                             value={formatPages(displayData.pageCount)}
                         />
                     )}
+
                     {displayData.type === "tv" && (
                         <View style={{ flex: 0.5 }}>
                             <StatSubItem
@@ -205,6 +224,20 @@ export const InfoStats = ({
                 <View style={styles.statRowSeparator} />
 
                 <View style={styles.statSubGrid}>
+                    {isManga && (
+                        <StatSubItem
+                            styles={styles}
+                            label="Томов"
+                            value={displayData.volumes || "?"}
+                        />
+                    )}
+                    {isManga && (
+                        <StatSubItem
+                            styles={styles}
+                            label="Глав"
+                            value={displayData.chapters || "?"}
+                        />
+                    )}
                     {displayData.type === "anime" && (
                         <StatSubItem
                             styles={styles}
@@ -219,7 +252,7 @@ export const InfoStats = ({
                             value={displayData.episodesCount || "?"}
                         />
                     )}
-                    {displayData.type !== "book" && (
+                    {displayData.type !== "book" && !isManga && (
                         <StatSubItem
                             styles={styles}
                             label={displayData.type === "game" ? "Время" : "Длительность"}

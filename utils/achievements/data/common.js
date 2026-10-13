@@ -2,6 +2,7 @@
 export const ACHIEVEMENT_SECTIONS = {
     common: "Общие",
     anime: "Аниме",
+    manga: "Манга",
     movie: "Фильмы",
     tv: "Сериалы",
     game: "Игры",

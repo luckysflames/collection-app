@@ -1,7 +1,8 @@
 import React from "react";
-import { TouchableOpacity, View, Image, Text, StyleSheet } from "react-native";
+import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
 import { useTheme } from "../../hooks/useTheme";
 import { Camera } from "lucide-react-native";
+import { PosterImage } from "../ui/PosterImage";
 
 export default function ImageUploader({ image, onImagePick }) {
     const { theme, createStyles } = useTheme();
@@ -9,14 +10,18 @@ export default function ImageUploader({ image, onImagePick }) {
 
     return (
         <TouchableOpacity onPress={onImagePick} style={styles.imagePlaceholder} activeOpacity={0.8}>
-            {image ? (
-                <Image source={{ uri: image }} style={styles.fullImage} />
-            ) : (
-                <View style={styles.uploadIcon}>
-                    <Camera size={32} color={theme.accent} />
-                    <Text style={styles.uploadText}>Постер</Text>
-                </View>
-            )}
+            <PosterImage
+                image={image}
+                style={styles.fullImage}
+                iconColor={theme.accent}
+                iconSize={32}
+                placeholder={
+                    <View style={styles.uploadIcon}>
+                        <Camera size={32} color={theme.accent} />
+                        <Text style={styles.uploadText}>Постер</Text>
+                    </View>
+                }
+            />
         </TouchableOpacity>
     );
 }

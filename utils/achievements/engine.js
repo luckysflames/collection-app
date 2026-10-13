@@ -9,6 +9,7 @@ import { movieCalculators } from "./calculators/movie";
 import { tvCalculators } from "./calculators/tv";
 import { gameCalculators } from "./calculators/game";
 import { bookCalculators } from "./calculators/book";
+import { mangaCalculators } from "./calculators/manga";
 
 export const calculateAchievements = (allCards) => {
     const safeCards = allCards || [];
@@ -21,6 +22,7 @@ export const calculateAchievements = (allCards) => {
         tv: [],
         game: [],
         book: [],
+        manga: [],
     };
 
     safeCards.forEach((card) => {
@@ -52,6 +54,8 @@ export const calculateAchievements = (allCards) => {
             current = gameCalculators[achievement.id](splitCollection.game);
         } else if (bookCalculators[achievement.id]) {
             current = bookCalculators[achievement.id](splitCollection.book);
+        } else if (mangaCalculators[achievement.id]) {
+            current = mangaCalculators[achievement.id](splitCollection.manga);
         }
         // 3. Универсальный трекер по ID (поддерживает префиксы под разные разделы)
         else if (achievement.requiredIds) {

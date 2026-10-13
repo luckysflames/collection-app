@@ -78,6 +78,21 @@ export const prepareDataForSave = (formData, itemType) => {
                 animeStatus: formData.animeStatus,
             };
             break;
+        case "manga":
+            extendedData = {
+                year: formData.year || formData.airedOn,
+                englishTitle: formData.englishTitle,
+                japaneseTitle: formData.japaneseTitle,
+                mangaKind: formData.mangaKind,
+                mangaStatus: formData.mangaStatus,
+                airedOn: formData.airedOn,
+                releasedOn: formData.releasedOn,
+                volumes: extractNumeric(formData.volumes) || "",
+                chapters: extractNumeric(formData.chapters) || "",
+                authors: splitString(formData.authors),
+                publishers: splitString(formData.publishers),
+            };
+            break;
         case "book":
             extendedData = {
                 year: formData.year,

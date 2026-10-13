@@ -9,6 +9,8 @@ import {
     BookQuickData,
     GameExtra,
     GameQuickData,
+    MangaExtra,
+    MangaQuickData,
     MovieExtra,
     MovieQuickData,
     TVExtra,
@@ -68,6 +70,8 @@ export const InfoBlock = ({
         switch (displayData.type) {
             case "anime":
                 return <AnimeExtra data={displayData} />;
+            case "manga":
+                return <MangaExtra data={displayData} />;
             case "movie":
                 return <MovieExtra data={displayData} />;
             case "tv":
@@ -85,6 +89,8 @@ export const InfoBlock = ({
         switch (displayData.type) {
             case "anime":
                 return <AnimeQuickData data={displayData} />;
+            case "manga":
+                return <MangaQuickData data={displayData} />;
             case "movie":
                 return <MovieQuickData data={displayData} />;
             case "tv":

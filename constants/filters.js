@@ -2,6 +2,8 @@ import {
     ANIME_KINDS,
     ANIME_RATINGS,
     ANIME_STATUSES,
+    MANGA_KINDS,
+    MANGA_STATUSES,
     BOOK_MATURITY_RATINGS,
     ESRB_RATINGS,
     MOVIE_STATUSES,
@@ -159,6 +161,46 @@ export const FILTER_CONFIG = {
             icon: "Timer",
         },
     ],
+    manga: [
+        {
+            id: "mangaKind",
+            label: "Тип",
+            type: "select",
+            options: MANGA_KINDS,
+            icon: "BookOpen",
+        },
+        {
+            id: "mangaStatus",
+            label: "Статус публикации",
+            type: "select",
+            options: MANGA_STATUSES,
+            icon: "Activity",
+        },
+        {
+            id: "year",
+            label: "Год выпуска",
+            type: "range",
+            min: 1900,
+            max: new Date().getFullYear() + 5,
+            icon: "Calendar",
+        },
+        {
+            id: "volumes",
+            label: "Томов",
+            type: "range",
+            min: 0,
+            max: 200,
+            icon: "BookOpen",
+        },
+        {
+            id: "chapters",
+            label: "Глав",
+            type: "range",
+            min: 0,
+            max: 2000,
+            icon: "BookOpen",
+        },
+    ],
     book: [
         {
             id: "maturityRating",
@@ -227,6 +269,11 @@ export const CATEGORY_CONFIG = {
     anime: [
         { title: "Топ типы", key: "topKinds" },
         { title: "Топ студии", key: "topStudios" },
+    ],
+    manga: [
+        { title: "Топ типы", key: "topKinds" },
+        { title: "Топ авторы", key: "topAuthors" },
+        { title: "Топ издатели", key: "topPublishers" },
     ],
     game: [
         { title: "Топ платформы", key: "topPlatforms" },

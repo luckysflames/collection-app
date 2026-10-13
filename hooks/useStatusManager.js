@@ -1,6 +1,11 @@
 import { useState, useMemo } from "react";
 import { Keyboard } from "react-native";
-import { SECTION_MAPPING, SECTIONS, DEFAULT_CATEGORY_ORDER } from "../constants/index";
+import {
+    SECTION_MAPPING,
+    SECTIONS,
+    DEFAULT_CATEGORY_ORDER,
+    getOrderedCategories,
+} from "../constants/index";
 
 export const useStatusManager = (store) => {
     // Извлекаем экшены и реактивные данные.
@@ -45,7 +50,10 @@ export const useStatusManager = (store) => {
     });
 
     const [allLocalCategoryOrder, setAllLocalCategoryOrder] = useState(
-        () => categoryOrder || DEFAULT_CATEGORY_ORDER,
+        () =>
+            getOrderedCategories(categoryOrder || DEFAULT_CATEGORY_ORDER).map(
+                (category) => category.id,
+            ),
     );
 
     const [newStatus, setNewStatus] = useState("");

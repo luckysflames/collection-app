@@ -50,10 +50,14 @@ export const TitlesModal = ({ visible, onClose, data, isInCollection }) => {
                     )}
 
                     <View style={styles.listContainer}>
-                        {data?.type === "anime" ? (
+                        {data?.type === "anime" || data?.type === "manga" ? (
                             <>
                                 <TitleItem
-                                    label="Основное (Romaji)"
+                                    label={
+                                        data?.type === "anime"
+                                            ? "Основное (Romaji)"
+                                            : "Основное"
+                                    }
                                     value={data?.name}
                                     onSelect={isInCollection ? handleSelectTitle : null}
                                 />

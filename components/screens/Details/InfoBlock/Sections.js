@@ -2,7 +2,13 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { LabelValue } from "./LabelValue";
-import { formatKind, formatMovieCountries, formatRating, formatTVCountries } from "./utils";
+import {
+    formatKind,
+    formatMangaKind,
+    formatMovieCountries,
+    formatRating,
+    formatTVCountries,
+} from "./utils";
 import { ANIME_ORIGIN_MAP } from "../../../../constants/index";
 import { useTheme } from "../../../../hooks/useTheme";
 
@@ -23,6 +29,23 @@ export const AnimeQuickData = ({ data }) => {
             <Text style={styles.metaText}>{formatKind(data.animeKind)}</Text>
             <View style={styles.dot} />
             <Text style={styles.metaText}>{formatRating(data.rating)}</Text>
+        </View>
+    );
+};
+
+export const MangaQuickData = ({ data }) => {
+    const { createStyles } = useTheme();
+    const styles = createStyles(createLocalStyles);
+
+    return (
+        <View style={styles.quickMeta}>
+            {!data.isCustom && data.score && (
+                <>
+                    <Text style={styles.scoreText}>★ {data.score}</Text>
+                    <View style={styles.dot} />
+                </>
+            )}
+            <Text style={styles.metaText}>{formatMangaKind(data.mangaKind)}</Text>
         </View>
     );
 };
@@ -89,6 +112,13 @@ export const AnimeExtra = ({ data }) => (
             label="Первоисточник"
             value={ANIME_ORIGIN_MAP[data.origin] || data.origin || "Неизвестно"}
         />
+    </>
+);
+
+export const MangaExtra = ({ data }) => (
+    <>
+        <LabelValue label="Авторы" value={data.authors?.join(", ") || data.creator} />
+        <LabelValue label="Издатели" value={data.publishers?.join(", ")} />
     </>
 );
 

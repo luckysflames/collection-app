@@ -45,6 +45,12 @@ export const SUB_CATEGORIES = [
         inactive: require("../assets/icons/anime(inactive).png"),
     },
     {
+        id: "manga",
+        label: "Манга",
+        active: require("../assets/icons/manga(active).png"),
+        inactive: require("../assets/icons/manga(inactive).png"),
+    },
+    {
         id: "book",
         label: "Книги",
         active: require("../assets/icons/book(active).png"),
@@ -54,10 +60,23 @@ export const SUB_CATEGORIES = [
 
 export const DEFAULT_CATEGORY_ORDER = SUB_CATEGORIES.map((category) => category.id);
 
-export const getOrderedCategories = (categoryOrder = DEFAULT_CATEGORY_ORDER) =>
-    categoryOrder
+export const getOrderedCategories = (categoryOrder = DEFAULT_CATEGORY_ORDER) => {
+    const configuredOrder = Array.isArray(categoryOrder)
+        ? categoryOrder
+        : DEFAULT_CATEGORY_ORDER;
+    const orderedIds = configuredOrder.filter(
+        (id, index) =>
+            configuredOrder.indexOf(id) === index &&
+            SUB_CATEGORIES.some((category) => category.id === id),
+    );
+    const missingIds = SUB_CATEGORIES.map((category) => category.id).filter(
+        (id) => !orderedIds.includes(id),
+    );
+
+    return [...orderedIds, ...missingIds]
         .map((categoryId) => SUB_CATEGORIES.find((category) => category.id === categoryId))
         .filter(Boolean);
+};
 
 // Технический маппинг (id к названию коллекции)
 export const SECTION_MAPPING = {
@@ -65,6 +84,7 @@ export const SECTION_MAPPING = {
     book: "Books",
     game: "Games",
     anime: "Anime",
+    manga: "Manga",
     tv: "TV",
 };
 
@@ -72,6 +92,7 @@ export const SECTION_MAPPING = {
 export const SECTIONS = [
     { id: "movie", label: "Фильмы" },
     { id: "anime", label: "Аниме" },
+    { id: "manga", label: "Манга" },
     { id: "tv", label: "Сериалы" },
     { id: "book", label: "Книги" },
     { id: "game", label: "Игры" },
@@ -82,28 +103,28 @@ export const API_SERVICES = [
     {
         name: "RAWG API",
         category: "game",
-        desc: "Крупнейшая база видеоигр. Скриншоты, даты выхода и платформы.",
+        desc: "Крупнейшая база видеоигр. Скриншоты, даты выхода и платформы",
         url: "https://rawg.io/apidocs",
         icon: "game-controller-outline",
     },
     {
         name: "TMDB API",
         category: "movie",
-        desc: "Информация о фильмах и сериалах: постеры, трейлеры и рейтинги.",
+        desc: "Информация о фильмах и сериалах: постеры, трейлеры и рейтинги",
         url: "https://www.themoviedb.org",
         icon: "film-outline",
     },
     {
         name: "Shikimori",
         category: "anime",
-        desc: "Энциклопедия аниме и манги с огромным комьюнити.",
+        desc: "Энциклопедия аниме и манги с огромным комьюнити",
         url: "https://shikimori.one",
         icon: "leaf-outline",
     },
     {
         name: "Google Books",
         category: "book",
-        desc: "Поиск книг по названию, автору или ISBN по всему миру.",
+        desc: "Поиск книг по названию, автору или ISBN по всему миру",
         url: "https://books.google.com",
         icon: "book-outline",
     },

@@ -18,9 +18,7 @@ export const tmdbService = {
             json.results?.map((item) => ({
                 id: `movie-${item.id}-${page}`,
                 title: item.title,
-                image: item.poster_path
-                    ? `${TMDB_IMAGE_URL}${item.poster_path}`
-                    : "https://via.placeholder.com/500x750",
+                image: item.poster_path ? `${TMDB_IMAGE_URL}${item.poster_path}` : null,
                 isMovie: true,
             })) || []
         );
@@ -57,9 +55,7 @@ export const tmdbService = {
             json.results?.map((item) => ({
                 id: `tv-${item.id}-${page}`,
                 title: item.name,
-                image: item.poster_path
-                    ? `${TMDB_IMAGE_URL}${item.poster_path}`
-                    : "https://via.placeholder.com/500x750",
+                image: item.poster_path ? `${TMDB_IMAGE_URL}${item.poster_path}` : null,
                 isTV: true,
             })) || []
         );
@@ -85,9 +81,7 @@ export const tmdbService = {
                 json.seasons?.map((season) => ({
                         id: `season-tv-${tvId}-${season.season_number}`,
                     title: season.name || `Сезон ${season.season_number}`,
-                    image: season.poster_path
-                        ? `${TMDB_IMAGE_URL}${season.poster_path}`
-                        : "https://via.placeholder.com/500x750",
+                    image: season.poster_path ? `${TMDB_IMAGE_URL}${season.poster_path}` : null,
                     episodeCount: season.episode_count || 0,
                     relationText: `Сезон ${season.season_number}`,
                 })) || [],

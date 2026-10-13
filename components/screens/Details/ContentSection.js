@@ -126,7 +126,9 @@ const ContentSectionComponent = ({
                 </View>
             )}
 
-            {(displayData.type === "anime" || displayData.type === "tv") && (
+            {(displayData.type === "anime" ||
+                displayData.type === "manga" ||
+                displayData.type === "tv") && (
                 <RelatedCarousel
                     related={displayData.related}
                     onNavigateToDetails={handleNavigateLocal}

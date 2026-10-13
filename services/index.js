@@ -1,5 +1,5 @@
 import { tmdbService } from "./tmdb";
-import { shikimoriService } from "./shikimori";
+import { shikimoriMangaService, shikimoriService } from "./shikimori";
 import { googleBooksService } from "./googleBooks";
 import { rawgService } from "./rawg";
 
@@ -13,6 +13,9 @@ export const searchMedia = async (text, category, page = 1) => {
             case "аниме":
             case "anime":
                 return await shikimoriService.search(text, page);
+            case "манга":
+            case "manga":
+                return await shikimoriMangaService.search(text, page);
             case "фильмы":
             case "movie":
                 return await tmdbService.search(text, page);
@@ -39,6 +42,7 @@ export const fetchDetailsById = async (id) => {
         if (id.startsWith("movie-")) return await tmdbService.getDetails(id);
         if (id.startsWith("tv-")) return await tmdbService.getTVDetails(id);
         if (id.startsWith("anime-")) return await shikimoriService.getDetails(id);
+        if (id.startsWith("manga-")) return await shikimoriMangaService.getDetails(id);
         if (id.startsWith("book-")) return await googleBooksService.getDetails(id);
         if (id.startsWith("game-")) return await rawgService.getDetails(id);
 

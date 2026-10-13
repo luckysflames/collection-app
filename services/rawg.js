@@ -12,7 +12,7 @@ export const rawgService = {
             json.results?.map((item) => ({
                 id: `game-${item.id}-${page}`,
                 title: item.name,
-                image: item.background_image || "https://via.placeholder.com/500x750",
+                image: item.background_image || null,
                 isGame: true,
             })) || []
         );

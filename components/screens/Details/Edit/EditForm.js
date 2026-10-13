@@ -5,6 +5,7 @@ import CommonField from "../../AddCard/Fields/CommonField";
 import MovieFields from "../../AddCard/Fields/MovieFields";
 import TVFields from "../../AddCard/Fields/TVFields";
 import AnimeFields from "../../AddCard/Fields/AnimeFields";
+import MangaFields from "../../AddCard/Fields/MangaFields";
 import BookFields from "../../AddCard/Fields/BookFields";
 import GameFields from "../../AddCard/Fields/GameFields";
 
@@ -12,6 +13,7 @@ const FIELD_COMPONENTS = {
     movie: MovieFields,
     tv: TVFields,
     anime: AnimeFields,
+    manga: MangaFields,
     book: BookFields,
     game: GameFields,
 };
@@ -28,7 +30,7 @@ export const EditForm = ({ form, updateField, type }) => {
                 fieldName="title"
             />
 
-            {type !== "anime" && type !== "tv" && (
+            {type !== "anime" && type !== "manga" && type !== "tv" && (
                 <CommonField
                     placeholder="Дата выхода (полная или год)"
                     form={form}

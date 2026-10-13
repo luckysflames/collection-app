@@ -20,6 +20,7 @@ export const CategorySelector = ({ onSelect, insets }) => {
             game: "игру",
             book: "книгу",
             anime: "аниме",
+            manga: "мангу",
             movie: "фильм",
             tv: "сериал",
         };
@@ -33,16 +34,14 @@ export const CategorySelector = ({ onSelect, insets }) => {
 
             <View style={styles.grid}>
                 {orderedCategories.map((cat, index) => {
-                    const isLast = index === orderedCategories.length - 1;
-
                     return (
                         <TouchableOpacity
                             key={cat.id}
-                            style={[styles.card, isLast && styles.cardFullWidth]}
+                            style={styles.card}
                             activeOpacity={0.8}
                             onPress={() => onSelect(cat.id)}
                         >
-                            <View style={[isLast ? styles.fullWidthLayout : styles.standardLayout]}>
+                            <View style={styles.standardLayout}>
                                 <View style={styles.cardHeader}>
                                     <View style={styles.iconWrapper}>
                                         <Image
@@ -53,12 +52,7 @@ export const CategorySelector = ({ onSelect, insets }) => {
                                     </View>
                                 </View>
 
-                                <View
-                                    style={[
-                                        styles.cardFooter,
-                                        isLast && styles.cardFooterFullWidth,
-                                    ]}
-                                >
+                                <View style={styles.cardFooter}>
                                     <View>
                                         <Text style={styles.cardText}>{cat.label}</Text>
                                         <Text style={styles.subText}>Найти {getLabel(cat.id)}</Text>
@@ -106,21 +100,10 @@ const createLocalStyles = (theme) =>
             padding: 20,
             marginBottom: 15,
         },
-        cardFullWidth: {
-            width: "100%",
-            height: 110,
-        },
         standardLayout: {
             flex: 1,
             justifyContent: "space-between",
         },
-        fullWidthLayout: {
-            flex: 1,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-        },
-
         cardHeader: {
             flexDirection: "row",
             justifyContent: "space-between",
@@ -137,13 +120,6 @@ const createLocalStyles = (theme) =>
         icon: { width: 24, height: 24, objectFit: "contain" },
         cardFooter: {
             gap: 4,
-        },
-        cardFooterFullWidth: {
-            flex: 1,
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginLeft: 15,
         },
         cardText: { color: theme.text, fontSize: 18, fontWeight: "700" },
         subText: { color: theme.textDark, fontSize: 12, fontWeight: "500" },

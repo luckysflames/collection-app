@@ -26,6 +26,7 @@ const CATEGORY_ACTION_TEXTS = {
     tv: "Перейти на lostfilm",
     anime: "Перейти в 2D мир",
     book: "Перейти в библиотеку",
+    manga: "Перейти к татеёми",
 };
 
 export default function CollectionDashboard({ navigation }) {
@@ -60,14 +61,13 @@ export default function CollectionDashboard({ navigation }) {
             >
                 <View style={styles.grid}>
                     {orderedCategories.map((cat, index) => {
-                        const isLast = index === orderedCategories.length - 1;
                         const subTextAction =
                             CATEGORY_ACTION_TEXTS[cat.id] || "Перейти к коллекции";
 
                         return (
                             <TouchableOpacity
                                 key={cat.id}
-                                style={[styles.card, isLast && styles.cardFullWidth]}
+                                style={styles.card}
                                 activeOpacity={0.8}
                                 onPress={() =>
                                     navigation.navigate("MainScreen", {
@@ -77,11 +77,7 @@ export default function CollectionDashboard({ navigation }) {
                             >
                                 <View style={styles.cardGlow} />
 
-                                <View
-                                    style={[
-                                        isLast ? styles.fullWidthLayout : styles.standardLayout,
-                                    ]}
-                                >
+                                <View style={styles.standardLayout}>
                                     <View style={styles.cardHeader}>
                                         <View style={styles.iconWrapper}>
                                             <Image
@@ -91,29 +87,14 @@ export default function CollectionDashboard({ navigation }) {
                                             />
                                         </View>
 
-                                        {!isLast && (
-                                            <Text style={styles.countText}>{getCount(cat.id)}</Text>
-                                        )}
+                                        <Text style={styles.countText}>{getCount(cat.id)}</Text>
                                     </View>
 
-                                    <View
-                                        style={[
-                                            styles.cardFooter,
-                                            isLast && styles.cardFooterFullWidth,
-                                        ]}
-                                    >
+                                    <View style={styles.cardFooter}>
                                         <View>
                                             <Text style={styles.cardText}>{cat.label}</Text>
                                             <Text style={styles.subText}>{subTextAction}</Text>
                                         </View>
-
-                                        {isLast && (
-                                            <View style={styles.countFullWidthContainer}>
-                                                <Text style={styles.countTextFullWidth}>
-                                                    {getCount(cat.id)}
-                                                </Text>
-                                            </View>
-                                        )}
                                     </View>
                                 </View>
                             </TouchableOpacity>
@@ -169,10 +150,6 @@ const createLocalStyles = (theme) =>
             borderColor: theme.main,
             overflow: "hidden",
         },
-        cardFullWidth: {
-            width: "100%",
-            height: 110,
-        },
         cardGlow: {
             position: "absolute",
             top: -40,
@@ -186,13 +163,6 @@ const createLocalStyles = (theme) =>
             flex: 1,
             justifyContent: "space-between",
         },
-        fullWidthLayout: {
-            flex: 1,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-        },
-
         cardHeader: {
             flexDirection: "row",
             justifyContent: "space-between",
@@ -216,25 +186,8 @@ const createLocalStyles = (theme) =>
             marginRight: -5,
             marginTop: 5,
         },
-        countTextFullWidth: {
-            color: theme.accent,
-            fontSize: 16,
-            fontWeight: "700",
-            width: 40,
-            textAlign: "center",
-            marginRight: -5,
-            marginTop: -25,
-        },
         cardFooter: {
             gap: 4,
-        },
-        cardFooterFullWidth: {
-            flex: 1,
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginLeft: 15,
-            position: "relative",
         },
         cardText: { color: theme.text, fontSize: 18, fontWeight: "700" },
         subText: { color: theme.textDark, fontSize: 12, fontWeight: "500" },

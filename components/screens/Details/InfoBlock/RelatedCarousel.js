@@ -12,10 +12,12 @@ const isNavigableItem = (id) =>
     (id.startsWith("movie-") ||
         id.startsWith("tv-") ||
         id.startsWith("anime-") ||
+        id.startsWith("manga-") ||
         id.startsWith("book-") ||
         id.startsWith("game-"));
 
 const RelatedCarouselItem = memo(({ item, onNavigateToDetails, styles }) => {
+    const type = item.type || (item.id?.startsWith("manga-") ? "manga" : "anime");
     const handlePress = () => {
         if (isNavigableItem(item?.id)) {
             onNavigateToDetails?.(item);
@@ -27,8 +29,9 @@ const RelatedCarouselItem = memo(({ item, onNavigateToDetails, styles }) => {
             <MediaCard
                 item={{
                     ...item,
-                    type: "anime",
-                    isAnime: true,
+                    type,
+                    isAnime: type === "anime",
+                    isManga: type === "manga",
                 }}
                 onPress={handlePress}
                 small={true}

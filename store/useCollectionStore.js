@@ -31,6 +31,7 @@ export const useCollectionStore = create(
                 Books: "Всё",
                 Games: "Всё",
                 Anime: "Всё",
+                Manga: "Всё",
                 TV: "Всё",
             },
             defaultSorts: {
@@ -38,6 +39,7 @@ export const useCollectionStore = create(
                 Books: "date_desc",
                 Games: "date_desc",
                 Anime: "date_desc",
+                Manga: "date_desc",
                 TV: "date_desc",
             },
             categoryOrder: DEFAULT_CATEGORY_ORDER,

@@ -1,8 +1,9 @@
 import React, { memo } from "react";
-import { View, Text, Image, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { BookCopy, Gem, Infinity, Pin, Star } from "lucide-react-native";
 import { useTheme } from "../../hooks/useTheme";
+import { PosterImage } from "./PosterImage";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
@@ -33,7 +34,7 @@ const MediaCardComponent = ({
             style={styles.cardContainer}
         >
             <View style={[styles.card, small && { height: 200, width: 140 }]}>
-                <Image source={{ uri: item.image }} style={styles.image} fadeDuration={150} />
+                <PosterImage image={item.image} style={styles.image} iconSize={36} />
 
                 {/* Порядковый номер (справа сверху) */}
                 {showOrderNumber && (

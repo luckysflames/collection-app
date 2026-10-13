@@ -9,6 +9,7 @@ export const useDetailsData = (item, fullDetails, savedItem) => {
 
         // Затем проверяем boolean флаги (от API)
         if (savedItem?.isAnime || item?.isAnime || fullDetails?.isAnime) return "anime";
+        if (savedItem?.isManga || item?.isManga || fullDetails?.isManga) return "manga";
         if (savedItem?.isTV || item?.isTV || fullDetails?.isTV) return "tv";
         if (savedItem?.isGame || item?.isGame || fullDetails?.isGame) return "game";
         if (savedItem?.isBook || item?.isBook || fullDetails?.isBook) return "book";
@@ -81,6 +82,42 @@ export const useDetailsData = (item, fullDetails, savedItem) => {
                         savedItem?.japaneseTitle ||
                         item?.japaneseTitle ||
                         fullDetails?.japaneseTitle,
+                };
+            case "manga":
+                return {
+                    ...common,
+                    mangaKind:
+                        savedItem?.mangaKind || item?.mangaKind || fullDetails?.mangaKind,
+                    mangaStatus:
+                        savedItem?.mangaStatus || item?.mangaStatus || fullDetails?.mangaStatus,
+                    volumes: savedItem?.volumes ?? item?.volumes ?? fullDetails?.volumes,
+                    chapters: savedItem?.chapters ?? item?.chapters ?? fullDetails?.chapters,
+                    airedOn: savedItem?.airedOn || item?.airedOn || fullDetails?.airedOn,
+                    releasedOn:
+                        savedItem?.releasedOn || item?.releasedOn || fullDetails?.releasedOn,
+                    authors:
+                        savedItem?.authors || item?.authors || fullDetails?.authors || [],
+                    publishers:
+                        savedItem?.publishers ||
+                        item?.publishers ||
+                        fullDetails?.publishers ||
+                        [],
+                    creator: savedItem?.creator || item?.creator || fullDetails?.creator,
+                    related: savedItem?.related || item?.related || fullDetails?.related || [],
+                    name: savedItem?.name || item?.name || fullDetails?.name,
+                    russian: savedItem?.russian || item?.russian || fullDetails?.russian,
+                    licenseNameRu:
+                        savedItem?.licenseNameRu ||
+                        item?.licenseNameRu ||
+                        fullDetails?.licenseNameRu,
+                    englishTitle:
+                        savedItem?.englishTitle || item?.englishTitle || fullDetails?.englishTitle,
+                    japaneseTitle:
+                        savedItem?.japaneseTitle ||
+                        item?.japaneseTitle ||
+                        fullDetails?.japaneseTitle,
+                    synonyms: savedItem?.synonyms || item?.synonyms || fullDetails?.synonyms || [],
+                    year: savedItem?.year || item?.year || fullDetails?.year,
                 };
             case "movie":
                 return {

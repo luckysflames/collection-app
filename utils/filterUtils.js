@@ -4,6 +4,7 @@ const DYNAMIC_FILTER_FIELDS = [
     "developers",
     "platforms",
     "authors",
+    "publishers",
     "companies",
     "countries",
 ];
@@ -46,6 +47,8 @@ export const getItemFilterValue = (item, filterKey) => {
             return item.animeKind || item.kind;
         case "animeStatus":
             return item.animeStatus || item.status;
+        case "mangaStatus":
+            return item.mangaStatus;
         case "movieStatus":
             return item.movieStatus || item.status;
         default:

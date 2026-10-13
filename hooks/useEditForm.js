@@ -25,6 +25,8 @@ export const useEditForm = (isEditing, initialData) => {
                 "budget",
                 "episodes",
                 "episodesAired",
+                "volumes",
+                "chapters",
                 "episodesCount",
                 "seasonsCount",
                 "metacritic",
@@ -36,6 +38,8 @@ export const useEditForm = (isEditing, initialData) => {
             const selectFields = [
                 "animeKind",
                 "animeStatus",
+                "mangaKind",
+                "mangaStatus",
                 "rating",
                 "movieStatus",
                 "maturityRating",

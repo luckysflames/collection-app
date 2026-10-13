@@ -64,7 +64,7 @@ export const useAddCardForm = (navigation, initialType) => {
             title: form.title,
             description: form.description,
             genres: split(form.genres),
-            image: form.image || "https://via.placeholder.com/300x450",
+            image: form.image || null,
             status: form.status === FAVORITE_STATUS ? "Без статуса" : form.status,
             userNotes: "",
             isCustom: true,
@@ -114,6 +114,21 @@ export const useAddCardForm = (navigation, initialType) => {
                     studios: split(form.studios),
                     duration: extractNumeric(form.duration),
                     animeStatus: form.animeStatus,
+                };
+                break;
+            case "manga":
+                extendedData = {
+                    year: form.airedOn || form.year,
+                    englishTitle: form.englishTitle,
+                    japaneseTitle: form.japaneseTitle,
+                    mangaKind: form.mangaKind,
+                    mangaStatus: form.mangaStatus,
+                    airedOn: form.airedOn,
+                    releasedOn: form.releasedOn,
+                    volumes: extractNumeric(form.volumes),
+                    chapters: extractNumeric(form.chapters),
+                    authors: split(form.authors),
+                    publishers: split(form.publishers),
                 };
                 break;
             case "book":

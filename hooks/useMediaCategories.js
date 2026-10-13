@@ -28,6 +28,9 @@ export const useMediaCategories = (sectionId) => {
             case "anime":
                 sectionName = "аниме";
                 break;
+            case "manga":
+                sectionName = "манги";
+                break;
             case "movie":
                 sectionName = "фильмов";
                 break;

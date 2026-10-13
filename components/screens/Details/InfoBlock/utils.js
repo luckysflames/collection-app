@@ -1,5 +1,5 @@
 import { COUNTRIES_MAP, COUNTRIES_MAP_FULL_NAME_MAP } from "../../../../constants/countries";
-import { ANIME_KINDS } from "../../../../constants/forms";
+import { ANIME_KINDS, MANGA_KINDS } from "../../../../constants/forms";
 
 export const formatDate = (date) => (date ? date.split("-").reverse().join(".") : "?");
 export const formatRating = (rating) => (rating ? rating.replace("_", "-").toUpperCase() : "?");
@@ -7,6 +7,12 @@ export const formatRating = (rating) => (rating ? rating.replace("_", "-").toUpp
 export const formatKind = (kind) => {
     if (!kind) return "?";
     const foundKind = ANIME_KINDS.find((item) => item.id === kind.toLowerCase());
+    return foundKind ? foundKind.label : kind.toUpperCase();
+};
+
+export const formatMangaKind = (kind) => {
+    if (!kind) return "?";
+    const foundKind = MANGA_KINDS.find((item) => item.id === kind.toLowerCase());
     return foundKind ? foundKind.label : kind.toUpperCase();
 };
 

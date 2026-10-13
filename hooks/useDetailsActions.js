@@ -20,6 +20,7 @@ export const useDetailsActions = (item, displayData, category) => {
         if (savedItem?.appSection) return savedItem.appSection;
 
         // Приоритет 3: Если это пришло из карусели аниме или сериалов (проверяем поля API)
+        if (item.type === "manga" || item.isManga) return "manga";
         if (item.type === "anime" || item.episodes) return "Аниме";
         if (item.type === "tv" || item.isTV) return "Сериалы";
 

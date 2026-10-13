@@ -17,6 +17,10 @@ export const INITIAL_FORM_STATE = {
     animeKind: "tv",
     rating: "pg_13",
     animeStatus: "ongoing",
+    mangaKind: "manga",
+    mangaStatus: "ongoing",
+    volumes: "",
+    chapters: "",
     airedOn: "",
     releasedOn: "",
     episodes: "",
@@ -26,6 +30,7 @@ export const INITIAL_FORM_STATE = {
     maturityRating: "not_mature",
     authors: "",
     publisher: "",
+    publishers: "",
     metacritic: "",
     esrb: "e",
     developers: "",
@@ -61,9 +66,27 @@ export const ANIME_KINDS = [
 
 // Статусы аниме
 export const ANIME_STATUSES = [
-    { id: "ongoing", label: "Онгоинг" },
-    { id: "released", label: "Вышло" },
     { id: "anons", label: "Анонсировано" },
+    { id: "ongoing", label: "Онгоинг" },
+    { id: "released", label: "Завершено" },
+];
+
+export const MANGA_KINDS = [
+    { id: "manga", label: "Манга" },
+    { id: "manhwa", label: "Манхва" },
+    { id: "manhua", label: "Маньхуа" },
+    { id: "light_novel", label: "Ранобэ" },
+    { id: "novel", label: "Новелла" },
+    { id: "one_shot", label: "Ваншот" },
+    { id: "doujin", label: "Додзинси" },
+];
+
+export const MANGA_STATUSES = [
+    { id: "anons", label: "Анонсировано" },
+    { id: "ongoing", label: "Онгоинг" },
+    { id: "released", label: "Завершено" },
+    { id: "paused", label: "Приостановлено" },
+    { id: "discontinued", label: "Заброшено" },
 ];
 
 // Статусы фильмов

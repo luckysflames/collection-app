@@ -1,7 +1,8 @@
 import React from "react";
-import { Image, TouchableOpacity, Text, StyleSheet } from "react-native";
+import { TouchableOpacity, Text, StyleSheet } from "react-native";
 import { Camera } from "lucide-react-native";
 import { useTheme } from "../../hooks/useTheme";
+import { getDisplayableImageUri, PosterImage } from "./PosterImage";
 
 export const HeroPoster = ({
     image,
@@ -13,15 +14,16 @@ export const HeroPoster = ({
 }) => {
     const { theme, createStyles } = useTheme();
     const styles = createStyles(createLocalStyles);
+    const posterUri = getDisplayableImageUri(image);
 
     return (
         <TouchableOpacity
             style={[styles.posterFrame, { width: posterWidth, height: posterHeight }]}
             activeOpacity={isEditing ? 1 : 0.9}
-            onPress={isEditing ? undefined : onPressPoster}
+            onPress={isEditing || !posterUri ? undefined : onPressPoster}
             disabled={isEditing && !onPickImage}
         >
-            <Image key={image} source={{ uri: image }} style={styles.image} resizeMode="cover" />
+            <PosterImage image={image} style={styles.image} iconColor={theme.textDark} />
 
             {isEditing && (
                 <TouchableOpacity

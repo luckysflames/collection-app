@@ -231,7 +231,8 @@ export default function DetailsScreen({ route, navigation }) {
                                 onNavigateToDetails={(newItem) =>
                                     navigation.push("Details", {
                                         item: newItem,
-                                        category,
+                                        category:
+                                            newItem.type || newItem.id?.split("-")[0] || category,
                                     })
                                 }
                             />

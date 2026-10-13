@@ -16,9 +16,7 @@ export const googleBooksService = {
                 title: item.volumeInfo.title,
                 year: item.volumeInfo.publishedDate?.split("-")[0] || "N/A",
                 category: "Книга",
-                image:
-                    item.volumeInfo.imageLinks?.thumbnail?.replace("http:", "https:") ||
-                    "https://via.placeholder.com/500x750",
+                image: item.volumeInfo.imageLinks?.thumbnail?.replace("http:", "https:") || null,
                 description: cleanHtml(item.volumeInfo.description),
                 isBook: true,
             })) || []
